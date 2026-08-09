@@ -18,6 +18,11 @@ def get_connection() -> Connection:
     return psycopg.connect(get_settings().database_url)
 
 
+def _ensure_postgis(conn: Connection) -> None:
+    conn.execute("CREATE EXTENSION IF NOT EXISTS postgis")
+    conn.commit()
+
+
 def _ensure_schema_migrations_table(conn: Connection) -> None:
     conn.execute(
         """
@@ -50,6 +55,7 @@ def run_migrations(migrations_dir: Path = MIGRATIONS_DIR) -> list[str]:
     """
     conn = get_connection()
     try:
+        _ensure_postgis(conn)
         _ensure_schema_migrations_table(conn)
         applied = _applied_versions(conn)
         newly_applied: list[str] = []

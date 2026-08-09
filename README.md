@@ -22,3 +22,43 @@ geographic proximity, historical trade routes, or linguistic/ethnic boundaries?
 
 See [CLAUDE.md](CLAUDE.md) for the full build plan, non-negotiable rules, data model, and
 execution schedule.
+
+## Setup
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) (Docker Desktop, OrbStack, or equivalent) —
+  the database is local PostgreSQL 15 + PostGIS, not a hosted service
+- [`uv`](https://docs.astral.sh/uv/) for Python 3.11 dependency management
+- An Anthropic API key
+
+### Install
+
+```bash
+cp .env.example .env
+# edit .env: set POSTGRES_PASSWORD (and mirror it into DATABASE_URL),
+# ANTHROPIC_API_KEY, and SCRAPER_CONTACT_EMAIL
+
+make setup   # starts Postgres+PostGIS via Docker Compose, waits for it to be
+             # healthy, installs Python dependencies with uv, and applies
+             # db/migrations/*.sql
+```
+
+### Run the tests
+
+```bash
+make test    # pytest + ruff + mypy
+```
+
+### Everyday commands
+
+| Command | What it does |
+|---|---|
+| `make setup` | Start the database, install dependencies, apply migrations |
+| `make test` | Run the test suite, linter, and type checker |
+| `scripts/dump_db.sh` | Dump the local database to `data/exports/` |
+| `scripts/restore_db.sh <dump.sql.gz>` | Restore the database from a dump |
+
+The rest of the pipeline (`scrape`, `ingest`, `clean`, `analyze`, `vision`, `figures`, `api`,
+`web`, `export`) is scaffolded in the `Makefile` and built out phase by phase — see
+[CLAUDE.md](CLAUDE.md) for what's live and what's still a stub.

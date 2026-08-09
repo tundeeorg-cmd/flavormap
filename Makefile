@@ -1,6 +1,7 @@
-.PHONY: setup scrape clean analyze figures map export test all
+.PHONY: setup scrape ingest clean analyze vision figures api web export test all verify
 
 setup:
+	docker compose up -d --wait
 	uv sync
 	uv run playwright install
 	uv run python -m scripts.migrate
@@ -8,17 +9,26 @@ setup:
 scrape:
 	@echo "make scrape: not yet implemented" && exit 1
 
+ingest:
+	@echo "make ingest: not yet implemented" && exit 1
+
 clean:
 	@echo "make clean: not yet implemented" && exit 1
 
 analyze:
 	@echo "make analyze: not yet implemented" && exit 1
 
+vision:
+	@echo "make vision: not yet implemented" && exit 1
+
 figures:
 	@echo "make figures: not yet implemented" && exit 1
 
-map:
-	@echo "make map: not yet implemented" && exit 1
+api:
+	@echo "make api: not yet implemented" && exit 1
+
+web:
+	@echo "make web: not yet implemented" && exit 1
 
 export:
 	@echo "make export: not yet implemented" && exit 1
@@ -29,3 +39,6 @@ test:
 	uv run mypy
 
 all: clean analyze figures
+
+verify:
+	@echo "make verify: not yet implemented" && exit 1
