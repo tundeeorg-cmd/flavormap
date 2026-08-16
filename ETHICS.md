@@ -67,6 +67,26 @@ while `ClaudeBot`, `GPTBot`, `CCBot`, `Google-Extended` and `Bytespider` may not
 **Being permitted by the parser is not the same as being welcome.** This source is
 therefore held at HD-3 rather than treated as cleared. See `docs/decisions.md`.
 
+### `food.culture.go.th` — fetch record, 2026-08-16
+
+Fetched under HD-3 **option C**: reference layer only, excluded from any public release,
+pending a reply to the permission request in `docs/dcp_permission_request.md`.
+
+| | |
+|---|---|
+| Documents | 231 of 231 (77 provinces × 3 menus), 126 MB |
+| Failures | 0 missing, 0 errors |
+| Rate | 1 request/second, sequential, no concurrency |
+| User-Agent | `FlavorMapResearchBot/0.1 (+mailto:…; academic research, non-commercial)` |
+| robots.txt | re-checked at run time, not trusted from the audit |
+| Stored | `data/raw/dcp_food/`, gitignored, never published |
+
+**The raw PDFs contain personal data** — informant names, house numbers, postcodes and
+mobile numbers, exactly as §1.3 of the form provides for. They are retained locally, and
+only locally, so that parsing is reproducible and auditable. They are gitignored, they
+never enter a HuggingFace release, and the fields are discarded during parsing before
+anything is written to the database.
+
 ### Consulted by hand, never automated
 
 | Source | Reason |
