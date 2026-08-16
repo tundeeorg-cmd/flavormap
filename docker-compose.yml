@@ -1,6 +1,14 @@
+# Local PostgreSQL 15 + PostGIS 3.4 (Bible §11 — replaces the earlier hosted plan).
+#
+# Image choice. The official `postgis/postgis:15-3.4` publishes linux/amd64 only, so on
+# Apple Silicon it runs under emulation — it works, but every bulk insert and spatial
+# query pays for it. `imresamu/postgis` is the maintained multi-arch mirror of the same
+# images (same PostGIS build, arm64 included). Pinned by digest-free tag deliberately so
+# a rebuild picks up patch releases; if the mirror ever becomes a concern, reverting to
+# postgis/postgis:15-3.4 is a one-line change and costs only speed.
 services:
   db:
-    image: postgis/postgis:15-3.4
+    image: imresamu/postgis:15-3.4
     environment:
       POSTGRES_DB: flavormap
       POSTGRES_USER: flavormap
@@ -8,10 +16,15 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
+      # Named volume, not a bind mount: keeps Postgres's data directory off the host
+      # filesystem, which avoids permission and fsync surprises on macOS.
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U flavormap -d flavormap"]
       interval: 5s
       timeout: 5s
       retries: 10
       start_period: 10s
+
+volumes:
+  pgdata:

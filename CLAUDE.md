@@ -102,12 +102,18 @@ needs changing gets a new forward migration, never an edit to an applied one.
 | 003 | `recipes` | `name_th`, `dish_category`, `occasion`, `endangerment`, `collection_date` |
 | 004 | `canonical_ingredients`, `ingredient_aliases`, `ingredient_conflations`, `alias_candidates` | the lexicon and its review queue |
 | 005 | `recipe_ingredients` | `raw_text`, `quantity_g` (NULL unless convertible), `acquisition_mode` |
-| 006 | `province_attribution` | four tiers, confidence, rationale |
-| 007 | `provinces` | 77 rows, ISO codes, region4, dialect_group, centroids, PostGIS geometry |
+| 006 | `provinces` | 77 rows, ISO codes, region4, dialect_group, centroids, PostGIS geometry |
+| 007 | `province_attribution` | four tiers, confidence, rationale |
 | 008 | `informants`, `interview_dishes` | fieldwork — **no names, no contacts, ever** |
 | 009 | `dish_categories` | RQ5 taxonomy + written inclusion rules. **Seeded empty pending HD-9** |
 | 010 | `coverage` | per-province recipe count, labelled fraction, source concentration |
 | 011 | `redaction_log` | per-document count of PDPA fields stripped at parse time |
+| 012 | `v_recipes_clean` | the analysis view |
+
+**Ordering correction (2026-08-16).** The v2 plan numbered `province_attribution` 006 and
+`provinces` 007, with a foreign key pointing from the earlier to the later. That cannot
+apply to an empty database. Provinces now comes first. All twelve migrations are verified
+to apply from an empty volume via `make db-reset`.
 
 ### 3.1 v3 schema changes from v2
 

@@ -1,9 +1,20 @@
-.PHONY: setup scrape ingest clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset scrape ingest clean analyze vision figures api web export test all verify
 
-setup:
-	docker compose up -d --wait
+setup: db-up
 	uv sync
 	uv run playwright install
+	uv run python -m scripts.migrate
+
+db-up:
+	docker compose up -d --wait
+
+db-down:
+	docker compose down
+
+# Destroys the named volume. Only for verifying that migrations apply from empty.
+db-reset:
+	docker compose down -v
+	docker compose up -d --wait
 	uv run python -m scripts.migrate
 
 scrape:
