@@ -1,34 +1,56 @@
-# FlavorMap — Build Plan for Claude Code (Full Scope)
+# FlavorMap — Build Plan for Claude Code
 
-**Version:** 2.0 · **Written:** 2026-08-04 · **Supersedes:** v1.0 (compressed 6-month plan)
-**Window:** Aug 2026 – Oct 2027 · **Place at repo root as `CLAUDE.md`.**
+**Version:** 3.0 · **Reconciled:** 2026-08-16 · **Authority:** `FlavorMap_Project_Bible_v3.pdf`
+**Window:** Aug 2026 – Nov 2027 · **Freeze:** 31 March 2027
+
+> This file is the operational plan. The Bible is the specification. Where the two
+> disagree, **the Bible wins** and this file is wrong and should be corrected.
+> Superseded plans are in `docs/archive/` — kept, not deleted, because the planning
+> trail is part of the authorship evidence (Bible §2).
 
 ---
 
 ## 0. How to use this document
 
-Spec for an AI coding agent working alongside a Grade 10 student researcher (**the researcher**). Defines what gets built, in what order, with what acceptance criteria.
+Spec for an AI coding agent working alongside the student researcher (**the researcher**).
 
-- **[CC]** — Claude Code executes: scaffolding, parsing, wrangling, plumbing, plotting, deployment.
-- **[HD]** — Human Decision. A judgment call the researcher makes and records with written rationale in `docs/decisions.md`. Claude Code implements the decision but never makes it, and never proceeds past an open gate.
+- **[CC]** — Claude Code executes: scaffolding, parsing, wrangling, plumbing, plotting.
+- **[HD]** — Human Decision. A judgment only the researcher makes, recorded with its
+  reasoning and its alternatives in `docs/decisions.md`. Claude Code implements a decision
+  once made; it never makes one, never picks the sensible option and flags it for later,
+  and never proceeds past an open gate.
 
-There are **20 `[HD]` gates** in the full plan. They are the project's intellectual content — every one appears in the paper and has to be defensible in a university interview.
+**Twenty gates, ~225 researcher-hours** (Bible §13). That number is what determines
+whether the project finishes, and it is the one number that generating code faster does
+not reduce.
 
-**Authorship note for the agent:** write clean, idiomatic, documented code. Do not stylize output to imitate a novice, do not stage commit histories, do not introduce deliberate errors. The agent builds machinery; the researcher owns every analytical decision. That only holds if the gates are respected.
+**Authorship note for the agent:** write clean, idiomatic, documented code. Do not
+stylise output to imitate a novice, do not stage commit histories, do not introduce
+deliberate errors. The agent builds machinery; the researcher owns every analytical
+decision. That only holds if the gates are respected.
 
 ---
 
 ## 1. Non-negotiable rules
 
 1. **Raw data is immutable.** `raw_*` tables are append-only. Cleaning writes to new tables.
-2. **Never fabricate a province.** Attribution failure → `province = NULL`.
-3. **Never impute quantities.** "ตามชอบ" → NULL, `has_quantity = false`.
-4. **Never merge canonical ingredients without `[HD]` approval.** Similarity produces candidates only.
-5. **`make figures` regenerates every number and figure in the paper** from the database.
-6. **Every stochastic operation takes an explicit seed** (`RANDOM_SEED = 42` in `src/config.py`).
-7. **Respect robots.txt.** 1 req/sec, identifying User-Agent with contact email. Disallowed → source dropped, not worked around.
-8. **No personally identifying data enters the database, ever.** No names, contacts, addresses, faces, or GPS-tagged photos. Enforced by tests.
-9. **Negative results ship.** If the image classifier performs at baseline, that is the finding. Nothing gets quietly dropped because it didn't work.
+2. **Never fabricate a province.** Attribution failure → `province = NULL`. No
+   nearest-neighbour filling, no "probably Central."
+3. **Never impute quantities.** ตามชอบ → NULL, `has_quantity = false`.
+4. **Never merge canonical ingredients without `[HD]` approval.** Automated similarity
+   writes to `alias_candidates`, never to `ingredient_aliases`.
+5. **`make figures` regenerates every number and figure** from the database. No
+   hand-edited plots, no numbers typed into prose by hand.
+6. **Every stochastic operation takes `RANDOM_SEED`** from `src/config.py`.
+7. **Respect robots.txt.** 1 req/sec, identifying User-Agent carrying
+   `SCRAPER_CONTACT_EMAIL`. Disallowed → source dropped, never worked around. Every
+   source audited into `ETHICS.md` **with a date** before a scraper is written.
+8. **No personally identifying data enters the database, ever.** No names, contacts,
+   addresses, faces, or GPS-tagged photos. Enforced by tests. Filtering at export is too
+   late — by then it is in the backups.
+9. **Negative results ship.** If a result is null, that is the finding.
+10. **Every chart is 2D.** Where a third axis is tempting, use colour, size, or small
+    multiples. The single exception is the force-directed network on the public site.
 
 ---
 
@@ -39,464 +61,404 @@ There are **20 `[HD]` gates** in the full plan. They are the project's intellect
 | Concern | Choice |
 |---|---|
 | Python | 3.11, `uv` |
-| Database | PostgreSQL 15 + PostGIS, local via Docker Compose (`docker-compose.yml`); database `flavormap` |
+| Database | **PostgreSQL 15 + PostGIS 3.4, local, Docker Compose**. Database `flavormap` |
+| Raw pages | **On disk only** (`data/raw/{source_id}/…`), gitignored, never in the database |
 | Lint / types / tests | `ruff`, `mypy` on `src/`, `pytest` |
-| Migrations | numbered SQL in `db/migrations/`, applied by `scripts/migrate.py` |
-| Scraping | `httpx` + `selectolax`; `playwright` only where JS rendering is confirmed |
-| PDF / cookbooks | `pdfplumber`, `pytesseract` (Thai traineddata) for scanned pages |
+| Migrations | numbered SQL in `db/migrations/`, applied by `scripts/migrate.py`, append-only |
+| Scraping | `httpx` + `selectolax`; `playwright` only where JS hydration is confirmed |
+| PDF | `pdfplumber`, `pypdf`, `pdftotext -layout` — chosen on evidence per source (see §7.1) |
 | LLM | `anthropic` SDK, model pinned in `src/config.py` |
-| Analysis | `pandas`, `networkx`, `python-louvain`, `igraph`, `scikit-learn`, `umap-learn`, `scipy`, `geopandas`, `libpysal`, `esda` |
-| Vision | `torch`, `torchvision`, `timm` (EfficientNet-B0) |
-| API | `fastapi` + `uvicorn`, deployed on Railway |
-| Frontend | Next.js 14 + Tailwind, Mapbox GL JS, Sigma.js, deployed on Vercel |
-| Paper figures | `matplotlib` (never hand-edited) |
+| Analysis | `pandas`, `networkx`, `python-louvain`, `igraph`, `scikit-learn`, `umap-learn`, `scipy`, `geopandas`, `libpysal`, `esda`, `PyThaiNLP` |
+| Production serving | **Pre-materialised static JSON.** No live database queries, no API runtime dependency |
+| Paper figures | `matplotlib` + `seaborn`, 300 dpi, colourblind-safe, never hand-edited |
+| Site | GitHub Pages or Vercel free tier — **Sep–Oct 2027, not before** |
 
-### 2.2 Layout
+Total infrastructure cost is effectively zero. Nothing needs a GPU. Say so in the paper:
+it establishes that the project was constrained by effort and access rather than
+resources, which is the profile of a student project done properly.
 
-```
-flavormap/
-  CLAUDE.md  Makefile  pyproject.toml  .env.example
-  db/migrations/
-  data/
-    raw/            # scraped HTML, cookbook scans — gitignored, backed up
-    reference/      # provinces.csv, dialect_groups.csv, dish_province.csv — committed
-    photos/         # fieldwork images, EXIF-stripped, gitignored
-    processed/      # parquet analysis outputs
-    exports/        # HuggingFace release bundle
-  src/
-    config.py  db.py
-    scrape/    base.py doae.py tat.py wongnai.py kapook.py thaitaste.py pantip.py
-    ingest/    interview.py cookbook.py photos.py
-    clean/     extract.py normalize_th.py canonicalize.py attribute.py dedupe.py quality.py
-    analyze/   eligibility.py network.py centrality.py communities.py distinctiveness.py
-               cluster.py spatial.py classifier.py sensitivity.py
-    vision/    dataset.py train.py evaluate.py
-    api/       main.py routers/ schemas.py
-    viz/       folium_map.py network_export.py map_data.py
-    paper/     figures.py tables.py
-  web/                        # Next.js app
-  scripts/  tests/  notebooks/  figures/
-  docs/  decisions.md  notebook.md  source_audit.md  fieldwork_log.md
-```
-
-### 2.3 Makefile targets
+### 2.2 Makefile targets
 
 ```make
-setup scrape ingest clean analyze vision figures api web export test
+setup  db-up  db-down  scrape  ingest  clean  analyze  figures  export  test
 all      # clean analyze figures
 verify   # fresh-clone reproducibility check
 ```
 
-`make all` must run end to end from a fresh clone plus a database dump. Checked at the end of every phase, not once at the end.
+`make all` must run end to end from a fresh clone plus a database dump. Checked at the
+end of every phase, not once at the end.
 
 ---
 
 ## 3. Data model
 
-Each table below is applied as its own numbered file in `db/migrations/`, in this order.
-Only `001_sources.sql` exists as of this writing — the rest land as the corresponding
-pipeline stage is built (§6 onward), not all at once.
+Each table is its own numbered migration. **Migrations are append-only** — a table that
+needs changing gets a new forward migration, never an edit to an applied one.
 
-```sql
--- 001
-CREATE TABLE sources (
-  source_id      TEXT PRIMARY KEY,          -- 'doae', 'tat', 'wongnai', 'interview', 'cookbook'
-  source_type    TEXT NOT NULL,             -- web_scraped | interview | cookbook | institutional
-  base_url       TEXT,
-  robots_ok      BOOLEAN NOT NULL,
-  audited_on     DATE NOT NULL,
-  est_recipes    INTEGER,
-  province_quality TEXT                     -- explicit | region_only | none
-);
-
--- 002  IMMUTABLE
-CREATE TABLE raw_recipes (
-  raw_id         BIGSERIAL PRIMARY KEY,
-  source_id      TEXT REFERENCES sources,
-  source_url     TEXT,
-  fetched_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
-  http_status    INTEGER,
-  raw_path       TEXT,                      -- path to the raw page on disk:
-                                             -- data/raw/{source_id}/{hash}.html
-  parsed_json    JSONB,                     -- best-effort parse at fetch time
-  content_hash   TEXT NOT NULL              -- sha256 of normalized text, for dedupe
-);
-CREATE UNIQUE INDEX ON raw_recipes (source_id, content_hash);
-
--- 003
-CREATE TABLE recipes (
-  recipe_id      BIGSERIAL PRIMARY KEY,
-  raw_id         BIGINT REFERENCES raw_recipes,
-  name_th        TEXT NOT NULL,
-  name_en        TEXT,
-  dish_category  TEXT,                      -- nam_prik|curry|soup|noodle|rice|yam|dessert|snack|other
-  cooking_methods TEXT[],
-  collection_date DATE NOT NULL
-);
-
--- 004
-CREATE TABLE canonical_ingredients (
-  canonical_id   TEXT PRIMARY KEY,          -- 'ING_0047'
-  name_th        TEXT NOT NULL,
-  name_en        TEXT NOT NULL,
-  category       TEXT NOT NULL,
-  regional_note  TEXT,
-  approved_by_human BOOLEAN NOT NULL DEFAULT false,
-  decision_note  TEXT                       -- why this boundary was drawn (an [HD] gate)
-);
-
-CREATE TABLE ingredient_aliases (
-  alias          TEXT PRIMARY KEY,
-  canonical_id   TEXT REFERENCES canonical_ingredients,
-  match_method   TEXT NOT NULL,             -- manual | exact | embedding | llm
-  match_score    REAL,
-  approved_by_human BOOLEAN NOT NULL DEFAULT false
-);
-
-CREATE TABLE ingredient_conflations (   -- the NOT_same_as guard
-  canonical_id_a TEXT REFERENCES canonical_ingredients,
-  canonical_id_b TEXT REFERENCES canonical_ingredients,
-  reason         TEXT NOT NULL,
-  PRIMARY KEY (canonical_id_a, canonical_id_b)
-);
-
--- 005
-CREATE TABLE recipe_ingredients (
-  recipe_id      BIGINT REFERENCES recipes,
-  canonical_id   TEXT REFERENCES canonical_ingredients,
-  raw_text       TEXT NOT NULL,             -- exactly as it appeared
-  quantity_g     REAL,                      -- NULL unless convertible
-  extraction_method TEXT NOT NULL,          -- llm | rule | interview
-  human_validated BOOLEAN NOT NULL DEFAULT false,
-  PRIMARY KEY (recipe_id, canonical_id)
-);
-
--- 006
-CREATE TABLE province_attribution (
-  recipe_id      BIGINT PRIMARY KEY REFERENCES recipes,
-  province_code  TEXT REFERENCES provinces,
-  region         TEXT NOT NULL,
-  tier           SMALLINT NOT NULL,         -- 1=explicit province 2=region 3=dish-name 4=llm
-  confidence     TEXT NOT NULL,             -- high | medium | low
-  method_note    TEXT,
-  rationale      TEXT                       -- LLM reasoning string, kept for audit
-);
-
--- 007  reference data, committed to git
-CREATE TABLE provinces (
-  province_code  TEXT PRIMARY KEY,          -- ISO 3166-2:TH, e.g. 'TH-32'
-  name_th        TEXT NOT NULL,
-  name_en        TEXT NOT NULL,
-  region4        TEXT NOT NULL,             -- North | Northeast | Central | South
-  dialect_group  TEXT NOT NULL,             -- Central | Kam_Mueang | Isaan_Lao | Dambro | Malay
-  border_country TEXT,                      -- LA | KH | MM | MY | NULL
-  centroid_lat   DOUBLE PRECISION NOT NULL,
-  centroid_lon   DOUBLE PRECISION NOT NULL,
-  geom           GEOMETRY(MultiPolygon, 4326)
-);
-
--- 008  fieldwork
-CREATE TABLE informants (
-  informant_id   TEXT PRIMARY KEY,          -- 'INT_CM_001'
-  province_code  TEXT REFERENCES provinces,
-  age_bracket    TEXT,                      -- lt40 | 40_60 | gt60
-  consent_form   BOOLEAN NOT NULL,
-  consent_date   DATE NOT NULL,
-  interview_date DATE NOT NULL
-);
--- No names, no contact details, ever, in any table.
-
--- 010  cookbook sources
-CREATE TABLE cookbooks (
-  cookbook_id    TEXT PRIMARY KEY,
-  title_th       TEXT NOT NULL,
-  publisher      TEXT,
-  year_published INTEGER,
-  region_focus   TEXT,
-  library_call_no TEXT,
-  scanned_pages  INTEGER,
-  copyright_status TEXT NOT NULL       -- public_domain | permission_granted | fair_use_excerpt
-);
-
--- 011  fieldwork photos
-CREATE TABLE photos (
-  photo_id       TEXT PRIMARY KEY,
-  informant_id   TEXT REFERENCES informants,
-  province_code  TEXT REFERENCES provinces,
-  dish_name_th   TEXT,
-  subject_type   TEXT NOT NULL,        -- dish | ingredient | preparation
-  file_path      TEXT NOT NULL,
-  exif_stripped  BOOLEAN NOT NULL,     -- must be true; enforced by test
-  consent_photo  BOOLEAN NOT NULL,     -- must be true
-  contains_person BOOLEAN NOT NULL     -- must be false
-);
-
--- 012  interview dishes (the qualitative layer)
-CREATE TABLE interview_dishes (
-  dish_id        BIGSERIAL PRIMARY KEY,
-  informant_id   TEXT REFERENCES informants,
-  recipe_id      BIGINT REFERENCES recipes,
-  distinctiveness_claim TEXT,          -- what the cook says makes it provincial
-  differs_from_bangkok TEXT,
-  validation_notes TEXT                -- their reaction to scraped recipes from their province
-);
-```
-
-### 3.1 The analysis view
-
-```sql
-CREATE VIEW v_recipes_clean AS
-SELECT r.recipe_id, r.name_th, r.dish_category,
-       pa.province_code, pa.region, pa.confidence, pa.tier,
-       s.source_type,
-       count(ri.canonical_id) AS n_ingredients
-FROM recipes r
-JOIN province_attribution pa USING (recipe_id)
-JOIN raw_recipes rr ON rr.raw_id = r.raw_id
-JOIN sources s USING (source_id)
-JOIN recipe_ingredients ri USING (recipe_id)
-WHERE pa.confidence IN ('high','medium')
-GROUP BY r.recipe_id, r.name_th, r.dish_category,
-         pa.province_code, pa.region, pa.confidence, pa.tier, s.source_type
-HAVING count(ri.canonical_id) BETWEEN 3 AND 25;
-```
-
-All analysis reads from this view. Low-confidence rows exist in the database for sensitivity analysis only and are pulled explicitly by `src/analyze/sensitivity.py`.
-
----
-
-## 4. Scope targets
-
-| | Target | Minimum acceptable |
+| # | Migration | Contents |
 |---|---|---|
-| Recipes total | 2,200–2,600 | 1,540 (20 × 77) |
-| Web-scraped | 1,500 | 1,000 |
-| Interviews | 25–30 | 18 |
-| Interview recipes | 300–500 | 200 |
-| Cookbook recipes | 200–300 | 0 (droppable) |
-| Institutional | 200–300 | 100 |
-| Canonical ingredients | ~400 | 300 |
-| Provinces with n ≥ 20 | 50+ | 25 |
-| Fieldwork photos | 800+ | 400 (below this, drop the vision component) |
+| 001 | `sources` | source registry, robots audit, province quality |
+| 002 | `raw_recipes` | immutable fetch log — `raw_path`, `content_hash`, `published_at`. **No `raw_html`** |
+| 003 | `recipes` | `name_th`, `dish_category`, `occasion`, `endangerment`, `collection_date` |
+| 004 | `canonical_ingredients`, `ingredient_aliases`, `ingredient_conflations`, `alias_candidates` | the lexicon and its review queue |
+| 005 | `recipe_ingredients` | `raw_text`, `quantity_g` (NULL unless convertible), `acquisition_mode` |
+| 006 | `province_attribution` | four tiers, confidence, rationale |
+| 007 | `provinces` | 77 rows, ISO codes, region4, dialect_group, centroids, PostGIS geometry |
+| 008 | `informants`, `interview_dishes` | fieldwork — **no names, no contacts, ever** |
+| 009 | `dish_categories` | RQ5 taxonomy + written inclusion rules. **Seeded empty pending HD-9** |
+| 010 | `coverage` | per-province recipe count, labelled fraction, source concentration |
+| 011 | `redaction_log` | per-document count of PDPA fields stripped at parse time |
 
-`PROVINCE_MIN_N = 20` still gates province-level analysis via `src/analyze/eligibility.py`. In the full plan province-level is **co-primary** with region-level rather than secondary — but the eligibility gate stays, and every province-level figure caption still auto-prints `n = {k} of 77`.
+### 3.1 v3 schema changes from v2
 
----
+- `raw_recipes.raw_html` **removed**. Raw pages live on disk; duplicating them into
+  Postgres inflates the database for no benefit.
+- `raw_recipes.published_at DATE` **added**. Free to capture now, impossible to backfill
+  after the freeze, and it enables any temporal question later. Every scraper must attempt it.
+- `recipes.dish_category` is now **load-bearing for RQ5**, backed by a `dish_categories`
+  reference table with written inclusion rules.
+- `alias_candidates` **added explicitly** — referenced by the canonicalisation plan but
+  never defined in the v2 DDL.
+- `coverage` **added**. RQ3 is built on it and it ships as a first-class release file.
+- `informants` gains `district` and `acquisition_mode` (grown | foraged | market |
+  packaged), per Bible §8.
 
-## 5. Phases
+### 3.2 The analysis view
 
-| Phase | Window | Content |
-|---|---|---|
-| 0 | Aug 2026 | Source audit, reference data, advisor, IRB |
-| 1 | Aug–Sep 2026 | Thin end-to-end slice, 300 recipes |
-| 2 | Sep 2026 – Mar 2027 | Collection at volume: all sources, cookbooks, 25–30 interviews, photos |
-| 3 | Apr–May 2027 | Full analysis, all five RQs |
-| 4 | Jun–Jul 2027 | Production visualisation + FastAPI + image classifier |
-| 5 | Jul–Sep 2027 | Paper, dataset release, reproducibility |
-| 6 | Oct 2027 | arXiv, CHR2028 submission, application materials |
+All analysis reads `v_recipes_clean`: attribution confidence in (high, medium),
+3–25 mapped ingredients. Low-confidence rows exist for sensitivity analysis only and are
+pulled explicitly by `src/analyze/sensitivity.py`. **Tier-4-low never enters the view.**
 
-**School-calendar reality:** ISB runs a US-style year. Phase 2 spans two school terms at ~5–8 hrs/week — deliberately, because collection is chunky, interruptible work. Phases 3 and 4 land in the summer break, when 20+ hrs/week is possible. That is why analysis is scheduled *after* eight months of collection rather than in the middle: the intense work has to sit where the time actually is.
-
-**Dataset freeze: 31 March 2027.** Hard. Tagged commit plus a database dump. No recipes added after, or the analysis never converges and the paper never gets written.
-
----
-
-## 6. Phase 0 — Foundations (Aug 2026)
-
-**HD-1** dialect group assignments for ambiguous provinces · **HD-2** land-border definition · **HD-3** the manual source audit and go/no-go.
-
-Exit: `docs/source_audit.md` complete, ≥800 realistically scrapeable recipes confirmed, 77-province reference table loaded with geometry, 3+ advisor emails sent, IRB request drafted.
-
-**Critical path note:** the advisor gates the IRB, the IRB gates the interviews, and the interviews are the eight-month component. Advisor outreach happens in week one, before any code.
+`source_type` is carried through **every** analysis. Institutional and web-scraped corpora
+are never pooled without a source indicator, and any figure mixing them is faceted by source.
 
 ---
 
-## 7. Phase 1 — Thin slice (Aug–Sep 2026)
+## 4. The five research questions
 
-Entire pipeline against one source and 300 recipes. Scraper → extraction → canonicalisation → attribution → network → Folium map.
+Each is stated precisely (for the paper) and plainly (for the site, the build log, and
+interviews). All five run on the web corpus. **None can be blocked by a cancelled trip.**
 
-**HD-4** read 20 recipes, write the defect list · **HD-5** validate 50 extractions by hand · **HD-6** author the first 100 canonical ingredients · **HD-7** set attribution confidence thresholds · **HD-8** centrality plausibility check.
+### RQ1 — Are cultural boundaries discrete or continuous, and can they be located from compositional data alone?
+*Plain: how far do you travel before the food changes — and does it change gradually, or all at once?*
 
-Exit: `make all` runs end to end on 300 recipes; first advisor meeting held with the network on screen.
+- **Method** — distance-decay curve (cosine distance on province TF-IDF vs. great-circle km) with change-point detection. Louvain communities compared against **one** competing boundary set: **linguistic**.
+- **Output** — a number in kilometres: the width of the boundary zone. **Figure 2**.
+- **A NO looks like** — smooth decay everywhere, no discontinuities, meaning the four-region model is an administrative fiction over a continuum. More provocative than the positive result, not less.
+- **Constraint** — if the labelled fraction is under 35%, this collapses to region level (4–6 units) and the paper's shape changes.
+
+### RQ2 — Is culinary distinctiveness constituted by inclusion or by exclusion?
+*Plain: is a region's food about what it uses, or about what it refuses to use?*
+
+- **Method** — decompose each province's distinctiveness into presence-driven and absence-driven components. Validate against interview responses on stated absences (Q9).
+- **Output** — scatter, presence vs. absence, one point per province, diagonal = balanced. **Figure 3**.
+- **Why it matters** — every distinctiveness measure in computational humanities (TF-IDF, log-odds, Zeta) is a *presence* measure. Absence is structurally invisible to all of them. Best novelty-to-effort ratio in the project. No off-the-shelf measure exists, so it must be defined and defended — **HD-13**.
+
+### RQ3 — How much of Thailand's culinary map is legible at all from public online data?
+*Plain: whose cooking did the internet leave out?*
+
+- **Method** — coverage cartography. Labelled fraction, provincial recipe counts, source-domain concentration, provinces clearing each threshold. Headline analyses run at **10 / 15 / 25** recipes with conclusions reported at each.
+- **Output** — choropleth with sub-threshold provinces greyed out, plus a threshold-sensitivity panel. **Figure 1**, and rhetorically the strongest image in the paper.
+- **Lead the abstract with this one.**
+
+### RQ4 — Which ingredients hold Thai cuisine together, and which regional cuisines are most fragile?
+*Plain: what happens if all the garlic in Thailand disappears?*
+
+- **Method** — node-removal robustness on the PMI-weighted co-occurrence network. Delete each ingredient, measure fragmentation of regional subgraphs, rank by structural indispensability.
+- **Output** — horizontal bars faceted by region. **Figure 5**. Also the site's main interactive.
+- **Status: paper-optional.** Runs in minutes, needs no new data, and is the first to cut if the paper runs long. Four questions executed cleanly reads better than five with one thin.
+
+### RQ5 — Does regional signal concentrate in vernacular practice rather than in canonical, externally-facing forms?
+*Plain: is the food Thailand is famous for the least regional food it has?*
+
+- **Method** — classifier run **separately per dish category** (nam prik, everyday/preserved, curries, restaurant-facing, desserts). **Report the majority-class baseline or the accuracy numbers mean nothing.**
+- **Output** — grouped bars, accuracy by category, baseline as a dashed line. **Figure 6**.
+- **Report at region level.** Province-level accuracy inside a single dish category will be too thin — the data splits five ways.
 
 ---
 
-## 8. Phase 2 — Collection at volume (Sep 2026 – Mar 2027)
+## 5. Statistical corrections — Bible §4, verbatim
 
-### 8.1 Remaining scrapers
-One module per confirmed source, same `Scraper` protocol. Playwright only for Wongnai if the audit confirms JS hydration. Target 1,500 web recipes.
+These are the three a reviewer catches. They are not suggestions.
 
-### 8.2 Cookbook ingestion
-`src/ingest/cookbook.py` — `pdfplumber` for born-digital, `pytesseract` with Thai traineddata for scans. Page images retained in `data/raw/cookbooks/`.
+> **Mantel significance.** Permutation testing, 9,999 permutations. Distance-matrix
+> entries are not independent observations; a parametric p-value on them is meaningless
+> and a reviewer will say so immediately.
 
-**HD-9 — copyright.** Every cookbook gets a `copyright_status` before ingestion. Public-domain and permission-granted texts can be released in the dataset; fair-use excerpts are used for analysis but their text is **not** redistributed — only derived ingredient lists. The researcher decides per book and records it. Cookbooks whose status can't be established are dropped, not risked.
+Never `scipy.stats.pearsonr` on flattened matrices. A significant result is also **not
+causal** — distance may proxy for shared history, climate, or trade.
 
-### 8.3 Fieldwork ingestion
-`src/ingest/interview.py` — structured YAML per interview → `recipes`, `recipe_ingredients` (`extraction_method='interview'`), `province_attribution` (tier 1, high), `interview_dishes`. Validator **rejects** any file containing a name, phone, email, or free-text field over 500 chars.
+> **Moran's I inputs.** Only on interpretable scalars — prevalence of a named ingredient,
+> distinctiveness score, recipe count. Never on a UMAP dimension, which has no units and
+> no meaning.
 
-`src/ingest/photos.py` — strips all EXIF including GPS before storage, rejects any file where `contains_person` is true or `consent_photo` is false, assigns `photo_id`, resizes to 512px longest edge for storage.
+Report **both** queen-contiguity and k-nearest weights, or a reviewer will ask. KNN(k=5)
+is also the fallback for provinces with no queen neighbours (Phuket). Supporting analysis
+inside RQ1, not a headline.
 
-### 8.4 Dictionary to ~400
-Weekly batches: embedding candidates → `review_aliases.py` → `[HD]` accept/reject. Coverage target ≥95% of ingredient mentions.
+> **UMAP interpretation.** UMAP axes carry no interpretable meaning. Label them
+> "UMAP 1 / UMAP 2", caption them as uninterpretable, never quantify from the projection,
+> never call an axis geographic or cultural. Use it as a browsing interface on the site,
+> not as a result in the paper.
 
-**HD-10** the completed dictionary, reviewed by the advisor before Phase 3.
-**HD-11** the validation layer: interview Stage 4 asks cooks to critique scraped recipes from their province. The researcher codes those responses and decides whether any source needs down-weighting or exclusion. This is the project's only external check on web-data quality and it belongs in the paper.
+All clustering runs on the full TF-IDF matrix, never on the projection.
 
-### 8.5 Dedupe and quality
-Exact `content_hash`, then Jaccard on canonical ingredient sets > 0.85 **and** fuzzy title ratio > 0.8 → flagged for review. Must run **before** any train/test split or near-duplicates leak across folds.
-
-**HD-12** review the flagged duplicate pairs and set the retention rule (which source wins).
-
-Exit: **dataset frozen 31 March 2027**, tagged and dumped.
+**The ordering trap.** The confusion matrix and the heatmap must both be ordered
+geographically or by cluster, **never alphabetically**. Alphabetical ordering scatters
+real structure into what looks like noise. This single choice is the difference between a
+figure that is the result and a figure that says nothing.
 
 ---
 
-## 9. Phase 3 — Analysis (Apr–May 2027)
+## 6. Figure specification — Bible §10
 
-Every module writes to `data/processed/*.parquet`, takes `--seed`, and is called by `make analyze`.
+Seven figures, specified before implementation, axes named. All 2D. All regenerated by
+`make figures`.
 
-### 9.1 `network.py`
-Weighted undirected co-occurrence graph. Edge threshold parameterised; run at 2, 3, 5 with a sensitivity table in the appendix. National graph plus four regional subgraphs. GraphML export.
+| # | Figure | X axis | Y axis | Encoding and purpose |
+|---|---|---|---|---|
+| 1 | Coverage map (RQ3) | geography | — | Fill = recipe count; sub-threshold provinces greyed. Paired sensitivity line chart: X = threshold 5–30, Y = provinces qualifying. An image of Thailand with a third of it blank is the paper's most effective figure |
+| 2 | Distance-decay (RQ1) | km between province pair (0–1,800) | cosine distance on TF-IDF (0–1) | ~2,900 points, one per pair. Colour = same-region vs. cross-region. LOESS fit with change-point marked. Outliers below the line are far-apart provinces that cook alike — each one is a story |
+| 3 | Distinctiveness decomposition (RQ2) | presence-driven distinctiveness | absence-driven distinctiveness | One point per province; diagonal = balanced. Above the line = defines itself by refusal. A chart type reviewers have not seen before |
+| 4 | Prevalence vs. distance (supporting) | km from Bangkok | share of province's recipes containing the ingredient (0–1) | Small multiples, 6–12 panels, shared axes, colour = region. **Include one flat panel (MSG) as a null control** so readers can calibrate what "no pattern" looks like. Most explanatory figure in the set; first to move to an appendix if space is tight |
+| 5 | Fragility ranking (RQ4) | fragmentation caused on removal | ingredient, sorted | Horizontal bars faceted by region. Also the site's main interactive |
+| 6 | Category accuracy (RQ5) | dish category | classification accuracy | Grouped bars with the majority-class baseline as a dashed horizontal line. Five bars, one line, immediately readable |
+| 7 | Province × ingredient heatmap | ingredients (top ~60 by variance) | provinces | Fill = TF-IDF. **Both axes seriated by hierarchical clustering, never alphabetical.** Blocky diagonal structure = regional cuisines exist. Good first figure in Results because no modelling sits between data and image |
 
-### 9.2 `centrality.py` (RQ1)
-Degree, weighted betweenness, PageRank, eigenvector — **each with a null model**: 1,000 degree-preserving configuration-model rewirings, reported as z-scores. "Garlic is central" without a null is not a finding.
+---
 
-### 9.3 `communities.py` (RQ2)
-Louvain across γ ∈ {0.6, 0.8, 1.0, 1.2, 1.5}, 100 seeds each, consensus partition via co-assignment. Leiden via `igraph` as a robustness check. Alignment with `region4` by NMI and ARI, **each against a null from 1,000 label permutations**, reported as a percentile.
+## 7. Data streams
 
-### 9.4 `distinctiveness.py` (RQ3)
-Raw TF-IDF is confounded by unequal recipes per province. Required correction: bootstrap 1,000 iterations subsampling to `PROVINCE_MIN_N` per province, report mean + 95% percentile CI. Only ingredients whose CI excludes the cross-province median are reported distinctive.
+### 7.1 Web scraping
 
-### 9.5 `cluster.py`
-UMAP (`n_neighbors=10, min_dist=0.1, metric='cosine'`) **for visualisation only — never as input to a statistical test**. PCA alongside for comparison. K-means k ∈ {4,6,8} with silhouette; Ward hierarchical with dendrogram. All clustering on the full TF-IDF matrix, not the projection.
+Target **~2,200 usable after cleaning**, never fewer than four live sources. Sources per
+Bible §6 as corrected by `docs/source_audit.md` (9 Aug: `doa.go.th` is dead, `doae.go.th`
+is live; `recipe.wongnai.com` does not resolve; `thaifoodrecipe.com` is NXDOMAIN).
 
-### 9.6 `spatial.py` (RQ4) — three corrections to the Bible's code
+Ethics retained in full and without softening: robots.txt and ToS checked **and dated** in
+`ETHICS.md` for every site; 1 req/sec; honest User-Agent with contact email; ingredient
+lists and province labels stored, never full recipe prose; raw HTML cached locally and
+never published.
 
-**(a) Moran's I on an interpretable scalar** — per-province distinctiveness score and top-3 ingredient prevalences. Not a UMAP axis; UMAP dimensions carry no interpretable meaning and aren't seed-stable. Queen contiguity, with KNN(k=5) fallback for provinces lacking queen neighbours (Phuket). Report both.
+**Thai PDF extraction.** Direct extraction breaks the sara am — `ประจำปี` comes out as
+`ประจ าปี`, `น้ำ` as `น้ า`. Do **not** paper over this with a blanket regex, which will
+corrupt legitimately spaced text. Try at least three extractors (`pdfplumber`, `pypdf`,
+`pdftotext -layout`), compare on the same ten documents, report which preserves Thai, and
+pick on evidence. Normalisation gets a test fixture built from a hand-read document.
 
-**(b) Mantel by permutation, not `pearsonr`** — 9,999 label shuffles. Correlating upper triangles with a parametric p-value ignores the non-independence the Mantel test exists to handle.
+### 7.2 Cleaning — still ~40% of total hours
 
-```python
-def mantel(d1, d2, n_perm=9999, seed=42):
-    idx = np.triu_indices(d1.shape[0], k=1)
-    r_obs = pearsonr(d1[idx], d2[idx])[0]
-    rng, count = np.random.default_rng(seed), 0
-    for _ in range(n_perm):
-        p = rng.permutation(d1.shape[0])
-        count += abs(pearsonr(d1[np.ix_(p, p)][idx], d2[idx])[0]) >= abs(r_obs)
-    return r_obs, (count + 1) / (n_perm + 1)
-```
+Tokenise with PyThaiNLP `newmm`; normalise to controlled vocabulary; strip quantities and
+preparation verbs (หั่น สับ บด ซอย); NFC-normalise; assign province labels from source
+page, dish name, or explicit regional claim — **leave unlabelled rather than guessing, and
+report the unlabelled fraction**; deduplicate on ingredient-set Jaccard > 0.9; build the
+sparse ingredient × recipe matrix.
 
-**(c) Partial Mantel — this is what actually answers the research question.** Four matrices over eligible provinces:
+Dedupe detail worth keeping from the v2 prompts: exact `content_hash` first, then Jaccard
+> 0.85 on canonical ingredient sets **and** fuzzy title ratio > 0.8 → flagged for review.
+Every retained recipe gets a `cluster_id` (singletons get their own). **That `cluster_id`
+is what CV folds group on** — without it the classifier results are inflated.
 
-| Matrix | Definition |
+The controlled vocabulary — 400–700 normalised Thai ingredient entries with variant
+mappings — remains the project's most defensible contribution. It does not exist publicly
+and cannot be scraped into existence. **~130 hours, cannot be delegated.**
+
+### 7.3 Fieldwork — rescoped
+
+**12–15 interviews across 2 provinces: Nan and Surin.** 60–90 minutes each, 2 trips.
+No research question depends on this. Its job is (1) ground-truthing the RQ3 coverage gap
+as an *existence claim*, (2) validating the RQ2 measure against stated absences, (3)
+authorship evidence.
+
+If only one trip happens, **do Surin** — six interviews beats zero by an enormous margin,
+and Surin carries the upper-vs-lower Isaan question that RQ1's linguistic comparison
+turns on.
+
+Eight-question protocol retained verbatim from v2, **plus Q9**:
+
+> อะไรที่คนจังหวัดอื่นใส่ในจานนี้ แต่บ้านเราไม่มีวันใส่?
+> *What do people in other provinces put in this that we would never put in?*
+
+Q4 captures self-reported boundary markers; Q9 captures **stated absences**, which is what
+RQ2 validates against. Inferred absence is weak evidence; stated absence is strong.
+
+Ethics non-negotiable: written one-page Thai consent form in plain language; anonymised by
+role and province by default; a parent chaperones every interview and this is stated
+plainly in the methods section; reciprocity — every participant receives the finished map
+and a printed copy of their own recipe; no recording without explicit permission.
+
+Capture **district**, not just province, and **acquisition mode** (grown / foraged /
+market / packaged).
+
+### 7.4 Cook-alongs — eight dishes
+
+Cut from 15, buying back ~14 hours for lexicon work, which is the actual bottleneck. Cook
+from the *cleaned dataset's* ingredient list rather than the original web page — the point
+is to test the pipeline. Include at least two dishes the classifier gets wrong.
+
+> This is not a cookbook, a food blog, or a YouTube channel. The cooking serves the data.
+> The moment it becomes the deliverable, the project has drifted.
+
+### 7.5 Threshold sweep — replaces the fixed minimum
+
+`src/analyze/eligibility.py` computes eligible provinces at **every threshold 5–30**, not
+at a single pinned value. Headline results reported at **10 / 15 / 25**. Every
+province-level figure caption auto-includes `n = {k} of 77 provinces`.
+
+`PROVINCE_MIN_N` in `src/config.py` is retained only as the default for the caption
+helper, not as a gate.
+
+---
+
+## 8. Quality and credibility layer
+
+| Item | Requirement |
 |---|---|
-| `D_culinary` | cosine distance between province TF-IDF vectors |
-| `D_geo` | haversine distance between centroids (km) |
-| `D_lang` | 0 if same `dialect_group`, else 1 |
-| `D_border` | 0 if same `border_country` (both NULL counts as same), else 1 |
-
-Report all partial statistics in one table: culinary~geo controlling for language, culinary~language controlling for geo, and the border variants. The Bible's stated question is geography *versus* trade routes *versus* linguistic boundaries; this table is the only thing in the project that distinguishes between them.
-
-### 9.7 `classifier.py` (RQ5)
-Region (4-class) and province (restricted to eligible provinces). LogisticRegression / RandomForest / GradientBoosting. **Baselines always reported:** majority class, and `n_ingredients` alone. **Macro-F1 as headline**, not accuracy — classes are badly imbalanced. 5-fold stratified CV grouped by `content_hash` cluster so near-duplicates can't straddle folds. Permutation feature importance, not Gini.
-
-**Cross-method validation:** rank-correlate the top-20 permutation-importance features against the TF-IDF distinctive ingredients from §9.4. Agreement across independent methods is the strongest evidence in the paper; disagreement is a finding to investigate, not a bug to hide.
-
-### 9.8 `sensitivity.py`
-Re-run §9.4–9.7 including `confidence='low'`, and again at `PROVINCE_MIN_N = 30`. One appendix table stating whether conclusions change.
-
-**HD-13** interpret the community structure against known Thai culinary geography · **HD-14** decide which distinctiveness findings are real vs. artifacts of source bias · **HD-15** interpret the confusion matrix — which province confusions are meaningful.
+| **Second annotator** | **Required**, not optional. 100 recipes independently labelled by a second Thai reader; report Cohen's κ. Cheapest credibility in the project — a few hours of someone's time disposes of the first objection a reviewer raises |
+| **Pre-registration** | `docs/hypotheses.md`, dated and committed **before any analysis runs**. Predictions are the researcher's to write. This is what makes the negative-results section read as findings rather than excuses |
+| **Negative results** | Full weight in Results, not a footnote |
+| **Bias audit** | Quantified, and promoted to a full research question (RQ3) |
+| **Decision log** | `docs/decisions.md` — every gate with its reasoning and alternatives |
 
 ---
 
-## 10. Phase 4 — Production build (Jun–Jul 2027)
+## 9. Human decision gates
 
-### 10.1 API (`src/api/`)
-FastAPI on Railway. Endpoints: `/provinces`, `/provinces/{code}`, `/provinces/compare?a=&b=`, `/network?region=`, `/ingredients/{id}`, `/recipes?province=`. All read from materialised parquet/JSON built by `src/viz/map_data.py` — the API never queries Postgres live, so the public site can't be taken down by a database issue. Response caching, CORS locked to the flavormap domain.
+Twenty gates, ~225 hours. **Numbering below is a proposal reconciled from the v2 plan to
+v3's decision surface — confirm it before it is cited anywhere.**
 
-### 10.2 Frontend (`web/`)
-Next.js + Tailwind, three views per Bible §12: choropleth map (Mapbox GL JS), ingredient network (Sigma.js), province comparison tool. Every province surface displays its recipe count so viewers can see thin support. Deploy to Vercel.
+| Gate | Decision |
+|---|---|
+| HD-1 | Dialect-group assignment for the five-way split, including the ambiguous provinces |
+| HD-2 | Land-border definition — what counts as bordering, and whether coastal proximity counts |
+| HD-3 | Source go/no-go: which of the audited sources are worth building scrapers for |
+| HD-4 | Read 20 parsed recipes by hand and write the defect list |
+| HD-5 | Validate the first 50 LLM extractions before running at volume |
+| HD-6 | Author the first 100 canonical ingredients by hand — **the most important gate in the project** |
+| HD-7 | Set tier-4 attribution confidence thresholds |
+| HD-8 | Centrality / top-20 plausibility check against known Thai cooking |
+| HD-9 | The dish-category taxonomy and its written inclusion rules (RQ5 depends on it) |
+| HD-10 | The completed ~400-entry lexicon, advisor-reviewed before Phase 3 |
+| HD-11 | Code the interview validation responses; decide whether any source is down-weighted |
+| HD-12 | Review flagged duplicate pairs; set the source-precedence retention rule |
+| HD-13 | Define and defend the RQ2 presence/absence distinctiveness decomposition |
+| HD-14 | Choose the competing boundary set for RQ1 and build the linguistic distance matrix |
+| HD-15 | The `ที่มา` → acquisition-mode mapping (grown / foraged / market / packaged) |
+| HD-16 | Interpret community structure against known Thai culinary geography |
+| HD-17 | Decide which distinctiveness findings are real vs. artifacts of source bias |
+| HD-18 | Interpret the confusion matrix — which province confusions are meaningful |
+| HD-19 | The limitations section — written by the researcher, not generated |
+| HD-20 | Final release review: read the full export for anything identifying. Irreversible once public |
 
-**Ship the Folium prototype publicly first and keep it live** at a stable URL until the production site is reviewed. A working simple map beats a broken sophisticated one, and the prototype is the fallback if the Next.js build slips.
-
-### 10.3 Image classifier (`src/vision/`)
-Only if ≥400 usable photos exist. EfficientNet-B0, freeze all but the last two blocks + classifier, region-level 4-class first.
-
-**Leakage is the whole game here.** Splits must be grouped **by informant**, not by photo — two photos of the same cook's same dish in the same kitchen share lighting, plates, and background, and a model that splits by photo will report 90% accuracy while having learned to recognise kitchens. Report: majority-class baseline, macro-F1, per-class recall, and a confusion matrix.
-
-**HD-16** honest read of the vision results. With a few hundred photos, near-baseline performance is the likely and publishable outcome. Report it as such; do not tune until the number looks good.
-
-### 10.4 Reproducibility
-`make verify`: fresh clone + database dump + `make all` on a different machine reproduces every number in the paper. Run this in July, not the week before submission.
-
----
-
-## 11. Phase 5 — Paper and release (Jul–Sep 2027)
-
-### 11.1 Paper
-8,000–10,000 words, structure per Bible §15. Written in the order: Methods → Results → Discussion → Limitations → Related Work → Introduction → Abstract. `src/paper/figures.py` and `tables.py` regenerate every figure at 300 dpi with a colourblind-safe palette; nothing is hand-edited.
-
-Figures: F1 centrality with z-scores · F2 community–region alignment with null distribution · F3 dendrogram · F4 UMAP scatter · F5 choropleth · F6 confusion matrix · F7 partial Mantel table · F8 sensitivity · F9 vision confusion matrix (if built).
-
-**HD-17** the limitations section — written by the researcher, not generated. It's the part reviewers read most carefully and the part that has to reflect what she actually knows went wrong.
-**HD-18** authorship order and the contribution statement, agreed with the advisor.
-**HD-19** the AI-use disclosure. CHR and *Cultural Analytics* both expect one. State plainly that an AI coding assistant built the pipeline and that the researcher made the analytical decisions, with `docs/decisions.md` as the record. This is straightforward to write when it's true, and the decision log is what makes it true.
-
-### 11.2 Dataset release (`make export`)
-`data/exports/openflavorth/`: `recipes.csv`, `ingredients_canonical.json`, `provinces.csv`, `network.graphml`, `photos/` (if consent permits), `README.md` data card.
-
-Data card must state: collection dates, source breakdown with counts, confidence-tier distribution, named provinces with thin coverage, fieldwork consent protocol, intended and prohibited uses. Interview data released as anonymised dish-level records only — never transcripts, never anything traceable to an informant. Cookbook-derived rows carry only ingredient lists where copyright status is `fair_use_excerpt`.
-
-**HD-20** final release review: the researcher reads the full export looking for anything identifying before it goes public. Irreversible once published.
+Authorship, AI disclosure, and the credit ledger are governed by `CREDITS.md`, not by a gate.
 
 ---
 
-## 12. Phase 6 — Submission (Oct 2027)
+## 10. Timeline — Bible §19
 
-arXiv preprint (cs.SI or cs.CY) posted first — it timestamps priority regardless of venue outcome. Then CHR2028 (deadline expected ~Aug 2027; **verify the actual CFP when it opens** rather than trusting this estimate) and *Journal of Cultural Analytics* in parallel where their policies permit. HuggingFace release live. Repo public with README, license, and citation file.
+Anchored on three fixed dates: **freeze 31 March 2027**, **applications November 2027**,
+and the ISB calendar, which puts intensive work in the June–August break rather than term time.
+
+| Window | Build | Fieldwork / cooking | Output |
+|---|---|---|---|
+| **Aug–Sep 2026** | Three blocking items (§11). Labelled-fraction measurement. Figure 4 signal check. Postgres/PostGIS running. Scrapers 1–3 | Cook the origin dish with family. Book both trips | Repo public. `hypotheses.md` committed. Post 1. **Go/no-go on province-level analysis** |
+| **Oct–Dec 2026** | Corpus to ~1,400. Tokenisation and normalisation. Lexicon v0.5. Dish-category taxonomy defined | Trip 1 — Surin, 6 interviews. Cook 2 dishes | Post 2. Lexicon first release. `ETHICS.md` complete |
+| **Jan–Mar 2027** | Corpus to ~2,200. Normalisation complete. Category labelling. Second-annotator κ on 100 recipes | Trip 2 — Nan, 6 interviews. Transcription. Cook 3 dishes | Post 3 (failure post). **FREEZE 31 MARCH** |
+| **Apr–May 2027** | RQ3 coverage cartography. RQ1 distance-decay + change points. Network, Louvain, backbone | Cook 3 dishes, including ones the classifier gets wrong | Post 4. Figures 1, 2, 7 |
+| **Jun–Aug 2027** | RQ2 decomposition. RQ4 fragility. RQ5 classifier + baseline. Full analysis complete | Send results back to participants | Post 5. Figures 3–6. Paper drafted. Dataset packaged |
+| **Sep–Oct 2027** | Advisor review. Revisions. Site and quiz built with sister | — | Post 6 (limitations). Journal submission. arXiv + Zenodo DOI. Both HuggingFace repos live |
+| **Nov 2027** | Line launch | — | Applications |
+
+Deliberate slack sits in Oct–Dec 2026 and Sep–Oct 2027, both of which collide with
+coursework. **School always wins.**
 
 ---
 
-## 13. Tests (`make test`)
+## 11. The three blocking items — Bible §21
+
+> Nothing else in this document should proceed until these three are done.
+
+| # | Action | Cost | Why it blocks everything |
+|---|---|---|---|
+| 1 | **Measure the labelled-recipe fraction** on a consumer-site pilot corpus. One number: what share carry a usable province label? | 2 h | Determines whether this is a province-level paper (>35%), a region-level paper (<35%), or primarily a coverage paper. RQ1's entire form depends on it |
+| 2 | **Build Figure 4 from real data** — prevalence vs. distance from Bangkok on the same pilot set | 3 h | If pla ra and sticky rice separate at n≈300, the signal is real. If every panel looks like the MSG control, better to know in month 1 than month 8 |
+| 3 | **Cook the origin dish** with the family member. Photograph the mise en place. Write down what actually happened, including what contradicts the remembered version. Commit with the real date | 2 h | The one item that cannot be reconstructed later. The essay, the introduction, and every interview answer currently rest on an unfilled bracket |
+
+⚠️ **Item 1's corpus is unresolved.** The Bible refers to "~300 SorKorPor recipes already
+in hand." No such data exists in this repository or on this machine (inventory,
+2026-08-16). Treat "SorKorPor" as an unresolved source name in the same class as the
+`doa.go.th` / `doae.go.th` discrepancy until it is confirmed. A consumer source must be
+chosen before item 1 can run. **The institutional DCP corpus cannot substitute** — it is
+province-stamped by construction and would return ~100%, answering nothing.
+
+---
+
+## 12. Dataset release — two repos, not one
+
+`OpenFlavorTH-recipes` and `OpenFlavorTH-lexicon`, released separately. Bundling hides the
+lexicon's independent value and prevents it being cited on its own. The lexicon is useful
+to Thai NLP, recipe parsing, food-safety text mining, and agricultural translation —
+people who do not care about regional cuisine at all.
+
+| Artifact | Contents |
+|---|---|
+| `recipes.parquet` | Recipe ID, normalised ingredients, province (or null), region, dish category, source domain, publication date, collection date. **No recipe prose, no instructions, no copyrighted text** |
+| `ingredients_lexicon.csv` | Canonical Thai name, English gloss, all observed variants, category, notes on judgement calls. **The flagship artifact** |
+| `coverage.csv` | Recipe count, labelled fraction, source-domain concentration per province |
+| `network.gexf` | PMI-weighted co-occurrence network |
+| `province_vectors.csv` | TF-IDF vector per qualifying province, with recipe counts |
+| `fieldwork.csv` | Anonymised: province, district, role of cook, ingredients, stated substitutions, stated absences, acquisition mode |
+| Dataset cards | Motivation, collection method, scraping ethics, known biases, unlabelled fraction, κ, licence, citation, contact |
+
+CC-BY-4.0 data, MIT code, stated in three places. Zenodo DOI. `loading_script` so
+`load_dataset` works in one line. English glosses on every lexicon entry. Croissant metadata.
+
+Because all five research questions are answered from the released artifacts, **the
+dataset is the paper's reproducibility layer, not a side deliverable.**
+
+---
+
+## 13. Tests
 
 | Test | Asserts |
 |---|---|
 | `test_raw_immutable` | no UPDATE/DELETE targets `raw_*` anywhere in `src/` |
-| `test_canonicalize_deterministic` | same input → same canonical_id across runs |
+| `test_pdpa` | no phone, email, or house-number pattern survives into any table |
+| `test_canonicalize_deterministic` | same input → same `canonical_id` across runs |
 | `test_conflation_guard` | no alias maps across an `ingredient_conflations` pair |
 | `test_attribution_precedence` | tier 1 always beats tier 4 |
 | `test_clean_view_excludes_low` | zero `confidence='low'` rows in `v_recipes_clean` |
-| `test_mantel_recovers_known` | planted r=0.5 on synthetic data → p < 0.01 |
-| `test_no_leakage_recipes` | no `content_hash` cluster spans two CV folds |
-| `test_no_leakage_photos` | no `informant_id` spans two vision splits |
+| `test_mantel_recovers_known` | planted r=0.5 on synthetic data → p < 0.01 by permutation |
+| `test_no_leakage_recipes` | no `cluster_id` spans two CV folds |
 | `test_no_pii` | no table column matches name/phone/email patterns |
-| `test_exif_stripped` | every row in `photos` has `exif_stripped=true`; spot-check files carry no GPS |
 | `test_figures_regenerate` | `make figures` produces every file referenced by the manuscript |
+| `test_source_type_carried` | no analysis pools institutional and web-scraped rows without a source indicator |
 
 ---
 
-## 14. Effort and risk
+## 14. Open question for the researcher
 
-Bible §17 estimates ~415 hours without the vision stretch. Against this calendar: ~215 hours across two school terms at 5–8 hrs/week, plus ~200 hours across the summer at 20–25 hrs/week. The arithmetic works, but only if the summer is genuinely protected. **Grade 11 is the heaviest academic year; the 5 hrs/week term-time cap in Bible §21 is a real constraint, not a guideline.**
+**The image classifier is absent from Bible v3.** v2 scoped an EfficientNet-B0 vision
+component over fieldwork photos (`src/vision/`, HD-16, ~400-photo minimum). v3 does not
+mention it in the research questions, the feasibility audit, the figure specification, the
+technical architecture, or the release artifacts — while explicitly stating that the
+methods stack is otherwise "identical."
 
-The three risks that actually threaten completion, in order:
-
-1. **Advisor never materialises** → no IRB, no interviews, no co-author, no venue credibility. Mitigation: contact 4+ people in week one, offer co-authorship explicitly, escalate at two weeks.
-2. **Interviews slip past March** → dataset freeze slips → analysis compresses into term time → paper doesn't get written. Mitigation: 3 interviews/month from Nov, tracked in `docs/fieldwork_log.md`, with Bangkok diaspora cooks as the default (no travel required).
-3. **Scope creep into the production frontend** → the Next.js build absorbs the summer that Phase 3 needs. Mitigation: analysis is complete and frozen before any frontend work starts, and the Folium map stays live as the shippable fallback.
+This reads as a deliberate cut for hour-budget reasons, consistent with every other v3
+reduction. But it is not stated as one, and the empty `src/vision/` package is still in the
+tree. **Not resolved here.** Until the researcher confirms, vision is treated as out of
+scope and no work proceeds on it.
 
 ---
 
 ## Changelog
 
-- **2026-08-09** — Two infrastructure corrections to this v2.0 plan, applied before any
-  scaffolding was built:
-  - **§2.1 Database**: switched from Supabase-hosted Postgres to **local PostgreSQL 15 +
-    PostGIS via Docker Compose** (`docker-compose.yml`, database `flavormap`). No hosted
-    database dependency; the project runs fully offline apart from scraping/LLM calls.
-  - **§3 `raw_recipes`**: removed the `raw_html TEXT` column. Raw fetched pages are
-    written to disk at `data/raw/{source_id}/{hash}.html` instead of duplicating them
-    in Postgres; the table now stores `raw_path TEXT` (the path to that file) alongside
-    `content_hash`. Keeps immutable raw storage (rule 1) without bloating the database
-    with HTML blobs that are also sitting on disk anyway.
+- **2026-08-16** — Reconciled to Bible v3. RQs rewritten (centrality → distance-decay;
+  Louvain-vs-regions → presence/absence decomposition; distinctiveness → coverage
+  cartography; Mantel/Moran headline → node-removal fragility; classifier → per-category
+  with baseline). Fixed threshold replaced by a 5–30 sweep. Fieldwork cut to 12–15
+  interviews across Nan and Surin; cook-alongs to 8. Dataset release split into two HF
+  repos. Second annotator and pre-registration promoted to requirements. Figure
+  specification and HD-gate list added. Superseded plans archived to `docs/archive/`.
+- **2026-08-09** — Database moved from hosted Supabase to local PostgreSQL 15 + PostGIS in
+  Docker. `raw_recipes.raw_html` removed in favour of `raw_path`.

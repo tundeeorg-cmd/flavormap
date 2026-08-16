@@ -4,24 +4,33 @@ A computational geography of Thai cuisine: an ingredient co-occurrence network b
 recipes across Thailand's 77 provinces, analyzed for regional structure and released as an
 open dataset and interactive map.
 
-**Primary research question:** do ingredient co-occurrence patterns in Thai home cooking vary
-systematically by province — and if so, do those patterns correlate more strongly with
-geographic proximity, historical trade routes, or linguistic/ethnic boundaries?
+> The data that exists about a population is not the truth about that population,
+> and the gap widens with distance from the centre.
 
 ## Research questions
 
-- **RQ1** — What are the most central ingredients in Thai cuisine overall, across all regions?
-- **RQ2** — Do regional ingredient communities emerge from the network, and do they align with
-  Thailand's four geographic regions?
-- **RQ3** — Which provinces have the most distinctive cuisine — ingredients that appear almost
-  exclusively in their recipes?
-- **RQ4** — Does culinary similarity between provinces correlate with geographic distance,
-  linguistic boundaries, or national borders?
-- **RQ5** — Can a machine learning model predict a dish's province of origin from its
-  ingredients alone, and where does it fail?
+**RQ1 — How far do you travel before the food changes, and does it change gradually or all at once?**
+<sub>Are cultural boundaries discrete or continuous, and can they be located from compositional data alone? Distance-decay curve with change-point detection; one competing boundary set (linguistic).</sub>
 
-See [CLAUDE.md](CLAUDE.md) for the full build plan, non-negotiable rules, data model, and
-execution schedule.
+**RQ2 — Is a region's food about what it uses, or about what it refuses to use?**
+<sub>Is culinary distinctiveness constituted by inclusion or by exclusion? Distinctiveness decomposed into presence-driven and absence-driven components, validated against stated absences from interviews.</sub>
+
+**RQ3 — Whose cooking did the internet leave out?**
+<sub>How much of Thailand's culinary map is legible at all from public online data? Coverage cartography: labelled fraction, provincial recipe counts, source-domain concentration, and how conclusions move as the inclusion threshold varies.</sub>
+
+**RQ4 — What happens if all the garlic in Thailand disappears?**
+<sub>Which ingredients hold the cuisine together, and which regional cuisines are most fragile? Node-removal robustness on the PMI-weighted co-occurrence network.</sub>
+
+**RQ5 — Is the food Thailand is famous for the least regional food it has?**
+<sub>Does regional signal concentrate in vernacular practice rather than in canonical, externally-facing forms? Classifier run separately per dish category, with the majority-class baseline reported.</sub>
+
+Every question is framed so that a null answer is reportable. Predictions are registered in
+[docs/hypotheses.md](docs/hypotheses.md) before any analysis runs, and the negative results
+carry full weight in the paper rather than sitting in a footnote.
+
+See [CLAUDE.md](CLAUDE.md) for the build plan, non-negotiable rules, data model, and
+execution schedule; [docs/limitations.md](docs/limitations.md) for what this data cannot
+support; and [docs/decisions.md](docs/decisions.md) for every judgment call and its reasoning.
 
 ## Setup
 

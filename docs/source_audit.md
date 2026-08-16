@@ -1,18 +1,26 @@
 # Source audit — Phase 0
 
+The mechanical half of the source go/no-go. This file records what a tool can determine
+about a candidate recipe source — robots.txt directives, sitemap reachability, whether
+pages are server-rendered, whether Thai recipe vocabulary is present. It deliberately does
+**not** record whether a source is worth scraping; that is HD-3 and it is the researcher's.
+
+The permission-and-conduct summary derived from this file lives in
+[`ETHICS.md`](../ETHICS.md), which is the gate a scraper must clear before being written.
+
 **Status:** technical pass complete (`[CC]`), go/no-go pending (`[HD-3]`).
 **Tool:** `scripts/audit_source.py` — raw output archived at the bottom of this file.
 **Audited:** 2026-08-09, live requests against each domain (robots.txt + sitemap + one
 homepage fetch per source), 1 req/sec, identifying User-Agent.
 
-> ⚠️ **`SCRAPER_CONTACT_EMAIL` is not set yet.** This pass used a clearly-labelled
-> placeholder (`flavormap-audit@example.com (PLACEHOLDER)`) in the User-Agent because
-> `.env` doesn't exist yet. Set a real, monitored address in `.env` before Phase 1
-> scraping begins — rule 7 requires it to be genuinely reachable, not a placeholder.
+> ⚠️ **`SCRAPER_CONTACT_EMAIL` is still a placeholder.** This pass used a clearly-labelled
+> placeholder in the User-Agent. As of 2026-08-16 `.env` exists but the value is still an
+> `@example.com` address. **Rule 7 requires a genuinely reachable, monitored address, and
+> it blocks every scraper — including the DCP institutional fetch — until it is set.**
 
 ## Exit criterion
 
-CLAUDE.md v2 §Phase 0 edits: **≥1,200 realistically-scrapeable recipes confirmed**
+CLAUDE.md §11 (blocking items) and §9 (HD-3): **≥1,200 realistically-scrapeable recipes confirmed**
 across sources before proceeding to Phase 1. **This has not been assessed yet** — the
 technical audit below tells you which sources are technically reachable; it does not
 and cannot tell you how many recipes are actually behind each one, whether they carry
