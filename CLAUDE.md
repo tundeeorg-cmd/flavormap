@@ -109,6 +109,8 @@ needs changing gets a new forward migration, never an edit to an applied one.
 | 010 | `coverage` | per-province recipe count, labelled fraction, source concentration |
 | 011 | `redaction_log` | per-document count of PDPA fields stripped at parse time |
 | 012 | `v_recipes_clean` | the analysis view |
+| 013 | `provinces.dialect_group` CHECK | HD-1: five groups + `Transitional` |
+| 014 | `provinces.border_country` → `TEXT[]` | HD-2: land borders only, multi-border as an array |
 
 **Ordering correction (2026-08-16).** The v2 plan numbered `province_attribution` 006 and
 `provinces` 007, with a foreign key pointing from the earlier to the later. That cannot

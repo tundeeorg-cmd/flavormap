@@ -41,6 +41,13 @@ after review reads as damage control.
 | L15 | Institutional corpus is curated for rarity | **HIGH** | The programme deliberately selected dishes *at risk of disappearing*. It therefore systematically over-represents the unusual and is **not a sample of what people cook** |
 | L16 | Institutional and web corpora are not poolable | **HIGH** | `source_type` must be carried through every analysis. The two corpora are never pooled without a source indicator, and any figure mixing them is faceted by source. The institutional corpus is also unusable for the labelled-fraction measurement, which would return ~100% and answer nothing |
 
+## Added 2026-08-16 — consequences of HD-1 and HD-2
+
+| # | Limitation | Severity | Statement |
+|---|---|---|---|
+| L17 | Pattani carries no border country | **MEDIUM** | HD-2 defines borders as **land borders only**. Pattani has no land border with Malaysia and therefore no `border_country`, despite being culturally and linguistically continuous with the Malay-speaking south and having obvious maritime contact. This is a known divergence between the administrative definition and the cultural reality, chosen because "maritime adjacency" has no standard threshold. Any border-based result should be read with Pattani in mind |
+| L18 | Twelve provinces are `Transitional` | **MEDIUM** | HD-1 assigns a sixth `Transitional` dialect value to provinces that straddle a boundary rather than forcing them into a majority group. This is more honest than a clean five-way split, but it means ~16% of provinces carry no single linguistic label, and RQ1's linguistic comparison must either report them separately or exclude them in a sensitivity run — never silently absorb them |
+
 ---
 
 *First entry: 2026-08-16, seeded from Bible §14 plus the three institutional-corpus entries.*

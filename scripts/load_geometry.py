@@ -149,7 +149,7 @@ def main() -> int:
                                        dialect_group, border_country,
                                        centroid_lat, centroid_lon, geom)
                 VALUES (%s, %s, %s, %s,
-                        NULLIF(%s,''), NULLIF(%s,''),
+                        NULLIF(%s,''), %s,
                         0, 0,
                         ST_Multi(ST_GeomFromGeoJSON(%s)))
                 ON CONFLICT (province_code) DO UPDATE SET
@@ -161,7 +161,10 @@ def main() -> int:
                     geom           = EXCLUDED.geom
                 """,
                 (row["province_code"], row["name_th"], row["name_en"], row["region4"],
-                 row["dialect_group"], row["border_country"],
+                 row["dialect_group"],
+                 # border_country is TEXT[] since migration 014 (HD-2b). The CSV keeps
+                 # the pipe-delimited form because CSV has no array type.
+                 row["border_country"].split("|") if row["border_country"] else None,
                  json.dumps(feat["geometry"])),
             )
 

@@ -68,6 +68,17 @@ and turns one gate into fifteen.
 Khan, Uthai Thani, Nakhon Sawan, Phetchabun, Loei, Nakhon Ratchasima, Kanchanaburi,
 Satun. Rationale for each is in the session report accompanying this entry.
 
+**Selected: option B** (communicated in session, 2026-08-16).
+
+*Implementation note (machine-written, not a substitute for the fields below).*
+Migration `013_dialect_group_taxonomy.sql` adds a CHECK constraint permitting
+`Central | Kam_Mueang | Isaan_Lao | Dambro | Malay | Transitional`. NULL remains
+permitted — an unassigned province is honest, a wrongly-assigned one is not.
+`data/reference/provinces.csv` is populated: Central 26, Isaan_Lao 18, Transitional 12,
+Kam_Mueang 9, Dambro 9, Malay 3. **The per-province assignment is a proposal and has not
+been reviewed** — see the session report for the three calls most worth checking
+(Surin/Si Sa Ket/Buri Ram, Sukhothai/Phitsanulok, Nakhon Ratchasima).
+
 **Decision:**
 **Reasoning:**
 **Date decided:**
@@ -108,6 +119,16 @@ Ubon Ratchathani borders both Laos and Cambodia. `border_country` is a single TE
 **Recommendation given:** B.
 **Consequence of choosing otherwise:** A works but every consumer re-implements the split
 and one of them will forget. C is correct and disproportionate at n=2.
+
+**Selected: (a) option A, (b) option B** (communicated in session, 2026-08-16).
+
+*Implementation note (machine-written, not a substitute for the fields below).*
+(a) Land borders only. Pattani carries no `border_country`; the divergence from cultural
+reality is recorded as limitation L17 rather than encoded.
+(b) Migration `014_border_country_array.sql` converts `border_country` to `TEXT[]` with a
+CHECK against `{LA,KH,MM,MY}` and a GIN index. Chiang Rai and Ubon Ratchathani are the two
+multi-border rows. The CSV keeps the pipe-delimited form because CSV has no array type;
+`scripts/load_geometry.py` splits on load.
 
 **Decision:**
 **Reasoning:**
