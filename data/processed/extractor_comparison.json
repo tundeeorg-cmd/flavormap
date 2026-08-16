@@ -1,0 +1,302 @@
+{
+  "per_doc": [
+    {
+      "file": "central_10_1.pdf",
+      "pdfplumber": {
+        "thai_chars": 4672,
+        "orphan_marks": 5,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 1.07,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 1.07
+      },
+      "pypdf": {
+        "thai_chars": 4672,
+        "orphan_marks": 0,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 0.0,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 0.0
+      },
+      "pdfminer.six": {
+        "thai_chars": 4672,
+        "orphan_marks": 179,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 38.31,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 38.31
+      }
+    },
+    {
+      "file": "central_17_3.pdf",
+      "pdfplumber": {
+        "thai_chars": 3023,
+        "orphan_marks": 3,
+        "broken_sara_am": 3,
+        "orphans_per_1k": 0.99,
+        "broken_am_per_1k": 0.99,
+        "total_defects_per_1k": 1.98
+      },
+      "pypdf": {
+        "thai_chars": 3023,
+        "orphan_marks": 0,
+        "broken_sara_am": 3,
+        "orphans_per_1k": 0.0,
+        "broken_am_per_1k": 0.99,
+        "total_defects_per_1k": 0.99
+      },
+      "pdfminer.six": {
+        "thai_chars": 3023,
+        "orphan_marks": 109,
+        "broken_sara_am": 3,
+        "orphans_per_1k": 36.06,
+        "broken_am_per_1k": 0.99,
+        "total_defects_per_1k": 37.05
+      }
+    },
+    {
+      "file": "central_8_2.pdf",
+      "pdfplumber": {
+        "thai_chars": 4782,
+        "orphan_marks": 0,
+        "broken_sara_am": 36,
+        "orphans_per_1k": 0.0,
+        "broken_am_per_1k": 7.53,
+        "total_defects_per_1k": 7.53
+      },
+      "pypdf": {
+        "thai_chars": 4782,
+        "orphan_marks": 0,
+        "broken_sara_am": 37,
+        "orphans_per_1k": 0.0,
+        "broken_am_per_1k": 7.74,
+        "total_defects_per_1k": 7.74
+      },
+      "pdfminer.six": {
+        "thai_chars": 4782,
+        "orphan_marks": 140,
+        "broken_sara_am": 41,
+        "orphans_per_1k": 29.28,
+        "broken_am_per_1k": 8.57,
+        "total_defects_per_1k": 37.85
+      }
+    },
+    {
+      "file": "east_6_1.pdf",
+      "pdfplumber": {
+        "thai_chars": 6862,
+        "orphan_marks": 2,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 0.29,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 0.29
+      },
+      "pypdf": {
+        "thai_chars": 6862,
+        "orphan_marks": 3,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 0.44,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 0.44
+      },
+      "pdfminer.six": {
+        "thai_chars": 6862,
+        "orphan_marks": 198,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 28.85,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 28.85
+      }
+    },
+    {
+      "file": "north_13_3.pdf",
+      "pdfplumber": {
+        "thai_chars": 3315,
+        "orphan_marks": 2,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 0.6,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 0.6
+      },
+      "pypdf": {
+        "thai_chars": 3315,
+        "orphan_marks": 0,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 0.0,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 0.0
+      },
+      "pdfminer.six": {
+        "thai_chars": 3315,
+        "orphan_marks": 109,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 32.88,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 32.88
+      }
+    },
+    {
+      "file": "north_5_2.pdf",
+      "pdfplumber": {
+        "thai_chars": 6673,
+        "orphan_marks": 4,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 0.6,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 0.6
+      },
+      "pypdf": {
+        "thai_chars": 6673,
+        "orphan_marks": 0,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 0.0,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 0.0
+      },
+      "pdfminer.six": {
+        "thai_chars": 6673,
+        "orphan_marks": 207,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 31.02,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 31.02
+      }
+    },
+    {
+      "file": "northeast_13_1.pdf",
+      "pdfplumber": {
+        "thai_chars": 10329,
+        "orphan_marks": 5,
+        "broken_sara_am": 68,
+        "orphans_per_1k": 0.48,
+        "broken_am_per_1k": 6.58,
+        "total_defects_per_1k": 7.07
+      },
+      "pypdf": {
+        "thai_chars": 10329,
+        "orphan_marks": 0,
+        "broken_sara_am": 69,
+        "orphans_per_1k": 0.0,
+        "broken_am_per_1k": 6.68,
+        "total_defects_per_1k": 6.68
+      },
+      "pdfminer.six": {
+        "thai_chars": 10329,
+        "orphan_marks": 391,
+        "broken_sara_am": 72,
+        "orphans_per_1k": 37.85,
+        "broken_am_per_1k": 6.97,
+        "total_defects_per_1k": 44.83
+      }
+    },
+    {
+      "file": "northeast_1_3.pdf",
+      "pdfplumber": {
+        "thai_chars": 4371,
+        "orphan_marks": 3,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 0.69,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 0.69
+      },
+      "pypdf": {
+        "thai_chars": 4371,
+        "orphan_marks": 0,
+        "broken_sara_am": 2,
+        "orphans_per_1k": 0.0,
+        "broken_am_per_1k": 0.46,
+        "total_defects_per_1k": 0.46
+      },
+      "pdfminer.six": {
+        "thai_chars": 4371,
+        "orphan_marks": 129,
+        "broken_sara_am": 2,
+        "orphans_per_1k": 29.51,
+        "broken_am_per_1k": 0.46,
+        "total_defects_per_1k": 29.97
+      }
+    },
+    {
+      "file": "northeast_8_2.pdf",
+      "pdfplumber": {
+        "thai_chars": 6107,
+        "orphan_marks": 4,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 0.65,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 0.65
+      },
+      "pypdf": {
+        "thai_chars": 6107,
+        "orphan_marks": 0,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 0.0,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 0.0
+      },
+      "pdfminer.six": {
+        "thai_chars": 6107,
+        "orphan_marks": 197,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 32.26,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 32.26
+      }
+    },
+    {
+      "file": "south_2_1.pdf",
+      "pdfplumber": {
+        "thai_chars": 0,
+        "orphan_marks": 0,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 0.0,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 0.0
+      },
+      "pypdf": {
+        "thai_chars": 0,
+        "orphan_marks": 0,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 0.0,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 0.0
+      },
+      "pdfminer.six": {
+        "thai_chars": 0,
+        "orphan_marks": 0,
+        "broken_sara_am": 0,
+        "orphans_per_1k": 0.0,
+        "broken_am_per_1k": 0.0,
+        "total_defects_per_1k": 0.0
+      }
+    }
+  ],
+  "totals": {
+    "pdfplumber": {
+      "thai": 50134,
+      "orphan": 28,
+      "am": 107,
+      "fail": 0
+    },
+    "pypdf": {
+      "thai": 50134,
+      "orphan": 3,
+      "am": 111,
+      "fail": 0
+    },
+    "pdfminer.six": {
+      "thai": 50134,
+      "orphan": 1659,
+      "am": 118,
+      "fail": 0
+    }
+  },
+  "fixture": {
+    "pdfplumber": [],
+    "pypdf": [],
+    "pdfminer.six": [
+      "หมู่",
+      "เชิดชูอาหารถิ่น"
+    ]
+  }
+}

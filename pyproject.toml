@@ -30,6 +30,8 @@ dependencies = [
     "uvicorn>=0.30",
     "pydantic-settings>=2.4",
     "psycopg[binary]>=3.2",
+    "pypdf>=6.16.1",
+    "pythainlp>=5.3.7",
 ]
 
 [dependency-groups]
