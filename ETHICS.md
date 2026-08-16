@@ -23,6 +23,7 @@ One row per source. **Dated.** A source may not be scraped before its row exists
 
 | source_id | Domain | robots.txt | Disallowed paths | ToS reviewed | Audited | Decision |
 |---|---|---|---|---|---|---|
+| `dcp_food` | `food.culture.go.th` | `User-agent: *` → `Allow: /`. **But see content signals below** | none for our UA. `ClaudeBot`, `GPTBot`, `CCBot`, `Google-Extended`, `Bytespider`, `Amazonbot`, `Applebot-Extended`, `meta-externalagent`, `CloudflareBrowserRenderingCrawler` are each `Disallow: /` | no separate ToS page located in this pass | 2026-08-16 | **⛔ HD-3 open — not fetched** |
 | `doae` | `www.doae.go.th` | allowed | `/wp-admin/` | pending | 2026-08-09 | **HD-3 open** |
 | `wongnai` | `www.wongnai.com` | allowed | `/users/` | pending | 2026-08-09 | **HD-3 open** — JS-hydrated, recipe path unresolved |
 | `kapook_cooking` | `cooking.kapook.com` | allowed | none | pending | 2026-08-09 | **HD-3 open** — strongest technical candidate (3,908 sitemap URLs, server-rendered) |
@@ -33,6 +34,38 @@ One row per source. **Dated.** A source may not be scraped before its row exists
 | `doa` | `www.doa.go.th` | — | — | — | 2026-08-09 | **Dropped.** 403 Forbidden; superseded by `doae.go.th` |
 
 Full technical detail and raw tool output: [`docs/source_audit.md`](docs/source_audit.md).
+
+### `food.culture.go.th` content signals — audited 2026-08-16
+
+The robots.txt is Cloudflare-managed and carries **content signals** alongside the
+ordinary directives. Verbatim:
+
+```
+User-agent: *
+Content-Signal: search=yes,ai-train=no,use=reference
+Allow: /
+```
+
+preceded by the site's own definition of the terms, and followed by an explicit
+`Disallow: /` for nine named AI crawlers.
+
+The file states that restrictions expressed this way are **express reservations of rights
+under Article 4 of EU Directive 2019/790**.
+
+Read strictly:
+
+| Signal | Value | What the site is saying |
+|---|---|---|
+| `search` | `yes` | indexing and short excerpts are fine |
+| `ai-train` | **`no`** | **do not use this content to train or fine-tune AI models** |
+| `use` | `reference` | AI systems may consume it by reference, not in full |
+| `ai-input` | *unspecified* | neither granted nor restricted — the operator is silent |
+
+`urllib.robotparser` confirms `FlavorMapResearchBot/0.1` may fetch every candidate path,
+while `ClaudeBot`, `GPTBot`, `CCBot`, `Google-Extended` and `Bytespider` may not.
+
+**Being permitted by the parser is not the same as being welcome.** This source is
+therefore held at HD-3 rather than treated as cleared. See `docs/decisions.md`.
 
 ### Consulted by hand, never automated
 

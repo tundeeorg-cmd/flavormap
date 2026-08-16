@@ -133,3 +133,70 @@ multi-border rows. The CSV keeps the pipe-delimited form because CSV has no arra
 **Decision:**
 **Reasoning:**
 **Date decided:**
+
+---
+
+## HD-3 (dcp_food) — Does `food.culture.go.th`'s `ai-train=no` signal apply to this project?
+**Date presented:** 2026-08-16
+**Status:** OPEN — nothing has been fetched from this domain beyond `robots.txt`.
+
+**The finding.** The site's robots.txt permits `FlavorMapResearchBot` to fetch every
+candidate path (`User-agent: * → Allow: /`, confirmed with `urllib.robotparser`). The same
+file separately:
+
+- sets `Content-Signal: search=yes,ai-train=no,use=reference`
+- states these are **express reservations of rights under Article 4 of EU Directive 2019/790**
+- issues `Disallow: /` to nine named AI crawlers, including **ClaudeBot**
+
+So the letter permits the fetch and the signal reserves rights against AI use. This
+project sits in the gap: it is academic research, and it feeds fetched text to the Claude
+API for field extraction, and it publishes a derived dataset to HuggingFace.
+
+**Three separable questions:**
+
+1. *Is fetching allowed?* Yes, unambiguously, for our UA.
+2. *Is extraction with an LLM "ai-train"?* Almost certainly not — no model is trained or
+   fine-tuned. It is closer to `ai-input`, which the operator left **unspecified**, meaning
+   neither granted nor restricted. But the nine-crawler blocklist shows the operator's
+   general intent regarding AI, and ClaudeBot is on it.
+3. *Does releasing a derived dataset conflict with `ai-train=no`?* The release contains
+   normalised ingredient lists, province labels and dates — **not recipe prose** (Bible §7
+   and §16 already forbid publishing the text). Someone could still train on the derived
+   fields. The mitigation is real but not total.
+
+**Options presented:**
+  A. **Proceed as planned.** Fetch, parse, publish derived fields only.
+     Consequence: defensible on the letter, and the derived-only release is a genuine
+     mitigation. Risk: a reviewer, or the Department itself, reads the ClaudeBot block and
+     `ai-train=no` as covering exactly this and the project looks like it lawyered a
+     signal rather than honoured it. This is a Thai government cultural-heritage body and
+     the researcher is a Thai student — the relationship matters beyond this dataset.
+  B. **Write to the Department first**, describe the project, and ask for written
+     permission. Proceed on a yes; drop or restrict on a no or on silence after a stated
+     deadline.
+     Consequence: slowest, and the strongest possible position. A permission email in
+     `ETHICS.md` converts the project's biggest ethical exposure into a credibility asset,
+     and Bible §13's "how much help did you have" logic applies here too. Costs 1–3 weeks
+     of calendar in a window that has slack (Bible §19 puts deliberate slack in Oct–Dec).
+  C. **Use it as a reference layer only**, never redistributed: fetch, parse, use for the
+     RQ3 coverage comparison, and exclude every DCP-derived row from the HuggingFace
+     release.
+     Consequence: honours `use=reference` almost literally. Keeps the analytical value —
+     RQ3's institutional-vs-commercial comparison is the point of this corpus — while
+     removing the redistribution question entirely. Costs a source-exclusion flag through
+     the export path, which the schema already supports via `source_type`.
+  D. **Drop the source.** Consequence: loses the complete-by-design 77-province baseline
+     that makes RQ3 a comparison rather than a bare blank map. Materially weakens the
+     strongest research question.
+
+**Recommendation given:** **B, with C as the fallback** if there is no reply. They are
+compatible: send the email now, start under C's constraints, and relax to A only on an
+explicit yes. That way the calendar does not stall on a reply that may never come, and
+nothing is published that would have to be retracted.
+
+**Note on scale.** Whatever is decided, the fetch is ~231 PDFs at 1 req/sec — about four
+minutes of traffic. Volume is not the concern here; permission is.
+
+**Decision:**
+**Reasoning:**
+**Date decided:**
