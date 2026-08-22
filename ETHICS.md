@@ -26,7 +26,7 @@ One row per source. **Dated.** A source may not be scraped before its row exists
 | `dcp_food` | `food.culture.go.th` | `User-agent: *` → `Allow: /`. **But see content signals below** | none for our UA. `ClaudeBot`, `GPTBot`, `CCBot`, `Google-Extended`, `Bytespider`, `Amazonbot`, `Applebot-Extended`, `meta-externalagent`, `CloudflareBrowserRenderingCrawler` are each `Disallow: /` | no separate ToS page located in this pass | 2026-08-16 | **⛔ HD-3 open — not fetched** |
 | `doae` | `www.doae.go.th` | allowed | `/wp-admin/` | pending | 2026-08-09 | **HD-3 open** |
 | `wongnai` | `www.wongnai.com` | allowed | `/users/` | pending | 2026-08-09 | **HD-3 open** — JS-hydrated, recipe path unresolved |
-| `kapook_cooking` | `cooking.kapook.com` | allowed | none | pending | 2026-08-09 | **HD-3 open** — strongest technical candidate (3,908 sitemap URLs, server-rendered) |
+| `kapook_cooking` | `cooking.kapook.com` | `User-agent: *` → `Allow: /`, no crawl-delay | none | no terms-of-use page found; linked policy is data-protection only | **2026-08-22** (re-audited) | **HD-3 open** — cleared technically and ethically; see below |
 | `tat` | `www.tat.or.th` | allowed | — | pending | 2026-08-09 | **HD-3 open** |
 | `pantip_food` | `pantip.com` | allowed for our UA | blocks are scoped to other named bots | pending | 2026-08-09 | **HD-3 open** — JS-hydrated, food board URL unresolved |
 | `national_library` | `www.nlt.go.th` | not fetched | — | pending | 2026-08-09 | Blocked: server sends an incomplete TLS chain. Not a workaround candidate — needs a documented justification before any fetch |
@@ -86,6 +86,29 @@ mobile numbers, exactly as §1.3 of the form provides for. They are retained loc
 only locally, so that parsing is reproducible and auditable. They are gitignored, they
 never enter a HuggingFace release, and the fields are discarded during parsing before
 anything is written to the database.
+
+### `cooking.kapook.com` — re-audit, 2026-08-22
+
+Re-fetched rather than trusted from the 2026-08-09 pass, per the robots.txt rule above.
+
+| | |
+|---|---|
+| robots.txt | `User-agent: *` → `Allow: /`. No crawl-delay, no disallowed paths |
+| AI crawlers | **No blocklist.** `Google-Extended` is explicitly `Allow: /` — an opt-*in* to AI training use, the opposite of `food.culture.go.th`'s `ai-train=no` |
+| Content signals | none present |
+| Terms of use | **No ToS page found.** The only policy linked from the site is a data-protection notice at `account.kapook.com/privacy`, which contains no mention of copyright, reproduction, scraping, automation or commercial use |
+| Rendering | server-rendered, static HTML |
+| Sitemap | `sitemap.xml`, 3,770 `<loc>` entries |
+
+**Correction to the 2026-08-09 row.** That audit recorded "3,908 sitemap URLs" as the
+candidate recipe count. It is not: 956 of the entries are `/comment/` pages and 43 are
+category listings. The corpus is **2,743 distinct recipe pages**, a third smaller than
+first recorded.
+
+**Absence of a ToS is not a licence.** Copyright subsists in the content regardless, which
+is why the storage rule above is load-bearing for this source in particular: ingredient
+lists, publication dates and derived labels only. The page's JSON-LD carries an
+`articleBody` field holding the full prose — it is never stored.
 
 ### Consulted by hand, never automated
 
