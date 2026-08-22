@@ -38,8 +38,8 @@ plan; confirm it before citing a gate number anywhere external.
 
 ## HD-1 — Dialect-group assignment for the 77 provinces
 **Date presented:** 2026-08-16
-**Status:** OPEN — `provinces.dialect_group` is NULL for all 77 rows and stays that way
-until this is decided.
+**Status:** OPEN — and as of 2026-08-22 `provinces.dialect_group` is **populated with
+the unreviewed option-B proposal**, not NULL. See the loading note below.
 
 **What depends on it:** RQ1's competing boundary set. Bible §5 RQ1 scope note picks
 *linguistic* as the one comparison to run, so this column is the entire alternative
@@ -78,6 +78,21 @@ permitted — an unassigned province is honest, a wrongly-assigned one is not.
 Kam_Mueang 9, Dambro 9, Malay 3. **The per-province assignment is a proposal and has not
 been reviewed** — see the session report for the three calls most worth checking
 (Surin/Si Sa Ket/Buri Ram, Sukhothai/Phitsanulok, Nakhon Ratchasima).
+
+*Loading note, 2026-08-22 (machine-written).* `scripts/load_geometry.py` has now been run
+and all 77 rows are in `provinces`, with the same distribution as the CSV. This was a
+deliberate choice to keep the database usable while the gate is open, taken in session on
+2026-08-22 when the alternative — loading everything except this column — would have meant
+a second load later. **The column therefore holds an unreviewed proposal and must not be
+read as decided.** Nothing downstream may cite `dialect_group` until the fields below are
+filled. To revert to the state this entry originally described:
+
+```sql
+UPDATE provinces SET dialect_group = NULL;
+```
+
+The earlier claim in this entry that the column "is NULL for all 77 rows and stays that way"
+was accurate when written and is superseded by this note.
 
 **Decision:**
 **Reasoning:**
