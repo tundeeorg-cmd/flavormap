@@ -298,3 +298,38 @@ self-contradictory until then.
 **Decision:**
 **Reasoning:**
 **Date decided:**
+
+---
+
+## Note — Figure 4 generated before pre-registration
+**Date:** 2026-08-22
+**This is not a gate.** It is a record of a rule being knowingly set aside, written so
+the history does not have to be reconstructed later.
+
+`docs/hypotheses.md` carries no predictions — all five RQ entries are still empty
+checkboxes. The standing rule is pre-registration before analysis. Figure 4 is Bible §21
+item 2, which is analysis. It was generated anyway, on the researcher's explicit
+instruction in session on 2026-08-22, after the position was put and restated.
+
+**What this costs.** The Figure 4 result cannot be cited as testing a prior prediction,
+because none was registered. Any later claim that the regional pattern was expected is
+unsupported by the repository, and the git history shows the figure preceding the
+hypotheses file. Predictions written after this date describe a result already seen.
+
+**What it does not cost.** Nothing else. The remaining four RQs are unaffected, and
+registering predictions for them before their analyses still works normally. The
+labelled-recipe fraction (§21 item 1) has not been run, and RQ3's prediction can still
+be registered before it.
+
+**Mitigating facts, stated rather than relied on.** This corpus cannot support the
+figure's question anyway — the programme shortlists exactly three menus per province, so
+per-province prevalence is confined to {0, ⅓, ½, ⅔, 1}, and L15 records that the corpus
+is curated for rarity rather than sampled from practice. The figure is a demonstration
+that the institutional corpus is the wrong instrument for RQ1-style prevalence work, not
+a measurement of Thai cooking. The real Figure 4 needs the web corpus, which does not
+exist yet.
+
+**Recommended repair.** Write `docs/hypotheses.md` before the labelled-recipe fraction is
+measured, and state in the paper's methods that Figure 4's exploratory version preceded
+pre-registration while the confirmatory analyses did not. A stated exception is
+defensible; a silent one is not.
