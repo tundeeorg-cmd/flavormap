@@ -10,6 +10,12 @@ data/photos/
 # data/ deliberately: the two specification PDFs at the repo root are tracked.
 data/**/*.pdf
 
+# Coverage tables are DCP-derived. HD-3 holds this source to reference-only, excluded
+# from any public release, pending a reply to docs/dcp_permission_request.md. The
+# directory is tracked so the path exists on clone (Bible §11); its contents are not.
+data/coverage/*
+!data/coverage/.gitkeep
+
 # Database dumps (scripts/dump_db.sh writes data/exports/flavormap_*.sql.gz).
 # The directory stays tracked via .gitkeep so the path exists on clone; its contents
 # never do. A dump of this database carries the full parsed corpus — including anything
