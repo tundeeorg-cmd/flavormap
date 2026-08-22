@@ -407,7 +407,6 @@ dependencies = [
     { name = "matplotlib" },
     { name = "networkx" },
     { name = "pandas" },
-    { name = "pdfplumber" },
     { name = "playwright" },
     { name = "psycopg", extra = ["binary"] },
     { name = "pydantic-settings" },
@@ -429,6 +428,8 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "mypy" },
+    { name = "pdfminer-six" },
+    { name = "pdfplumber" },
     { name = "pytest" },
     { name = "ruff" },
 ]
@@ -445,7 +446,6 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.9" },
     { name = "networkx", specifier = ">=3.3" },
     { name = "pandas", specifier = ">=2.2" },
-    { name = "pdfplumber", specifier = ">=0.11" },
     { name = "playwright", specifier = ">=1.45" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
     { name = "pydantic-settings", specifier = ">=2.4" },
@@ -467,6 +467,8 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "mypy", specifier = ">=1.11" },
+    { name = "pdfminer-six", specifier = ">=20240706" },
+    { name = "pdfplumber", specifier = ">=0.11" },
     { name = "pytest", specifier = ">=8.3" },
     { name = "ruff", specifier = ">=0.6" },
 ]
