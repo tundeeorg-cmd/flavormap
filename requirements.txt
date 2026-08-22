@@ -1,0 +1,10 @@
+# Deployment dependencies for the API only — NOT the project's dependency list.
+#
+# The project is managed with uv from pyproject.toml + uv.lock; use `uv sync` locally.
+# This file exists because Vercel installs from requirements.txt, and installing the
+# full dependency set there is impossible: torch alone is 475 MB against a 250 MB
+# function limit, and the deployed API needs none of the scientific stack.
+#
+# Keep in sync with the fastapi/uvicorn pins in pyproject.toml.
+fastapi>=0.115
+uvicorn>=0.30

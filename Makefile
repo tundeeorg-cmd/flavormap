@@ -36,7 +36,7 @@ figures:
 	@echo "make figures: not yet implemented" && exit 1
 
 api:
-	@echo "make api: not yet implemented" && exit 1
+	uv run uvicorn src.api.main:app --reload --port 8000
 
 web:
 	@echo "make web: not yet implemented" && exit 1
