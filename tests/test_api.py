@@ -8,8 +8,12 @@ scaffold exists to prevent.
 
 from __future__ import annotations
 
+import importlib
+import json
 import subprocess
 import sys
+import tomllib
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -80,3 +84,26 @@ def test_heavy_dependencies_are_not_imported() -> None:
     )
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip() == "[]"
+
+
+def test_vercel_entrypoint_resolves_to_the_app() -> None:
+    """The declared entrypoint must import.
+
+    Vercel wants "module:object", not a file path. Declaring "src/api/main.py" was
+    rejected at build time with "no matching module file was found" — a failure that
+    only surfaced after a push. Resolving the string here catches it locally.
+    """
+    config = tomllib.load(open("pyproject.toml", "rb"))
+    entrypoint = config["tool"]["vercel"]["entrypoint"]
+    assert ":" in entrypoint, f"expected module:object, got {entrypoint!r}"
+
+    module_name, _, attribute = entrypoint.partition(":")
+    module = importlib.import_module(module_name)
+    assert getattr(module, attribute) is app
+
+
+def test_vercel_install_command_uses_the_scoped_requirements() -> None:
+    """uv.lock and pyproject.toml both sit at the repo root and would otherwise pull the
+    full scientific stack — torch alone is 475 MB against a 250 MB function limit."""
+    config = json.loads(Path("vercel.json").read_text())
+    assert "requirements.txt" in config["installCommand"]

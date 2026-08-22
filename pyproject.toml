@@ -51,7 +51,11 @@ dev = [
 [tool.vercel]
 # src/api/main.py is not one of the paths Vercel auto-detects (it looks at src/main.py
 # and api/main.py, not src/api/main.py), so the entrypoint is named explicitly.
-entrypoint = "src/api/main.py"
+#
+# "module:object", NOT a file path — a path is rejected outright:
+#   Error: "tool.vercel.entrypoint" ... is "src/api/main.py" but no matching module
+#   file was found. Use "module:object" format (e.g. "main:app")
+entrypoint = "src.api.main:app"
 
 [tool.uv]
 package = false
