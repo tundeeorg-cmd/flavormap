@@ -49,6 +49,51 @@ SARA_AM = "ำ"   # ำ
 THAI_CONSONANTS = "ก-ฮ"
 THAI_RUN = re.compile(r"[฀-๿]+")
 
+# ── Defect 3: private-use tone marks ─────────────────────────────────────────
+# Some Thai fonts in the DCP corpus encode combining marks in the U+F700 private-use
+# block instead of the Thai block, so extraction yields ``ด้าน`` as ``ดาน``.
+# 14 of 231 documents are affected, 3,930 occurrences.
+#
+# Each entry below was verified against its own context in the corpus rather than
+# taken from a published table:
+#
+#   U+F70B  ด?าน → ด้าน, ท?อง → ท้อง, พร?าว → พร้าว
+#   U+F70A  แหล?ง → แหล่ง, ส?ง → ส่ง, ต?อ → ต่อ
+#   U+F712  เป?น → เป็น
+#   U+F70E  ณีย? → ณีย์, ลักษณ? → ลักษณ์
+#   U+F710  ป?ญญา → ปัญญา
+#   U+F706  ฟ?า → ฟ้า, ป?าย → ป้าย
+#   U+F701  กะป? → กะปิ
+#   U+F702  จำป?งบ → จำปีงบ, เป?ยก → เปียก
+#
+# These eight cover 3,912 of 3,930 occurrences. U+F705 (12) and U+F70C (6) are left
+# unmapped: too few instances to verify, and a wrong mark is worse than a visible one.
+PUA_MARKS = {
+    "\uf701": "\u0e34",  # ิ
+    "\uf702": "\u0e35",  # ี
+    "\uf706": "\u0e49",  # ้
+    "\uf70a": "\u0e48",  # ่
+    "\uf70b": "\u0e49",  # ้
+    "\uf70e": "\u0e4c",  # ์
+    "\uf710": "\u0e31",  # ั
+    "\uf712": "\u0e47",  # ็
+}
+_PUA_TABLE = str.maketrans(PUA_MARKS)
+_PUA_RESIDUE = re.compile(r"[\uf700-\uf71f]")
+
+
+def repair_pua(text: str) -> tuple[str, int, int]:
+    """Map private-use Thai marks to their Thai-block equivalents.
+
+    Returns (repaired, n_mapped, n_unmapped). Unmapped PUA codepoints are left in
+    place so they stay visible downstream rather than silently becoming wrong text.
+    """
+    if not text:
+        return text, 0, 0
+    mapped = sum(text.count(c) for c in PUA_MARKS)
+    out = text.translate(_PUA_TABLE)
+    return out, mapped, len(_PUA_RESIDUE.findall(out))
+
 # A combining mark preceded by whitespace — defect 1. The character before the gap may
 # itself be a combining mark: `ท่ ี` stacks a tone mark and a vowel on one consonant and
 # the extractor can split between them.
@@ -59,6 +104,8 @@ _BROKEN_AM = re.compile(f"([{THAI_CONSONANTS}][{COMBINING_MARKS}]*)\\s+({SARA_AA
 
 @dataclass
 class NormalizationReport:
+    pua_marks_mapped: int = 0
+    pua_marks_unmapped: int = 0
     orphan_marks_joined: int = 0
     sara_am_repaired: int = 0
     sara_am_joined_as_aa: int = 0
@@ -123,6 +170,10 @@ def normalize_thai(text: str, collect_samples: bool = False) -> tuple[str, Norma
     report = NormalizationReport(ambiguous_samples=[] if collect_samples else None)
     if not text:
         return text, report
+
+    # Defect 3 first: PUA marks must become real Thai marks before the orphan and
+    # sara-am passes can recognise them as combining characters at all.
+    text, report.pua_marks_mapped, report.pua_marks_unmapped = repair_pua(text)
 
     text = unicodedata.normalize("NFC", text)
 
