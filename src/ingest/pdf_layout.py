@@ -173,3 +173,114 @@ def thai_digits_to_arabic(text: str) -> str:
 
 def normalise_spaces(text: str) -> str:
     return re.sub(r"[ \t ]+", " ", text).strip()
+
+
+# ── Table extraction ──────────────────────────────────────────────────────────
+#
+# The §4 ingredient table cannot be read from the text stream. Whitespace between
+# columns is not reliable — an extraction may separate "หนังหมูเผา" from "100" by two
+# spaces on one row and by none on the next — and a row whose text wraps continues on a
+# line with no index number. Reading it by whitespace recovered ingredients from only
+# 75 of 231 documents.
+#
+# Columns are instead recovered from the data. Run x-positions form tight vertical
+# clusters across the rows of a table; the clusters appearing on the most rows are the
+# columns. The header is deliberately not used as the anchor: its cells sit at different
+# x than the data beneath them (header "ชื่อวัตถุดิบ" at x=137 over data at x=93), so
+# header-derived boundaries put the ingredient name in the index column.
+
+COLUMN_TOLERANCE = 14.0   # points; runs within this share a column
+LINE_TOLERANCE = 2.5      # points; runs within this share a baseline
+
+
+@dataclass
+class TableRow:
+    """One logical row. `cells` is per column, already joined across wrapped lines."""
+
+    cells: list[str]
+    y: float
+
+    def cell(self, index: int) -> str:
+        return self.cells[index].strip() if 0 <= index < len(self.cells) else ""
+
+
+def group_lines(runs: list[TextRun]) -> list[list[TextRun]]:
+    """Runs grouped into visual lines, top to bottom, each sorted left to right."""
+    buckets: dict[tuple[int, float], list[TextRun]] = {}
+    for run in runs:
+        if not run.text.strip():
+            continue
+        key = next(
+            (k for k in buckets if k[0] == run.page and abs(k[1] - run.y) <= LINE_TOLERANCE),
+            (run.page, run.y),
+        )
+        buckets.setdefault(key, []).append(run)
+    return [
+        sorted(buckets[k], key=lambda r: r.x)
+        for k in sorted(buckets, key=lambda k: (k[0], -k[1]))
+    ]
+
+
+def _column_anchors(lines: list[list[TextRun]], expected: int) -> list[float]:
+    """Left edges of the table's columns, inferred from where runs actually start.
+
+    Scored by the number of distinct rows a cluster appears on, not by how many runs
+    fall in it: a single row containing several short runs must not invent a column.
+    """
+    clusters: list[list[float]] = []
+    rows_seen: list[set[int]] = []
+    for index, line in enumerate(lines):
+        for run in line:
+            for c, seen in zip(clusters, rows_seen, strict=True):
+                if abs(c[0] - run.x) <= COLUMN_TOLERANCE:
+                    c.append(run.x)
+                    seen.add(index)
+                    break
+            else:
+                clusters.append([run.x])
+                rows_seen.append({index})
+
+    ranked = sorted(zip(clusters, rows_seen, strict=True), key=lambda p: -len(p[1]))
+    keep = [sum(c) / len(c) for c, _ in ranked[:expected]]
+    return sorted(keep)
+
+
+def extract_table(
+    runs: list[TextRun], expected_columns: int, index_column_is_numeric: bool = True
+) -> list[TableRow]:
+    """Read a positioned table into logical rows.
+
+    A line whose first column holds a number starts a new row; any other line is a
+    continuation and its cells are appended to the row above. That is what recovers
+    multi-line ingredients such as ``เครื่องแกง (ข่า ตะไคร้ …`` / ``เกลือเม็ด) …``.
+    """
+    lines = group_lines(runs)
+    if not lines:
+        return []
+    anchors = _column_anchors(lines, expected_columns)
+    if len(anchors) < 2:
+        return []
+
+    rows: list[TableRow] = []
+    for line in lines:
+        cells = [""] * len(anchors)
+        for run in line:
+            # Nearest anchor at or to the left of the run.
+            column = max(
+                (i for i, a in enumerate(anchors) if run.x >= a - COLUMN_TOLERANCE),
+                default=0,
+            )
+            cells[column] += run.text
+        first = cells[0].strip()
+        if index_column_is_numeric:
+            starts_row = bool(re.fullmatch(r"[0-9๐-๙]{1,2}[.)]?", first))
+        else:
+            starts_row = bool(first)
+
+        if starts_row or not rows:
+            rows.append(TableRow(cells=cells, y=line[0].y))
+        else:
+            for i, value in enumerate(cells):
+                if value.strip():
+                    rows[-1].cells[i] = (rows[-1].cells[i] + " " + value).strip()
+    return rows

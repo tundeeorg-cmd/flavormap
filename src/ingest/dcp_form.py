@@ -32,7 +32,10 @@ from pathlib import Path
 from src.clean.normalize_th import normalize_thai
 from src.ingest.pdf_layout import (
     Document,
+    TextRun,
     checkboxes,
+    extract_table,
+    group_lines,
     read_document,
     thai_digits_to_arabic,
 )
@@ -79,9 +82,19 @@ def _strip_leaders(value: str | None) -> str | None:
 _DISH_NAME = re.compile(r"ชื่อเมนูอาหาร\s*(.+?)(?:\s*จังหวัด|\n)")
 _PROVINCE = re.compile(r"ชื่อเมนูอาหาร[^\n]*?จังหวัด\s*([^\s\n]+)")
 _DISTRICT = re.compile(r"อำเภอ\s*/?\s*(?:เขต)?\s*([^\s\n]+)")
-_INGREDIENT_ROW = re.compile(
-    r"^\s*([0-9๐-๙]{1,2})\s+(.{2,}?)\s{2,}(.*)$",
+# §4 table boundaries. The header names the columns; the end markers are the checkbox
+# options and the §5 heading that follow the table.
+_TABLE_HEADER = ("ชื่อวัตถุดิบ", "ชื่อวัตถดิบ", "วัตถุดิบ/")
+_TABLE_END = (
+    "ไม่มีส่วนผสม",
+    "ด้านการเผยแพร่",
+    "ด้านโภชนาการ",
+    "อื่นๆ (ระบุ)",
+    "๕.",
 )
+_TABLE_COLUMNS = 4          # ที่ | ชื่อวัตถุดิบ/เครื่องปรุง | สรรพคุณ | ที่มา
+_PAGE_ARTEFACT_Y = 5.0      # runs at y≈0 are footers/watermarks, not table content
+
 _QUANTITY = re.compile(
     r"([0-9๐-๙]+(?:[./][0-9๐-๙]+)?)\s*"
     r"(กรัม|กก\.|กิโลกรัม|ขีด|ช้อนโต๊ะ|ช้อนชา|ถ้วย|ลูก|ใบ|หัว|แว่น|ต้น|ฟอง|ตัว|มล\.|ลิตร|ซีซี|กำ|ช่อ|ฝัก)"
@@ -165,42 +178,84 @@ def _acquisition_mode(raw: str | None) -> str | None:
     return None
 
 
-def _parse_ingredients(text: str) -> list[Ingredient]:
-    """Rows of the §4 table, between its header and the §5 heading."""
-    start = text.find("ชื่อวัตถุดิบ")
-    if start < 0:
-        return []
-    end = text.find("๕.", start)
-    block = text[start : end if end > 0 else len(text)]
-
-    out: list[Ingredient] = []
-    for line in block.splitlines()[1:]:
-        m = _INGREDIENT_ROW.match(line.rstrip())
-        if not m:
+def _table_runs(doc: Document) -> list[TextRun]:
+    """Runs belonging to the §4 table body: after its header, before the next section."""
+    body: list[TextRun] = []
+    started = False
+    for line in group_lines(doc.runs):
+        text = "".join(r.text for r in line)
+        if not started:
+            if any(h in text for h in _TABLE_HEADER):
+                started = True
             continue
-        position = int(thai_digits_to_arabic(m.group(1)))
-        name = m.group(2).strip()
-        rest = m.group(3).strip()
+        if any(marker in text for marker in _TABLE_END):
+            break
+        body.extend(r for r in line if r.y > _PAGE_ARTEFACT_Y)
+    return body
 
-        qty = _QUANTITY.search(name) or _QUANTITY.search(rest)
-        if qty:
-            name = _QUANTITY.sub("", name).strip()
 
-        # The last whitespace-separated cell of the row is ที่มา (acquisition).
-        cells = [c for c in re.split(r"\s{2,}", rest) if c.strip()]
-        acquisition = cells[-1].strip() if cells else None
+def _parse_ingredients(doc: Document) -> list[Ingredient]:
+    """Read the §4 table by column position.
+
+    Whitespace is not a reliable column separator here — see the note in
+    :mod:`src.ingest.pdf_layout`. Rows are recovered from x-clusters, and a line whose
+    index cell is empty is a continuation of the row above.
+    """
+    rows = extract_table(_table_runs(doc), _TABLE_COLUMNS)
+    out: list[Ingredient] = []
+    for row in rows:
+        index = thai_digits_to_arabic(row.cell(0)).rstrip(".)")
+        if not index.isdigit():
+            continue
+        name = row.cell(1)
+        acquisition = row.cell(_TABLE_COLUMNS - 1) or None
+
+        quantity = _QUANTITY.search(name)
+        if quantity:
+            name = _QUANTITY.sub(" ", name)
+        name = re.sub(r"\s{2,}", " ", name).strip(" .")
+        if not name:
+            continue
 
         out.append(
             Ingredient(
-                position=position,
-                name_th=name,
-                quantity_value=thai_digits_to_arabic(qty.group(1)) if qty else None,
-                quantity_unit=qty.group(2) if qty else None,
-                acquisition_raw=acquisition,
+                position=int(index),
+                name_th=normalize_thai(name)[0],
+                quantity_value=thai_digits_to_arabic(quantity.group(1)) if quantity else None,
+                quantity_unit=quantity.group(2) if quantity else None,
+                acquisition_raw=normalize_thai(acquisition)[0] if acquisition else None,
                 acquisition_mode=_acquisition_mode(acquisition),
             )
         )
     return out
+
+
+def _scrub(record: DCPRecord) -> None:
+    """Final redaction pass over every string the record carries.
+
+    The §4 table is read from the positioned runs, which are the RAW runs — that is the
+    only way to recover columns geometrically, and it bypasses the redaction applied to
+    the text stream. Without this pass, informant names appearing inside the table
+    region and URLs in the ที่มา column reach parsed_json; the database-wide PDPA test
+    caught exactly that. Every field is scrubbed again here so no route into a record
+    can skip the stripper, whatever it was parsed from.
+    """
+    def clean(value: str | None) -> str | None:
+        if not value:
+            return value
+        scrubbed, report = redact(value)
+        for column in RedactionReport.COLUMNS.values():
+            setattr(record.redaction, column,
+                    getattr(record.redaction, column) + getattr(report, column))
+        return scrubbed.strip() or None
+
+    record.dish_name_th = clean(record.dish_name_th)
+    record.province_th = clean(record.province_th)
+    record.district_th = clean(record.district_th)
+    for ingredient in record.ingredients:
+        ingredient.name_th = clean(ingredient.name_th) or ""
+        ingredient.acquisition_raw = clean(ingredient.acquisition_raw)
+    record.ingredients = [i for i in record.ingredients if i.name_th]
 
 
 def parse_document(doc: Document) -> DCPRecord:
@@ -234,7 +289,8 @@ def parse_document(doc: Document) -> DCPRecord:
     else:
         record.notes.append("no checkbox glyphs — category/occasion/endangerment unknown")
 
-    record.ingredients = _parse_ingredients(text)
+    record.ingredients = _parse_ingredients(doc)
+    _scrub(record)
     if not record.ingredients:
         record.notes.append("no ingredient rows matched")
 
