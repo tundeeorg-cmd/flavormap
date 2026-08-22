@@ -112,7 +112,28 @@ Raw source documents on disk retain everything they came with. They are gitignor
 never enter a HuggingFace release, and they are kept locally solely so that parsing is
 reproducible and auditable.
 
-Enforced by `tests/test_pdpa.py` against the full parsed set.
+### Enforcement status — checked 2026-08-22
+
+**Not yet enforced. `tests/test_pdpa.py` does not exist.** No parser has been written, no
+document has been parsed, and every recipe table is empty. There is nothing for such a test
+to assert against yet, and a test that passed on zero rows would be a false assurance rather
+than a check — which is why the file has not been created as a placeholder.
+
+| | |
+|---|---|
+| Documents fetched | 231 |
+| Documents parsed | 0 |
+| Rows in `raw_recipes` / `recipes` / `recipe_ingredients` | 0 |
+| Rows in `redaction_log` | 0 |
+| `tests/test_pdpa.py` | **absent** |
+
+The requirement is unchanged and it is a gate, not a follow-up: **the parser is not finished
+until `tests/test_pdpa.py` exists and passes against the full parsed set**, asserting that no
+phone, email, or house-number pattern survives into any table (`CLAUDE.md` §13). It is written
+alongside the parser, in the same commit, not after it.
+
+This section is updated when that lands. Until then the rule above states an intention, not an
+enforced guarantee, and is written that way deliberately.
 
 ## Fieldwork consent
 
