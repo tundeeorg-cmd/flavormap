@@ -83,8 +83,11 @@ _H = rf"[{_WS}]"
 # unspaced, so พระ matches inside นครพระชุม and คุณ inside สรรพคุณ (the ingredient
 # table's own column header). Both produced false positives on real documents.
 _HONORIFIC = r"(?:นางสาว|นาง|นาย|น\.ส\.|ด\.ช\.|ด\.ญ\.)"
-# Must not be preceded by a Thai letter, or it is part of a longer word.
-_H_ANCHORED = rf"(?<![ก-๎]){_HONORIFIC}"
+# Must not be preceded by a Thai letter, or it is part of a longer word. Must not be
+# FOLLOWED by a combining mark either: นา + ยัง extracts as a นาย match, and no personal
+# name begins with a vowel or tone mark.
+_COMBINING = "ัิีึืุู็่้๊๋์ํ"
+_H_ANCHORED = rf"(?<![ก-๎]){_HONORIFIC}(?![{_COMBINING}])"
 
 PATTERNS: list[tuple[str, str, re.Pattern[str]]] = [
     # (class, description, pattern) — `class` maps to a redaction_log column.
