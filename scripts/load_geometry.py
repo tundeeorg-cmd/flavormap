@@ -39,26 +39,22 @@ from src.db import get_connection
 GADM_URL = "https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_THA_1.json.zip"
 GADM_CACHE = Path("data/raw/reference/gadm41_THA_1.json")
 
-# GADM's NAME_1 spellings that differ from this project's name_en. GADM is the odd one
-# out in each case; provinces.csv follows ISO 3166-2:TH.
+def _norm(name: str) -> str:
+    """Space- and case-insensitive key for matching province names.
+
+    GADM 4.1 writes level-1 names with no spaces (``ChiangMai``,
+    ``NakhonSiThammarat``); ``provinces.csv`` follows ISO 3166-2:TH (``Chiang Mai``).
+    Comparing on a normalised key matches 76 of 77 outright, leaving only the one
+    genuine spelling difference below — far less brittle than enumerating every
+    two-word province by hand.
+    """
+    return name.replace(" ", "").replace("-", "").lower()
+
+
+# The only name where GADM and ISO 3166-2:TH genuinely disagree once spacing and case
+# are normalised away. Keyed on the normalised form.
 GADM_NAME_FIXES = {
-    "Bangkok Metropolis": "Bangkok",
-    "Buriram": "Buri Ram",
-    "Chachoengsao": "Chachoengsao",
-    "Chainat": "Chai Nat",
-    "Chaiyaphum": "Chaiyaphum",
-    "Chon Buri": "Chon Buri",
-    "Lop Buri": "Lop Buri",
-    "Nakhon Si Thammarat": "Nakhon Si Thammarat",
-    "Phangnga": "Phangnga",
-    "Phatthalung": "Phatthalung",
-    "Phra Nakhon Si Ayutthaya": "Phra Nakhon Si Ayutthaya",
-    "Prachin Buri": "Prachin Buri",
-    "Si Sa Ket": "Si Sa Ket",
-    "Sing Buri": "Sing Buri",
-    "Ubon Ratchathani": "Ubon Ratchathani",
-    "Nong Bua Lam Phu": "Nong Bua Lam Phu",
-    "Bueng Kan": "Bueng Kan",
+    "bangkokmetropolis": "bangkok",
 }
 
 
@@ -104,11 +100,11 @@ def read_reference() -> list[dict[str, str]]:
 
 
 def index_gadm(fc: dict) -> dict[str, dict]:
-    """Map normalised English province name -> GADM feature."""
+    """Map normalised English province name (see _norm) -> GADM feature."""
     out: dict[str, dict] = {}
     for feat in fc["features"]:
-        raw = feat["properties"].get("NAME_1", "")
-        out[GADM_NAME_FIXES.get(raw, raw)] = feat
+        key = _norm(feat["properties"].get("NAME_1", ""))
+        out[GADM_NAME_FIXES.get(key, key)] = feat
     return out
 
 
@@ -124,7 +120,7 @@ def main() -> int:
 
     matched, unmatched = [], []
     for row in reference:
-        feat = by_name.get(row["name_en"])
+        feat = by_name.get(_norm(row["name_en"]))
         (matched if feat else unmatched).append((row, feat) if feat else row)
 
     print(f"matched {len(matched)}/77 provinces to GADM geometry")
@@ -193,8 +189,9 @@ def main() -> int:
         conn.close()
 
     print(
-        "\ndialect_group is intentionally NULL for all 77 rows — that is HD-1 and it is "
-        "the researcher's to fill."
+        "\ndialect_group holds the HD-1 option-B proposal from provinces.csv. HD-1 is "
+        "still OPEN and the per-province assignments are unreviewed — see "
+        "docs/decisions.md. Clear with: UPDATE provinces SET dialect_group = NULL;"
     )
     return 0
 
