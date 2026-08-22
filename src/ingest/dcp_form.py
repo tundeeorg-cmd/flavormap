@@ -31,6 +31,7 @@ from pathlib import Path
 
 from src.clean.normalize_th import normalize_thai
 from src.ingest.pdf_layout import (
+    COLUMN_TOLERANCE,
     Document,
     TextRun,
     checkboxes,
@@ -85,13 +86,20 @@ _DISTRICT = re.compile(r"อำเภอ\s*/?\s*(?:เขต)?\s*([^\s\n]+)")
 # §4 table boundaries. The header names the columns; the end markers are the checkbox
 # options and the §5 heading that follow the table.
 _TABLE_HEADER = ("ชื่อวัตถุดิบ", "ชื่อวัตถดิบ", "วัตถุดิบ/")
+# Section headings that always end the table. §4's own checkbox options are NOT here:
+# some layouts print "ไม่มีส่วนผสม…" and "อื่นๆ (ระบุ)" ABOVE the table rather than below,
+# and treating them as hard stops truncated the body to nothing (central_15_2).
 _TABLE_END = (
-    "ไม่มีส่วนผสม",
     "ด้านการเผยแพร่",
     "ด้านโภชนาการ",
-    "อื่นๆ (ระบุ)",
-    "๕.",
+    "ภาพถ่าย หรือคลิป",
 )
+# These end the table only once rows have started.
+_TABLE_END_AFTER_ROWS = ("ไม่มีส่วนผสม", "อื่นๆ (ระบุ)")
+_ROW_INDEX = re.compile(r"[0-9๐-๙]{1,2}[.)]?")
+_MAX_INDEX_GAP = 3      # north_8_3 skips 44; a larger jump is a different list
+_MAX_ROW_GAP = 150.0    # points between consecutive rows on one page
+_PAGE_TOP = 640.0       # a table resuming after a page break starts above this y
 _TABLE_COLUMNS = 4          # ที่ | ชื่อวัตถุดิบ/เครื่องปรุง | สรรพคุณ | ที่มา
 _PAGE_ARTEFACT_Y = 5.0      # runs at y≈0 are footers/watermarks, not table content
 
@@ -179,19 +187,121 @@ def _acquisition_mode(raw: str | None) -> str | None:
 
 
 def _table_runs(doc: Document) -> list[TextRun]:
-    """Runs belonging to the §4 table body: after its header, before the next section."""
-    body: list[TextRun] = []
-    started = False
-    for line in group_lines(doc.runs):
+    """Runs belonging to the §4 table body, trimmed to the rows themselves.
+
+    Section markers alone are not a reliable end: some documents carry none that match,
+    and the slice then runs to the end of the file. When that happened the column
+    clustering locked onto URL fragments in §5–§7 and missed the index and name columns
+    entirely (south_5_1).
+
+    So the table is bounded by its own rows. The header's first cell (ที่) gives the
+    index column; a line whose leftmost run sits there and reads as a number is a row.
+    The body runs from the first such row to the last, plus any indented continuation
+    lines trailing it.
+    """
+    lines = group_lines(doc.runs)
+    header = next(
+        (
+            i
+            for i, line in enumerate(lines)
+            if any(h in "".join(r.text for r in line) for h in _TABLE_HEADER)
+        ),
+        None,
+    )
+    if header is None:
+        return []
+    index_x = _index_column_x(lines[header + 1 :], lines[header][0].x)
+
+    # Rows are numbered upward from 1, and that is what bounds the table: a numeral in
+    # the index column further down the page belongs to a numbered list in §5 or §6, and
+    # following it swallowed the rest of the document.
+    #
+    # Not strictly consecutive, though — north_8_3 runs …43, 45, 46, 47, skipping 44. A
+    # small forward gap is tolerated; a number that goes backwards, jumps far, or sits
+    # far below the previous row on the same page ends the table.
+    collected: list[list[TextRun]] = []
+    last_row: list[TextRun] | None = None
+    expected = 1
+
+    for line in lines[header + 1 :]:
         text = "".join(r.text for r in line)
-        if not started:
-            if any(h in text for h in _TABLE_HEADER):
-                started = True
-            continue
-        if any(marker in text for marker in _TABLE_END):
+        if any(m in text for m in _TABLE_END):
             break
-        body.extend(r for r in line if r.y > _PAGE_ARTEFACT_Y)
-    return body
+        if last_row is not None and any(m in text for m in _TABLE_END_AFTER_ROWS):
+            break
+        body = [r for r in line if r.y > _PAGE_ARTEFACT_Y]
+        if not body:
+            continue
+
+        number = _row_number(body, index_x)
+        if number is not None and expected <= number <= expected + _MAX_INDEX_GAP:
+            if last_row is not None and _too_far_below(last_row, body):
+                break
+            collected.append(body)
+            last_row, expected = body, number + 1
+        elif last_row is not None and _is_continuation(body, last_row, index_x):
+            collected.append(body)
+        # Anything else — a stray numeral, a caption, a footer — is ignored rather than
+        # treated as the end. north_8_3 has a lone "1" below row 12 and rows 15-47 after
+        # it; breaking there lost three quarters of the table.
+
+    return [r for line in collected for r in line]
+
+
+def _index_column_x(lines: list[list[TextRun]], fallback: float) -> float:
+    """Where the row-number column actually sits.
+
+    Taking it from the header's leftmost cell assumes that cell is ที่, which holds for
+    most layouts but not all: 13 documents put their numbering at a different x and read
+    as having no rows at all. Preferring the x where numerals actually stack recovers
+    them, with the header position as fallback when nothing stacks.
+    """
+    tally: dict[float, int] = {}
+    for line in lines:
+        first = min(line, key=lambda r: r.x)
+        if not _ROW_INDEX.fullmatch(first.text.strip()):
+            continue
+        key = next((k for k in tally if abs(k - first.x) <= COLUMN_TOLERANCE), first.x)
+        tally[key] = tally.get(key, 0) + 1
+    if not tally:
+        return fallback
+    best = max(tally, key=lambda k: tally[k])
+    return best if tally[best] >= 2 else fallback
+
+
+def _is_continuation(line: list[TextRun], last_row: list[TextRun], index_x: float) -> bool:
+    """Indented text close below a row is that row's wrapped remainder."""
+    return (
+        min(r.x for r in line) > index_x + COLUMN_TOLERANCE
+        and not _too_far_below(last_row, line)
+    )
+
+
+def _too_far_below(previous: list[TextRun], candidate: list[TextRun]) -> bool:
+    """True when the candidate is too far from the previous row to belong to it.
+
+    A table may continue across a page break, but only by resuming near the top of the
+    next page. Without that constraint a numbered list in §5 or §6 continues the row
+    sequence — south_5_1 has rows ๑–๔ and then §5 content numbered ๕ onward, which
+    chained the body to fifty lines and left the column clustering reading citations.
+    """
+    if previous[0].page != candidate[0].page:
+        return candidate[0].y < _PAGE_TOP
+    return (previous[0].y - candidate[0].y) > _MAX_ROW_GAP
+
+
+def _row_number(line: list[TextRun], index_x: float) -> int | None:
+    """The row's index number, if this line opens a table row."""
+    first = min(line, key=lambda r: r.x)
+    if abs(first.x - index_x) > COLUMN_TOLERANCE:
+        return None
+    text = thai_digits_to_arabic(first.text.strip()).rstrip(".)")
+    return int(text) if text.isdigit() and len(text) <= 2 else None
+
+
+def _is_row_start(line: list[TextRun], index_x: float) -> bool:
+    """True when the line opens a table row: a number in the index column."""
+    return _row_number(line, index_x) is not None
 
 
 def _parse_ingredients(doc: Document) -> list[Ingredient]:

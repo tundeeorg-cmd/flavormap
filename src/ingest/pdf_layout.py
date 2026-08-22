@@ -190,6 +190,7 @@ def normalise_spaces(text: str) -> str:
 # header-derived boundaries put the ingredient name in the index column.
 
 COLUMN_TOLERANCE = 14.0   # points; runs within this share a column
+_INDEX_CELL = re.compile(r"[0-9๐-๙]{1,2}[.)]?")
 LINE_TOLERANCE = 2.5      # points; runs within this share a baseline
 
 
@@ -257,7 +258,13 @@ def extract_table(
     lines = group_lines(runs)
     if not lines:
         return []
-    anchors = _column_anchors(lines, expected_columns)
+
+    # Anchors come from confirmed row lines only. Continuation lines and any stray
+    # content that survived the body slice do not vote: they cluster at the wide text
+    # columns and can outnumber the rows, which left the anchors reading citation text
+    # instead of the index and name columns.
+    row_lines = [ln for ln in lines if _INDEX_CELL.fullmatch(ln[0].text.strip())]
+    anchors = _column_anchors(row_lines or lines, expected_columns)
     if len(anchors) < 2:
         return []
 
