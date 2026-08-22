@@ -200,3 +200,86 @@ minutes of traffic. Volume is not the concern here; permission is.
 **Decision:**
 **Reasoning:**
 **Date decided:**
+
+---
+
+## HD-21 — Does ตำบล (subdistrict) enter the database?
+**Date presented:** 2026-08-22
+**Status:** OPEN — no sub-provincial column exists on the recipe side at all, so nothing
+has been implemented in either direction. `ETHICS.md` currently states both answers.
+
+**Numbering note.** Proposed as HD-21, *not* HD-4. This gate was called "HD-4" in session
+on 2026-08-22 before the numbering was checked; `CLAUDE.md` §9 already assigns HD-4 to
+"read 20 parsed recipes by hand and write the defect list." §9's own header flags its
+numbering as a proposal, and the Bible describes twenty gates, so this is a twenty-first
+surfaced by the DCP form. Renumber freely — but in `CLAUDE.md` §9 and this file together.
+
+**Why this is open.** `ETHICS.md` contradicts itself inside one section:
+
+> l.102–103 — forms "carry informant names, house numbers, roads, **subdistricts**,
+> postcodes, and mobile numbers. These are **discarded during parsing**, before any write"
+>
+> l.108 — "Retained from such forms: administrative geography (**ตำบล** / อำเภอ / จังหวัด).
+> Administrative geography is not contact detail."
+
+ตำบล *is* subdistrict. The document says it is both discarded and retained. Separately, the
+session brief of 2026-08-22 asks for district **and** subdistrict on the schema, while
+`db/migrations/008_fieldwork.sql` comments "District only — never subdistrict-plus-address."
+Three statements, three positions.
+
+**What actually exists.** `informants.district` is the only sub-provincial column in the
+schema. `recipes`, `raw_recipes` and `province_attribution` carry no district and no
+subdistrict. Any option below needs a forward migration.
+
+**Two streams, and the rule need not be the same for both.** `informants` holds people the
+researcher interviews under written consent — PDPA data subjects in the ordinary sense. The
+DCP corpus is a set of documents *already published by a government department*, where the
+dish and its ตำบล are public and the personal data is the submitter's name, house number,
+road, postcode and mobile. Treating the two identically is part of what produced the
+contradiction. A decision that splits them is legitimate and should say so explicitly.
+
+**Options presented:**
+  A. **Province only.** Discard ตำบล and อำเภอ at parse time, both streams.
+     Consequence: strongest PDPA position, no re-identification surface. Loses the
+     sub-provincial stamping that is one of the few things making the DCP corpus richer
+     than a bare province label. RQ1's distance-decay runs on province centroids anyway, so
+     the analytical cost lands on future work and on provenance, not on the current paper.
+  B. **Province + อำเภอ (district); discard ตำบล.** One rule across both streams.
+     Consequence: matches the rule already written into `008_fieldwork.sql`, and makes
+     `ETHICS.md` internally consistent with a two-word edit. ~900 อำเภอ nationally, mean
+     population ~70k — not identifying alone. Loses the finest geography the forms carry.
+  C. **Province + อำเภอ + ตำบล; discard only the contact block** (name, house number, road,
+     postcode, mobile).
+     Consequence: fullest provenance, and it is what `ETHICS.md` l.108 already claims the
+     project does. Defensible on the grounds that the Department has itself published this.
+     But ~7,255 ตำบล nationally, mean population ~9k, and this corpus is *deliberately
+     curated for dishes at risk of disappearing* (L15) — a rare dish plus a 9,000-person
+     subdistrict is a small haystack, and PDPA covers indirect identification.
+  D. **Retain ตำบล in a column flagged non-exportable.** Kept for internal provenance and
+     QA, excluded from every release, with HD-20's final read-through as backstop.
+     Consequence: keeps the information without publishing it. But it is still "in a table,"
+     which is exactly what the rule at the top of that `ETHICS.md` section says never
+     happens — so choosing D means rewriting the rule, not just the retained-fields list.
+
+**Recommendation given:** **B**, with the split stated explicitly: อำเภอ on both streams,
+ตำบล on neither.
+
+**Consequence of choosing otherwise:** C is the option with the strongest positive argument
+— the data is already public — and if sub-provincial resolution turns out to matter for
+RQ3's coverage cartography, C is what makes that possible. The reason to still prefer B is
+that **the conservative choice is unusually cheap here**: the 231 raw PDFs are retained on
+disk, so ตำบล can be recovered by re-parsing at any point. This is not the usual
+irreversible discard. Taking the narrow option now costs one re-parse later if the
+judgement changes, whereas taking C now and publishing means the disclosure cannot be
+withdrawn. A is defensible but discards อำเภอ for no privacy gain that B does not already
+secure. D is the honest form of C and should be chosen over C if the answer is "keep it but
+never publish it."
+
+**What this gate blocks.** The parser cannot be written until it is decided — the field list
+is the parser's output contract, and `redaction_log`'s per-class counts depend on knowing
+which classes are stripped. It also fixes the wording of `ETHICS.md` l.102–108, which stays
+self-contradictory until then.
+
+**Decision:**
+**Reasoning:**
+**Date decided:**
