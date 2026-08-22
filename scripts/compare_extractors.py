@@ -116,7 +116,9 @@ def main() -> int:
 
     print(f"comparing {len(EXTRACTORS)} extractors on {len(sample)} documents\n")
 
-    totals: dict[str, dict[str, int]] = {n: {"thai": 0, "orphan": 0, "am": 0, "fail": 0} for n in EXTRACTORS}
+    totals: dict[str, dict[str, int]] = {
+        n: {"thai": 0, "orphan": 0, "am": 0, "fail": 0} for n in EXTRACTORS
+    }
     per_doc: list[dict] = []
 
     for path in sample:
@@ -149,7 +151,10 @@ def main() -> int:
             fixture_results[name] = [t for t in FIXTURE["must_contain"] if t not in text]
 
     print("\n" + "=" * 74)
-    print(f"{'extractor':<16}{'thai chars':>12}{'orphans/1k':>13}{'broken ำ/1k':>14}{'failures':>10}")
+    print(
+        f"{'extractor':<16}{'thai chars':>12}{'orphans/1k':>13}"
+        f"{'broken ำ/1k':>14}{'failures':>10}"
+    )
     print("=" * 74)
     ranking = []
     for name, t in totals.items():
@@ -183,7 +188,10 @@ def main() -> int:
             f"{round(t['am']/t['thai']*1000,2) if t['thai'] else 0} | {t['fail']} |\n"
             for n, t in totals.items()
         )
-        + "\n## Fixture check\n\nTokens read by hand from `north_1_1.pdf` that each extractor fails to reproduce:\n\n"
+        + (
+            "\n## Fixture check\n\nTokens read by hand from `north_1_1.pdf` "
+            "that each extractor fails to reproduce:\n\n"
+        )
         + "".join(
             f"- `{n}`: {'**all present**' if not m else '**MISSING** ' + ', '.join(m)}\n"
             for n, m in fixture_results.items()
@@ -195,7 +203,11 @@ def main() -> int:
 
     Path("data/processed").mkdir(parents=True, exist_ok=True)
     Path("data/processed/extractor_comparison.json").write_text(
-        json.dumps({"per_doc": per_doc, "totals": totals, "fixture": fixture_results}, ensure_ascii=False, indent=2),
+        json.dumps(
+            {"per_doc": per_doc, "totals": totals, "fixture": fixture_results},
+            ensure_ascii=False,
+            indent=2,
+        ),
         encoding="utf-8",
     )
     return 0

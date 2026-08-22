@@ -255,10 +255,14 @@ def main() -> int:
         f = Fetcher(client, robots)
 
         if not args.probe_only:
-            print(f"\nenumerating food68/ — max {sum(REGIONS.values()) * MENUS_PER_PROVINCE} documents")
+            max_docs = sum(REGIONS.values()) * MENUS_PER_PROVINCE
+            print(f"\nenumerating food68/ — max {max_docs} documents")
             result = enumerate_food68(f, args.limit, args.region)
             write_log(result)
-            print(f"\nfetched {len(result.fetched)}  missing {len(result.missing)}  errors {len(result.errors)}")
+            print(
+                f"\nfetched {len(result.fetched)}  missing {len(result.missing)}  "
+                f"errors {len(result.errors)}"
+            )
             by_region: dict[str, int] = {}
             for region, *_ in result.fetched:
                 by_region[region] = by_region.get(region, 0) + 1
