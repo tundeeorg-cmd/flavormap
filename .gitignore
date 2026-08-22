@@ -5,8 +5,26 @@ data/raw/
 data/interim/
 data/photos/
 
+# Source PDFs anywhere under data/. The DCP corpus carries informant personal data
+# (name, house number, road, postcode, mobile) and must never be committed. Scoped to
+# data/ deliberately: the two specification PDFs at the repo root are tracked.
+data/**/*.pdf
+
+# Database dumps (scripts/dump_db.sh writes data/exports/flavormap_*.sql.gz).
+# The directory stays tracked via .gitkeep so the path exists on clone; its contents
+# never do. A dump of this database carries the full parsed corpus — including anything
+# a parser bug let through — into a public repository.
+data/exports/*
+!data/exports/.gitkeep
+
 figures/*
 !figures/final/
+
+# Dump artefacts written by hand outside data/exports/. Deliberately NOT `*.sql`:
+# that would silently ignore all fourteen files in db/migrations/.
+*.sql.gz
+*.dump
+*.pgdump
 
 __pycache__/
 *.py[cod]
