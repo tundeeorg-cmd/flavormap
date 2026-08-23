@@ -333,3 +333,60 @@ exist yet.
 measured, and state in the paper's methods that Figure 4's exploratory version preceded
 pre-registration while the confirmatory analyses did not. A stated exception is
 defensible; a silent one is not.
+
+---
+
+## Note — the labelled-recipe fraction was measured before pre-registration
+
+**Date:** 2026-08-23
+
+The standing rule is pre-registration before analysis. `docs/hypotheses.md` still carries
+no predictions — all five RQ entries are empty checkboxes — and the labelled-recipe
+fraction is Bible §21 item 1, which is analysis, and the one the note of 2026-08-22
+explicitly said RQ3 could still be registered ahead of. It was measured anyway, on
+instruction in session.
+
+**What it costs.** The 1.3% figure cannot be cited as testing a prior prediction about
+RQ3, and an RQ3 prediction written after today describes a result already seen. This is
+the second such exception; the first was Figure 4, one day earlier. Two is a pattern
+rather than an accident, and the pattern is that analysis is running ahead of the file
+meant to precede it.
+
+**What it does not cost.** RQ1, RQ2, RQ4 and RQ5 are unaffected and can still be
+registered normally. The measurement itself is not weakened — it is a descriptive count
+with a hand audit attached, not a hypothesis test, and 1.3% against a 35% threshold is
+not a result a prediction would have changed.
+
+**Recommended repair.** Write the four remaining predictions in `docs/hypotheses.md`
+before any further analysis runs, and state in the paper's methods that the two §21
+blocking items preceded pre-registration while the confirmatory analyses did not.
+
+## Evidence for HD-3 — the consumer-source go/no-go
+
+**Date presented:** 2026-08-23
+
+`docs/labelled_fraction.md` is the measurement HD-3 has been waiting on for
+`kapook_cooking`: 2,521 pages with a readable ingredient list, of which **33 (1.3%)** carry
+a province label that is a claim about the dish, against a §11 threshold of 35%.
+Region-level claims reach 6.2%.
+
+**Options presented:**
+  A. **Keep the source, reframed.** Treat kapook as a coverage corpus rather than an
+     attribution corpus: it answers RQ3 well and RQ1 not at all.
+     (consequence: honest, and RQ3 becomes the project's spine. The province-level
+     ambition in RQ1 has to be withdrawn or rebuilt on fieldwork and the DCP corpus.)
+  B. **Build a second consumer source first** (`doae`, `tat`, `pantip_food`) and re-measure
+     before deciding.
+     (consequence: costs weeks. A second source would have to reach roughly 70% labelled
+     to pull a combined corpus to 35%, which nothing in the audit suggests is likely.)
+  C. **Drop the source.** (consequence: loses the only consumer corpus in hand and the only
+     evidence for RQ3's central claim. Not recommended — a 1.3% labelled fraction is a
+     finding, and rule 9 says negative results ship.)
+
+**Recommendation given:** A, with the 78-row hand audit in
+`docs/kapook_province_hits_audit.csv` confirmed by the researcher first. The `dish` /
+`ingredient` boundary is a judgment call and the headline number rests on it.
+
+**Decision:**
+**Reasoning:**
+**Date decided:**

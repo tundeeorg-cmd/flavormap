@@ -40,3 +40,9 @@ Machine-generated context for this window, for reference when writing:
 - **2026-08-16** — plan reconciled to Bible v3. Working tree inventoried: the "~300
   SorKorPor recipes" referenced in Bible §21 do not exist in the repository or on the
   machine, so the labelled-fraction measurement has no corpus yet.
+- **2026-08-23** — kapook corpus parsed (2,702 pages, 2,521 with a readable ingredient
+  list) and Bible §21 item 1 measured: **1.3%** carry a province label that is a claim
+  about the dish, against a 35% threshold. Region-level claims reach 6.2%. Homographs
+  dominate any looser rule — `เลย` is "at all" in 2,384 pages. This is a coverage paper.
+  See `docs/labelled_fraction.md`. The measurement preceded pre-registration for RQ3,
+  recorded in `docs/decisions.md`.
