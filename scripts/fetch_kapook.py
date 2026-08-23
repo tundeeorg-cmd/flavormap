@@ -97,17 +97,28 @@ def recipe_urls(fetcher: Fetcher) -> list[str]:
     return urls
 
 
-def already_fetched() -> set[str]:
+def settled(retry_empty: bool) -> set[str]:
+    """URLs the manifest says need no further request.
+
+    ``empty`` counts as settled by default. Forty sitemap URLs answer 200 with a
+    zero-byte body — the CMS still lists pages whose content is gone — and they answered
+    identically on a re-probe a day later, so they are a property of the site rather than
+    a transient failure. Retrying them on every resume would spend forty requests a run
+    to re-learn the same thing. ``--retry-empty`` asks anyway.
+    """
     if not MANIFEST.exists():
         return set()
+    keep = {"fetched"} if retry_empty else {"fetched", "empty"}
     with MANIFEST.open(encoding="utf-8") as handle:
-        return {row["url"] for row in csv.DictReader(handle) if row["outcome"] == "fetched"}
+        return {row["url"] for row in csv.DictReader(handle) if row["outcome"] in keep}
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--limit", type=int, help="stop after N new pages")
     ap.add_argument("--sitemap-only", action="store_true", help="enumerate, fetch nothing")
+    ap.add_argument("--retry-empty", action="store_true",
+                    help="re-request URLs previously recorded as empty")
     args = ap.parse_args()
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -121,9 +132,9 @@ def main() -> int:
         if args.sitemap_only:
             return 0
 
-        done = already_fetched()
+        done = settled(args.retry_empty)
         todo = [u for u in urls if u not in done][: args.limit]
-        print(f"already fetched: {len(done)} | fetching now: {len(todo)}")
+        print(f"already settled: {len(done)} | fetching now: {len(todo)}")
 
         new = MANIFEST.exists()
         with MANIFEST.open("a", newline="", encoding="utf-8") as handle:
@@ -131,7 +142,7 @@ def main() -> int:
             if not new:
                 writer.writerow(["url", "recipe_id", "outcome", "http_status", "sha256",
                                  "bytes", "fetched_at"])
-            counts = {"fetched": 0, "missing": 0, "error": 0}
+            counts = {"fetched": 0, "empty": 0, "missing": 0, "error": 0}
             for index, url in enumerate(todo, 1):
                 match = RECIPE_URL.match(url)
                 assert match is not None  # urls were filtered by this pattern
@@ -153,6 +164,15 @@ def main() -> int:
                     continue
 
                 payload = response.content
+                if not payload:
+                    # A 200 is not evidence that a page exists here. Recording these as
+                    # "fetched" would put forty zero-byte files in the corpus and count
+                    # them toward coverage; they are their own outcome.
+                    counts["empty"] += 1
+                    writer.writerow([url, page_id, "empty", 200, "", 0,
+                                     datetime.now(UTC).isoformat()])
+                    continue
+
                 digest = hashlib.sha256(payload).hexdigest()
                 (OUT_DIR / f"view{page_id}.html").write_bytes(payload)
                 counts["fetched"] += 1
@@ -161,7 +181,8 @@ def main() -> int:
                 if index % 50 == 0:
                     handle.flush()
                     print(f"  {index}/{len(todo)}  fetched={counts['fetched']} "
-                          f"missing={counts['missing']} errors={counts['error']}")
+                          f"empty={counts['empty']} missing={counts['missing']} "
+                          f"errors={counts['error']}")
 
     print("\n" + "\n".join(f"{k:>9}: {v}" for k, v in counts.items()))
     print(f"manifest: {MANIFEST}")

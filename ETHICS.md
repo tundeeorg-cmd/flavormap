@@ -102,8 +102,19 @@ Re-fetched rather than trusted from the 2026-08-09 pass, per the robots.txt rule
 
 **Correction to the 2026-08-09 row.** That audit recorded "3,908 sitemap URLs" as the
 candidate recipe count. It is not: 956 of the entries are `/comment/` pages and 43 are
-category listings. The corpus is **2,743 distinct recipe pages**, a third smaller than
-first recorded.
+category listings. 2,742 distinct recipe URLs were listed on 2026-08-22 and 2,739 on
+2026-08-23 — the sitemap moves, so it is a snapshot rather than a fixed number.
+
+**What was actually fetched (2026-08-23).** 2,702 pages. Of the 2,742 URLs attempted, 40
+answer HTTP 200 with a **zero-byte body** — pages the CMS still lists after their content
+is gone. They answered identically on a re-probe the following day, so this is a property
+of the site, not a transient failure. The fetcher records them as `empty` rather than
+`fetched`, which keeps them out of the corpus and out of any coverage denominator.
+
+Against the 3,908 the 2026-08-09 row claimed, then: 2,702 pages fetched, of which
+**2,521 yield a machine-readable ingredient list** — 64% of the original figure. The
+remaining 181 are product reviews, technique articles, and recipes whose ingredient list
+is published as an image or an embedded Facebook post.
 
 **Absence of a ToS is not a licence.** Copyright subsists in the content regardless, which
 is why the storage rule above is load-bearing for this source in particular: ingredient

@@ -65,6 +65,19 @@ ROLE_COMPOUNDS = (
     "นายกเหล่ากาชาด",
 )
 
+# Honorific-initial compounds that are FOOD, found by running this module over a second
+# corpus. `เห็ดนางฟ้า` is the oyster mushroom, and `ข้าวแต๋นนางเล็ด` a rice cracker; both
+# read as `นาง` + a name to the pattern above. The same whole-compound rule applies —
+# `นางฟ้า` is exempt, `นางฟ้าพิเศษ` inherits the exemption through the prefix match, and
+# an actual `นางฟองจันทร์` still redacts.
+FOOD_COMPOUNDS = (
+    "นางฟ้า",
+    "นางเล็ด",
+    "นางลอย",
+)
+
+NOT_A_NAME = ROLE_COMPOUNDS + FOOD_COMPOUNDS
+
 # Thai and Arabic digits both appear, often mixed within one field. `_D` is the class
 # *contents*, so it can be composed into larger classes; `_DIGIT` is the ready class.
 # Writing _DIGIT inside another [...] builds a nested set, which silently matches only
@@ -218,8 +231,8 @@ class RedactionReport:
 
 
 def _is_role_not_name(matched: str) -> bool:
-    """True when an honorific match is a title or royal style, not a personal name."""
-    return matched.startswith(ROLE_COMPOUNDS)
+    """True when an honorific match is a title, royal style or dish name, not a person."""
+    return matched.startswith(NOT_A_NAME)
 
 
 def redact(text: str) -> tuple[str, RedactionReport]:
