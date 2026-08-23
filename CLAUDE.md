@@ -388,16 +388,31 @@ coursework. **School always wins.**
 
 | # | Action | Cost | Why it blocks everything |
 |---|---|---|---|
-| 1 | **Measure the labelled-recipe fraction** on a consumer-site pilot corpus. One number: what share carry a usable province label? | 2 h | Determines whether this is a province-level paper (>35%), a region-level paper (<35%), or primarily a coverage paper. RQ1's entire form depends on it |
+| 1 | ~~Measure the labelled-recipe fraction on a consumer-site pilot corpus.~~ **DONE 2026-08-23 — 1.3%.** See `docs/labelled_fraction.md` | 2 h | Answered: **primarily a coverage paper.** RQ1's province-level form does not survive the number |
 | 2 | **Build Figure 4 from real data** — prevalence vs. distance from Bangkok on the same pilot set | 3 h | If pla ra and sticky rice separate at n≈300, the signal is real. If every panel looks like the MSG control, better to know in month 1 than month 8 |
 | 3 | **Cook the origin dish** with the family member. Photograph the mise en place. Write down what actually happened, including what contradicts the remembered version. Commit with the real date | 2 h | The one item that cannot be reconstructed later. The essay, the introduction, and every interview answer currently rest on an unfilled bracket |
 
-⚠️ **Item 1's corpus is unresolved.** The Bible refers to "~300 SorKorPor recipes already
-in hand." No such data exists in this repository or on this machine (inventory,
-2026-08-16). Treat "SorKorPor" as an unresolved source name in the same class as the
-`doa.go.th` / `doae.go.th` discrepancy until it is confirmed. A consumer source must be
-chosen before item 1 can run. **The institutional DCP corpus cannot substitute** — it is
-province-stamped by construction and would return ~100%, answering nothing.
+✅ **Item 1's corpus was resolved and item 1 has run.** The Bible's "~300 SorKorPor
+recipes already in hand" do not exist in this repository or on this machine (inventory,
+2026-08-16), and "SorKorPor" remains an unresolved source name in the same class as the
+`doa.go.th` / `doae.go.th` discrepancy. `cooking.kapook.com` was audited, fetched and
+parsed in its place — 2,702 pages, 2,521 with a readable ingredient list — and the
+measurement ran on 2026-08-23. **HD-3 for that source was decided on the same day, option
+A: keep it, reframed as a coverage corpus.**
+
+**The answer is 1.3%**, against a 35% threshold, confirmed by a researcher-reviewed hand
+audit of all 78 candidate pages. Region-level claims reach 6.2%, also far below. So:
+
+- **RQ3 leads.** §4 already said to lead the abstract with it; it is now the spine rather
+  than one question of five.
+- **RQ1's province-level form is withdrawn.** §4's own constraint fires below 35%.
+  Whether it is rebuilt at region level (4–6 units, ~157 pages), rebuilt on fieldwork plus
+  the DCP corpus, or dropped is **an open decision** — see `docs/decisions.md`.
+- **Item 2 (Figure 4) was built before this ran**, on the DCP corpus rather than the web
+  corpus it specifies, and before pre-registration. Both exceptions are recorded in
+  `docs/decisions.md`. The real Figure 4 still needs the web corpus.
+- **Item 3 (cook the origin dish) is untouched** and is still the one that cannot be
+  reconstructed later.
 
 ---
 
@@ -461,6 +476,12 @@ scope and no work proceeds on it.
 
 ## Changelog
 
+- **2026-08-23** — §21 blocking item 1 discharged: the labelled-recipe fraction is
+  **1.3%** on `cooking.kapook.com`, against a 35% threshold, with a researcher-confirmed
+  hand audit behind it. HD-3 decided for that source (option A, coverage corpus). This is
+  a coverage paper; RQ1's province-level form is withdrawn pending a separate decision on
+  what replaces it. RQ3 marked exploratory — the measurement preceded pre-registration,
+  the second such exception in two days.
 - **2026-08-16** — Reconciled to Bible v3. RQs rewritten (centrality → distance-decay;
   Louvain-vs-regions → presence/absence decomposition; distinctiveness → coverage
   cartography; Mantel/Moran headline → node-removal fragility; classifier → per-category

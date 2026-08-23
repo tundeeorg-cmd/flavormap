@@ -391,6 +391,19 @@ Region-level claims reach 6.2%.
 `dish` calls. 1.3% is a confirmed figure. The go/no-go on the source itself — option A, B
 or C above — is still open.
 
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** **A — keep the source, reframed.** kapook is a coverage corpus, not an
+attribution corpus. Recorded from the researcher's instruction in session, 2026-08-23; the
+choice is theirs, the transcription is the agent's.
+**Reasoning:**            ← researcher. Still empty, and it is the field the methods
+section will quote. The decision is recorded; the argument for it is not.
+**Date decided:** 2026-08-23
+
+**What A commits the project to.** RQ3 becomes the spine and leads the abstract, which §4
+already said. RQ1's province-level form is withdrawn — §4's own constraint fires below 35%
+— and whether it is rebuilt at region level on this corpus, rebuilt on fieldwork and the
+DCP corpus, or dropped is **a separate decision and is not taken here**. The kapook fetch,
+parse and storage rules continue unchanged under the 2026-08-22 audit.
+
+**Not affected: HD-3 (dcp_food) above, which stays open.** That gate is about
+`food.culture.go.th`'s `ai-train=no` signal and the ClaudeBot blocklist, and nothing has
+been fetched from that domain beyond robots.txt. Two sources, two go/no-go decisions.

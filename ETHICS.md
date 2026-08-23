@@ -26,7 +26,7 @@ One row per source. **Dated.** A source may not be scraped before its row exists
 | `dcp_food` | `food.culture.go.th` | `User-agent: *` → `Allow: /`. **But see content signals below** | none for our UA. `ClaudeBot`, `GPTBot`, `CCBot`, `Google-Extended`, `Bytespider`, `Amazonbot`, `Applebot-Extended`, `meta-externalagent`, `CloudflareBrowserRenderingCrawler` are each `Disallow: /` | no separate ToS page located in this pass | 2026-08-16 | **⛔ HD-3 open — not fetched** |
 | `doae` | `www.doae.go.th` | allowed | `/wp-admin/` | pending | 2026-08-09 | **HD-3 open** |
 | `wongnai` | `www.wongnai.com` | allowed | `/users/` | pending | 2026-08-09 | **HD-3 open** — JS-hydrated, recipe path unresolved |
-| `kapook_cooking` | `cooking.kapook.com` | `User-agent: *` → `Allow: /`, no crawl-delay | none | no terms-of-use page found; linked policy is data-protection only | **2026-08-22** (re-audited) | **HD-3 open** — cleared technically and ethically; see below |
+| `kapook_cooking` | `cooking.kapook.com` | `User-agent: *` → `Allow: /`, no crawl-delay | none | no terms-of-use page found; linked policy is data-protection only | **2026-08-22** (re-audited) | **✅ HD-3 decided 2026-08-23 — option A.** Fetched and parsed as a *coverage* corpus; storage rules below unchanged |
 | `tat` | `www.tat.or.th` | allowed | — | pending | 2026-08-09 | **HD-3 open** |
 | `pantip_food` | `pantip.com` | allowed for our UA | blocks are scoped to other named bots | pending | 2026-08-09 | **HD-3 open** — JS-hydrated, food board URL unresolved |
 | `national_library` | `www.nlt.go.th` | not fetched | — | pending | 2026-08-09 | Blocked: server sends an incomplete TLS chain. Not a workaround candidate — needs a documented justification before any fetch |

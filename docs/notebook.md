@@ -48,3 +48,6 @@ Machine-generated context for this window, for reference when writing:
   recorded in `docs/decisions.md`.
 - **2026-08-23** — the 78-row province audit was reviewed by the researcher, who agreed
   with all 33 `dish` calls. The 1.3% labelled fraction is confirmed rather than proposed.
+- **2026-08-23** — HD-3 decided for `kapook_cooking`: option A, keep the source reframed as
+  a coverage corpus. §21 blocking item 1 is discharged. RQ1's province-level form is
+  withdrawn; what replaces it is a separate open decision.
