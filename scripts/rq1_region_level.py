@@ -211,7 +211,10 @@ def main() -> int:
         "seed": RANDOM_SEED,
         "permutations": args.permutations,
         "vocabulary": len(vectorizer.vocabulary_),
-        "cohorts": {k: vars(v) for k, v in results.items()},
+        # The null arrays are 9,999 floats each and belong to the figure, not to a
+        # summary file that a person reads.
+        "cohorts": {k: {f: v for f, v in vars(r).items() if f != "null"}
+                    for k, r in results.items()},
         "pairwise_single": pairwise,
         "leave_one_out_single": holdout,
     }, ensure_ascii=False, indent=1), encoding="utf-8")

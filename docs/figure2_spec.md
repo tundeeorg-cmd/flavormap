@@ -1,4 +1,7 @@
-# Figure 2 — replacement specification (**draft, not adopted**)
+# Figure 2 — specification
+
+**Adopted 2026-08-23, option A.** Built by `scripts/make_figure2.py` and rendered by
+`src/viz/figure2.py`; `make figures` regenerates it. Supersedes §6's distance-decay row.
 
 CLAUDE.md §6 specifies Figure 2 as a distance-decay scatter: ~2,900 province pairs, km on
 X, cosine distance on Y, LOESS fit with the change point marked. At a 1.3% labelled
@@ -57,12 +60,16 @@ null* rather than as an empty space on a chart. It also makes the power problem 
 the small-n pairs have visibly wider nulls, which is the honest way to show that Central
 vs North is undetermined rather than zero.
 
-## Dependencies, and what happens if they are not met
+## Dependencies
 
-Region centroids come from GADM v4.1 via `scripts/load_geometry.py`. **Neither the GADM
-extract nor the loaded geometry is present on this machine** — `provinces.csv` ships with
-`centroid_lat` / `centroid_lon` empty by design, and no province currently has a centroid.
-Panel A cannot be drawn until that runs.
+Region centroids come from GADM v4.1 via `scripts/load_geometry.py`. **The geometry is
+loaded**: all 77 provinces carry `geom` and a derived centroid, and the GADM extract is
+cached at `data/raw/reference/gadm41_THA_1.json`.
+
+*Correction to the draft of this document.* It recorded the geometry as absent. That was
+read off `provinces.csv`, which ships with `centroid_lat` / `centroid_lon` empty **by
+design** — `load_geometry.py` derives them into the database rather than having 77
+coordinate pairs transcribed by hand. The database was the place to look.
 
 A *region* centroid is not the mean of its province centroids. It is
 `ST_PointOnSurface` of the region's dissolved polygon, matching the province rule in
@@ -70,8 +77,10 @@ A *region* centroid is not the mean of its province centroids. It is
 Central-region "centre" in the Gulf of Thailand would bend every distance without ever
 looking wrong.
 
-**Fallback if geometry stays unavailable:** drop panel A's X axis to an ordinal and render
-the figure as a forest plot — pairs on Y ordered by separation, separation on X, null
+**Fallback, retained for a fresh clone without a loaded database:** `make_figure2` exits
+with an instruction to run `load_geometry` rather than drawing panel A against an invented
+axis. If the geometry ever becomes unobtainable, drop panel A's X axis to an ordinal and
+render the figure as a forest plot — pairs on Y ordered by separation, separation on X, null
 interval as a horizontal bar, fill by significance. It loses the geographic claim and keeps
 everything else. Panel B is unaffected.
 
@@ -82,13 +91,20 @@ RQ1's stated output in §4 is "a number in kilometres: the width of the boundary
 plus the identification of the single boundary carrying it. §4's RQ1 text needs amending
 alongside this figure, or the two documents will disagree.
 
-## Open questions for the researcher
+## What the built figure shows
 
-1. **Accept, amend or reject** this replacement. Rejecting is defensible: RQ1 could ship
-   without a figure and lean on the table in `docs/rq1_region_level.md`.
-2. **Is the geographic axis worth its dependency?** Panel A needs GADM loaded to say
-   something the forest-plot fallback cannot. It is the difference between "one boundary
-   carries the signal" and "one boundary carries the signal, and it is not the distant one."
-3. **Does Figure 2 keep its number?** A figure this different from its specification may be
-   better numbered afresh, so that the paper's figure list does not imply continuity with
-   a distance-decay analysis that was never run.
+The geographic axis earned its dependency. The two **closest** pairs are the two most
+separated (Central–Northeast at 369 km, North–Northeast at 432 km), and the **farthest**
+pair is not separated at all (North–South at 1,038 km, Holm p = 0.25). Compositional
+difference is not a function of distance at this resolution — it is a function of whether
+the Northeast is one of the two regions.
+
+That is a stronger statement than the forest-plot fallback could have made, and it is the
+nearest thing RQ1 still has to its original question.
+
+## Still open
+
+**Does Figure 2 keep its number?** A figure this far from its specification may be better
+numbered afresh, so the paper's figure list does not imply continuity with a distance-decay
+analysis that was never run. Kept as Figure 2 for now — renumbering is cheap later and
+churns every cross-reference now.

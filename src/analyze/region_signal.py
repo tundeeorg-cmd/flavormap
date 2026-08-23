@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 from pythainlp.tokenize import word_tokenize
@@ -96,6 +96,14 @@ class SeparationResult:
     p_value: float
     n_permutations: int
     group_sizes: dict[str, int]
+    #: every permuted separation, in permutation order. Figure 2's second panel draws
+    #: these: a non-significant pair has to read as "the observed value sits inside its
+    #: null", which needs the null itself and not just a p-value.
+    null: list[float] = field(default_factory=list)
+
+    def null_interval(self, lower: float = 2.5, upper: float = 97.5) -> tuple[float, float]:
+        percentiles = np.percentile(self.null, [lower, upper])
+        return float(percentiles[0]), float(percentiles[1])
 
     @property
     def significant(self) -> bool:
@@ -141,11 +149,14 @@ def separation_test(
 
     rng = np.random.default_rng(seed)
     shuffled = codes.copy()
+    null: list[float] = []
     at_least_as_extreme = 0
     for _ in range(n_permutations):
         rng.shuffle(shuffled)
         null_within, null_between = _mean_within_between(distances, shuffled)
-        if null_between - null_within >= observed:
+        permuted = null_between - null_within
+        null.append(permuted)
+        if permuted >= observed:
             at_least_as_extreme += 1
 
     # +1 in both terms: the observed arrangement is itself one of the possible ones, and
@@ -163,6 +174,7 @@ def separation_test(
         p_value=p_value,
         n_permutations=n_permutations,
         group_sizes=sizes,
+        null=null,
     )
 
 

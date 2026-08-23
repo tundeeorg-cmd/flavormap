@@ -114,12 +114,33 @@ noise carries visible weight — `เพจ` ("page", from a Facebook credit lin
 top discriminating tokens, which means a non-ingredient line reached an ingredient
 section. The parser's 93% coverage is not 100%, and at n=7 the residue is not averaged out.
 
+## Distance does not explain any of it
+
+Region centroids are `ST_PointOnSurface` of each region's dissolved GADM polygon, and
+great-circle distances between them run from 369 to 1,038 km.
+
+| pair | km | separation | Holm |
+|---|---:|---:|---:|
+| Central–Northeast | 369 | +0.0790 | **0.0012** |
+| North–Northeast | 432 | +0.0803 | **0.0006** |
+| Central–North | 542 | −0.0052 | 0.8294 |
+| Central–South | 587 | +0.0019 | 0.8294 |
+| Northeast–South | 955 | +0.0592 | **0.0006** |
+| North–South | 1,038 | +0.0117 | 0.2538 |
+
+**The two closest pairs are the two most separated, and the farthest pair is not separated
+at all.** Whatever governs compositional difference here, it is not distance — it is
+whether the Northeast is one of the two regions. A distance-decay curve fitted to this
+would have had to slope downward, which is the opposite of RQ1's premise, and with six
+points it would have been a fit to nothing.
+
+This is **Figure 2** (`docs/figure2_spec.md`).
+
 ## Consequences
 
-- **Figure 2 as specified in §6 cannot be built** — it is a distance-decay scatter of
-  ~2,900 province pairs, and this corpus supports six region pairs. A draft replacement
-  spec is in `docs/figure2_spec_draft.md`; §6's row is marked not-buildable and stands
-  until the draft is accepted. **Open decision, not taken here.**
+- **Figure 2 was respecified and rebuilt** — six points with permutation-null bands
+  instead of ~2,900 province pairs with a LOESS fit. §6's row and `docs/figure2_spec.md`
+  now describe what exists.
 - **RQ1's output is no longer a number in kilometres.** It is a yes/no on regional signal,
   plus the finding that one boundary carries all of it.
 - The result does not depend on the pooling choice: single, paired and pooled cohorts all

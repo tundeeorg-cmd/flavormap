@@ -151,9 +151,9 @@ interviews). All five run on the web corpus. **None can be blocked by a cancelle
 *Plain: how far do you travel before the food changes — and does it change gradually, or all at once?*
 
 - **Method** — distance-decay curve (cosine distance on province TF-IDF vs. great-circle km) with change-point detection. Louvain communities compared against **one** competing boundary set: **linguistic**.
-- **Output** — a number in kilometres: the width of the boundary zone. **Figure 2**.
+- **Output** — ~~a number in kilometres: the width of the boundary zone~~ **withdrawn 2026-08-23**: four regions give six pairs, and no boundary width is recoverable from them. The output is now whether regional signal exists and which boundary carries it. **Figure 2** (respecified — see §6).
 - **A NO looks like** — smooth decay everywhere, no discontinuities, meaning the four-region model is an administrative fiction over a continuum. More provocative than the positive result, not less.
-- **Constraint** — if the labelled fraction is under 35%, this collapses to region level (4–6 units) and the paper's shape changes.
+- **Constraint** — if the labelled fraction is under 35%, this collapses to region level (4–6 units) and the paper's shape changes. **This fired on 2026-08-23 at 1.3%.** See `docs/rq1_region_level.md`.
 
 ### RQ2 — Is culinary distinctiveness constituted by inclusion or by exclusion?
 *Plain: is a region's food about what it uses, or about what it refuses to use?*
@@ -226,7 +226,7 @@ Seven figures, specified before implementation, axes named. All 2D. All regenera
 | # | Figure | X axis | Y axis | Encoding and purpose |
 |---|---|---|---|---|
 | 1 | Coverage map (RQ3) | geography | — | Fill = recipe count; sub-threshold provinces greyed. Paired sensitivity line chart: X = threshold 5–30, Y = provinces qualifying. An image of Thailand with a third of it blank is the paper's most effective figure |
-| 2 | ~~Distance-decay (RQ1)~~ **not buildable — 2026-08-23** | km between province pair (0–1,800) | cosine distance on TF-IDF (0–1) | Specified for ~2,900 province pairs. At a 1.3% labelled fraction RQ1 runs on four regions, which give **six** pairs — no fit, no change point. Draft replacement in `docs/figure2_spec_draft.md`, **not yet adopted**; this row stands until it is |
+| 2 | Regional separation vs. distance (RQ1) — **respecified 2026-08-23** | km between region centroids (~350–1,050) | compositional separation, between − within mean cosine distance | Six points, one per region pair, with each pair's permutation null as a shaded band and fill by Holm-adjusted significance; companion panel places each observed value inside its own null. **No fitted line and no change point** — six points cannot carry one. Full spec: `docs/figure2_spec.md`. Replaces the ~2,900-province-pair distance-decay scatter, which a 1.3% labelled fraction makes unbuildable |
 | 3 | Distinctiveness decomposition (RQ2) | presence-driven distinctiveness | absence-driven distinctiveness | One point per province; diagonal = balanced. Above the line = defines itself by refusal. A chart type reviewers have not seen before |
 | 4 | Prevalence vs. distance (supporting) | km from Bangkok | share of province's recipes containing the ingredient (0–1) | Small multiples, 6–12 panels, shared axes, colour = region. **Include one flat panel (MSG) as a null control** so readers can calibrate what "no pattern" looks like. Most explanatory figure in the set; first to move to an appendix if space is tight |
 | 5 | Fragility ranking (RQ4) | fragmentation caused on removal | ingredient, sorted | Horizontal bars faceted by region. Also the site's main interactive |

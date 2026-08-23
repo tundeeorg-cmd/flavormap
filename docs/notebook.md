@@ -61,3 +61,9 @@ Machine-generated context for this window, for reference when writing:
   unchanged (Northeast pairs 0.0006–0.0012, the rest 0.25–0.83). Draft replacement spec
   for Figure 2 written to `docs/figure2_spec_draft.md` and opened as a decision; §6's row
   marked not-buildable.
+- **2026-08-23** — Figure 2 respecified and built (`docs/figure2_spec.md`, option A):
+  separation against inter-region distance with permutation-null bands, plus a null-position
+  panel. `make figures` now regenerates figures 2 and 4. The geographic axis paid off — the
+  two closest region pairs are the two most separated and the farthest is not separated at
+  all, so compositional difference does not track distance. §4's RQ1 output ("a number in
+  kilometres") is withdrawn and §6 updated to match.

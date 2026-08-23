@@ -437,6 +437,33 @@ intervals, plus a companion panel showing the six nulls, and no fitted line.
 is small, and whether compositional difference tracks distance is the closest thing to an
 answer RQ1 still has. B is the right fallback if the geometry load proves troublesome.
 
+**Decision:** **A — adopt the draft, both panels, with the geographic axis.** Recorded from
+the researcher's instruction in session, 2026-08-23.
+**Reasoning:**            ← researcher
+**Date decided:** 2026-08-23
+
+**Built and adopted the same day.** `scripts/make_figure2.py` + `src/viz/figure2.py`, wired
+into `make figures`. The spec is now `docs/figure2_spec.md` and §6's row points at it.
+
+*The GADM dependency was never unmet.* The draft recorded the geometry as absent; it was
+read off `provinces.csv`, which ships with its centroid columns empty **by design** because
+`load_geometry.py` derives them into the database rather than having 77 coordinate pairs
+typed by hand. All 77 provinces already had `geom` and a centroid. Nothing had to be
+downloaded. The draft's option B was therefore weighed against a cost that did not exist —
+the decision is unaffected, since A was chosen and A is what was buildable, but a cost
+estimate that wrong is worth recording rather than quietly correcting.
+
+**The geographic axis earned itself.** The two closest region pairs are the two most
+separated, and the farthest pair is not separated at all. Compositional difference does not
+track distance at this resolution — a statement the forest-plot fallback could not have
+made.
+
+**Consequential edit made under this decision:** §4's RQ1 output — "a number in kilometres:
+the width of the boundary zone" — is struck through and replaced. §4 and §6 now agree.
+
+**Still open:** whether the figure keeps the number 2. Kept for now; renumbering is cheap
+later and churns every cross-reference now.
+
 **Two things this decision drags with it, whichever way it goes.** §4's RQ1 output — "a
 number in kilometres: the width of the boundary zone" — does not survive and needs
 amending, or §4 and §6 will disagree. And a figure this far from its specification may

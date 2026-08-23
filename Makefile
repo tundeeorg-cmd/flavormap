@@ -32,8 +32,12 @@ analyze:
 vision:
 	@echo "make vision: not yet implemented" && exit 1
 
+# Rule 5 — every figure is regenerated from the database, never hand-edited. Figures not
+# listed here do not exist yet; a figure that stops regenerating is a broken build, not a
+# stale file to be patched.
 figures:
-	@echo "make figures: not yet implemented" && exit 1
+	uv run python -m scripts.make_figure2
+	uv run python -m scripts.make_figure4
 
 api:
 	uv run uvicorn src.api.main:app --reload --port 8000
