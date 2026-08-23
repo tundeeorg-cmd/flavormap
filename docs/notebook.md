@@ -57,3 +57,7 @@ Machine-generated context for this window, for reference when writing:
   separation +0.0588, p=0.0001. **Every significant pair involves the Northeast, and
   removing it removes the finding** (p=0.22). See `docs/rq1_region_level.md`. Figure 2's
   §6 spec cannot be built and needs a replacement — open.
+- **2026-08-23** — Holm correction added to the six pairwise region tests; conclusions
+  unchanged (Northeast pairs 0.0006–0.0012, the rest 0.25–0.83). Draft replacement spec
+  for Figure 2 written to `docs/figure2_spec_draft.md` and opened as a decision; §6's row
+  marked not-buildable.

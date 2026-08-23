@@ -57,14 +57,19 @@ ingredient line, the label would partly predict itself. Across the corpus, `อ�
 Taking the significant p-value at face value would say Thailand's four regions are
 compositionally distinct. The pairwise tests say something much more specific.
 
-| pair | n | separation | p |
-|---|---:|---:|---:|
-| Northeast vs North | 37 | +0.0803 | **0.0001** |
-| Northeast vs Central | 35 | +0.0790 | **0.0003** |
-| Northeast vs South | 42 | +0.0592 | **0.0001** |
-| North vs South | 23 | +0.0117 | 0.0846 |
-| Central vs South | 21 | +0.0019 | 0.4147 |
-| Central vs North | 16 | −0.0052 | 0.6738 |
+Six comparisons on four regions is a family, so p-values are Holm-adjusted. Holm rather
+than Bonferroni: it is uniformly more powerful at the same familywise error rate, and
+three of the six comparisons have n under 25 and no power to spare. The correction changes
+nothing about which pairs separate.
+
+| pair | n | separation | p | Holm |
+|---|---:|---:|---:|---:|
+| Northeast vs North | 37 | +0.0803 | 0.0001 | **0.0006** |
+| Northeast vs South | 42 | +0.0592 | 0.0001 | **0.0006** |
+| Northeast vs Central | 35 | +0.0790 | 0.0003 | **0.0012** |
+| North vs South | 23 | +0.0117 | 0.0846 | 0.2538 |
+| Central vs South | 21 | +0.0019 | 0.4147 | 0.8294 |
+| Central vs North | 16 | −0.0052 | 0.6738 | 0.8294 |
 
 **Every significant pair involves the Northeast.** Removing it removes the finding:
 
@@ -112,8 +117,9 @@ section. The parser's 93% coverage is not 100%, and at n=7 the residue is not av
 ## Consequences
 
 - **Figure 2 as specified in §6 cannot be built** — it is a distance-decay scatter of
-  ~2,900 province pairs, and this corpus supports six region pairs. §6 needs a replacement
-  spec for Figure 2, or RQ1 loses its figure. **Open decision, not taken here.**
+  ~2,900 province pairs, and this corpus supports six region pairs. A draft replacement
+  spec is in `docs/figure2_spec_draft.md`; §6's row is marked not-buildable and stands
+  until the draft is accepted. **Open decision, not taken here.**
 - **RQ1's output is no longer a number in kilometres.** It is a yes/no on regional signal,
   plus the finding that one boundary carries all of it.
 - The result does not depend on the pooling choice: single, paired and pooled cohorts all

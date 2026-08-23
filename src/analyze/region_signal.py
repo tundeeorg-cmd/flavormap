@@ -166,6 +166,27 @@ def separation_test(
     )
 
 
+def holm_adjust(p_values: dict[str, float]) -> dict[str, float]:
+    """Holm-Bonferroni adjusted p-values for a family of tests.
+
+    Six pairwise tests on four regions is a family, and reporting six raw p-values invites
+    the reader to pick the smallest. Holm rather than Bonferroni because it is uniformly
+    more powerful at the same familywise error rate, which matters when three of the six
+    comparisons have n under 25 and little power to spare.
+
+    Adjusted values are capped at 1.0 and made monotone in the sort order, so a later
+    test never reports a smaller adjusted p than an earlier one.
+    """
+    ordered = sorted(p_values.items(), key=lambda item: item[1])
+    total = len(ordered)
+    adjusted: dict[str, float] = {}
+    running = 0.0
+    for rank, (key, raw) in enumerate(ordered):
+        running = max(running, min(1.0, (total - rank) * raw))
+        adjusted[key] = running
+    return adjusted
+
+
 def group_centroid_distances(
     matrix: np.ndarray, labels: list[str]
 ) -> tuple[list[str], np.ndarray]:

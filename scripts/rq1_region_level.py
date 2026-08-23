@@ -45,6 +45,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from scripts.measure_labelled_fraction import region_hits
 from src.analyze.region_signal import (
     group_centroid_distances,
+    holm_adjust,
     ingredient_tokens,
     separation_test,
 )
@@ -172,9 +173,16 @@ def main() -> int:
                     "n": result.n_recipes, "separation": result.separation,
                     "p": result.p_value,
                 }
-                flag = "  *" if result.significant else ""
-                print(f"  {first:>10} vs {second:<10} n={result.n_recipes:3}  "
-                      f"sep {result.separation:+.4f}  p = {result.p_value:.4f}{flag}")
+        # Six comparisons on four regions is a family. Reporting six raw p-values invites
+        # the reader to pick the smallest one.
+        adjusted = holm_adjust({k: v["p"] for k, v in pairwise.items()})
+        for key, entry in pairwise.items():
+            entry["p_holm"] = adjusted[key]
+            first, second = key.split("|")
+            flag = "  *" if adjusted[key] < 0.05 else ""
+            print(f"  {first:>10} vs {second:<10} n={entry['n']:3}  "
+                  f"sep {entry['separation']:+.4f}  p = {entry['p']:.4f}  "
+                  f"Holm = {adjusted[key]:.4f}{flag}")
 
         # Northeast is 28 of 58. If it carries the whole effect, that is a narrower finding
         # than "regions differ" and the difference must not be hidden inside one p-value.

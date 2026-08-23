@@ -407,3 +407,42 @@ parse and storage rules continue unchanged under the 2026-08-22 audit.
 **Not affected: HD-3 (dcp_food) above, which stays open.** That gate is about
 `food.culture.go.th`'s `ai-train=no` signal and the ClaudeBot blocklist, and nothing has
 been fetched from that domain beyond robots.txt. Two sources, two go/no-go decisions.
+
+---
+
+## Figure 2 replacement specification
+
+**Date presented:** 2026-08-23
+**Status:** OPEN. §6's Figure 2 row is marked not-buildable and stands until this is settled.
+
+§6 specifies Figure 2 as a distance-decay scatter over ~2,900 province pairs. RQ1 now runs
+on four regions, which give six pairs. The draft replacement is
+`docs/figure2_spec_draft.md`: separation against geographic distance with permutation-null
+intervals, plus a companion panel showing the six nulls, and no fitted line.
+
+**Options presented:**
+  A. **Adopt the draft as specified**, both panels, and load GADM so panel A's geographic
+     axis exists.
+     (consequence: keeps RQ1's geographic question in the frame and can show whether
+     separation tracks distance — the answer to which is currently unknown. Costs the GADM
+     load, which Figure 1 needs anyway.)
+  B. **Adopt the fallback only** — forest plot, no geographic axis.
+     (consequence: buildable today, no new dependency. Loses the ability to say anything
+     about distance, which is what RQ1 was originally about.)
+  C. **RQ1 ships without a figure**, leaning on the table in `docs/rq1_region_level.md`.
+     (consequence: honest, and six points may not deserve a figure. Costs RQ1 its place in
+     the figure list, and a reader skimming figures would not know the question was asked.)
+
+**Recommendation given:** A. Figure 1 needs the GADM load regardless, so the marginal cost
+is small, and whether compositional difference tracks distance is the closest thing to an
+answer RQ1 still has. B is the right fallback if the geometry load proves troublesome.
+
+**Two things this decision drags with it, whichever way it goes.** §4's RQ1 output — "a
+number in kilometres: the width of the boundary zone" — does not survive and needs
+amending, or §4 and §6 will disagree. And a figure this far from its specification may
+deserve a fresh number rather than inheriting Figure 2's, so that the paper's figure list
+does not imply continuity with a distance-decay analysis that was never run.
+
+**Decision:**
+**Reasoning:**
+**Date decided:**
