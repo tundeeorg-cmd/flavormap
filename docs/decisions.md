@@ -387,6 +387,10 @@ Region-level claims reach 6.2%.
 `docs/kapook_province_hits_audit.csv` confirmed by the researcher first. The `dish` /
 `ingredient` boundary is a judgment call and the headline number rests on it.
 
+**Audit confirmed 2026-08-23.** The researcher reviewed the 78 rows and agreed with all 33
+`dish` calls. 1.3% is a confirmed figure. The go/no-go on the source itself — option A, B
+or C above — is still open.
+
 **Decision:**
 **Reasoning:**
 **Date decided:**

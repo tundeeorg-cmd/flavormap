@@ -125,6 +125,10 @@ source does better is untested — but a second consumer source would have to re
 ## For the researcher
 
 This measurement is the evidence for **HD-3** (source go/no-go) and bears on **HD-7**
-(attribution tiers) and **HD-4** (the parsed-recipe defect list). The 78-row audit above
-was classified by the agent and needs confirming, not adopting: the `dish` / `ingredient`
-boundary is a judgment call, and it is the boundary the headline number rests on.
+(attribution tiers) and **HD-4** (the parsed-recipe defect list).
+
+**The audit is confirmed.** The 78 rows were classified by the agent and reviewed by the
+researcher on 2026-08-23, who agreed with all 33 `dish` calls. The headline figure is
+therefore a researcher-confirmed 1.3%, not an agent estimate. The `ingredient` and
+`incidental` classes were not separately contested; nothing turns on the boundary between
+them, since neither is a province label.

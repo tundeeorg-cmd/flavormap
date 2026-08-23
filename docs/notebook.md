@@ -46,3 +46,5 @@ Machine-generated context for this window, for reference when writing:
   dominate any looser rule — `เลย` is "at all" in 2,384 pages. This is a coverage paper.
   See `docs/labelled_fraction.md`. The measurement preceded pre-registration for RQ3,
   recorded in `docs/decisions.md`.
+- **2026-08-23** — the 78-row province audit was reviewed by the researcher, who agreed
+  with all 33 `dish` calls. The 1.3% labelled fraction is confirmed rather than proposed.
