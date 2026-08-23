@@ -461,8 +461,12 @@ made.
 **Consequential edit made under this decision:** §4's RQ1 output — "a number in kilometres:
 the width of the boundary zone" — is struck through and replaced. §4 and §6 now agree.
 
-**Still open:** whether the figure keeps the number 2. Kept for now; renumbering is cheap
-later and churns every cross-reference now.
+**Numbering decided 2026-08-23: it stays Figure 2.** It answers RQ1 and occupies RQ1's slot,
+and the continuity is real — the same question, asked of a corpus that cannot support the
+original form of it. The discontinuity is carried in the methods section rather than in the
+figure number: Figure 2 was respecified after the labelled fraction came in at 1.3%, and the
+distance-decay curve its first specification called for was never run. **This gate is now
+fully closed.**
 
 **Two things this decision drags with it, whichever way it goes.** §4's RQ1 output — "a
 number in kilometres: the width of the boundary zone" — does not survive and needs

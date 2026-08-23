@@ -102,9 +102,12 @@ the Northeast is one of the two regions.
 That is a stronger statement than the forest-plot fallback could have made, and it is the
 nearest thing RQ1 still has to its original question.
 
-## Still open
+## Numbering
 
-**Does Figure 2 keep its number?** A figure this far from its specification may be better
-numbered afresh, so the paper's figure list does not imply continuity with a distance-decay
-analysis that was never run. Kept as Figure 2 for now — renumbering is cheap later and
-churns every cross-reference now.
+**It stays Figure 2.** Decided 2026-08-23. It answers RQ1, it occupies RQ1's slot in the
+figure list, and the continuity is real: the question is the same one, asked of a corpus
+that could not support the original form of it.
+
+The methods section carries the discontinuity instead, where a reader who needs it will
+find it: Figure 2 was respecified on 2026-08-23 after the labelled-recipe fraction came in
+at 1.3%, and the distance-decay curve its first specification called for was never run.

@@ -67,3 +67,5 @@ Machine-generated context for this window, for reference when writing:
   two closest region pairs are the two most separated and the farthest is not separated at
   all, so compositional difference does not track distance. §4's RQ1 output ("a number in
   kilometres") is withdrawn and §6 updated to match.
+- **2026-08-23** — Figure 2 keeps its number; the respecification is disclosed in the
+  methods section rather than encoded in a renumbering. The Figure 2 gate is closed.
