@@ -51,3 +51,9 @@ Machine-generated context for this window, for reference when writing:
 - **2026-08-23** — HD-3 decided for `kapook_cooking`: option A, keep the source reframed as
   a coverage corpus. §21 blocking item 1 is discharged. RQ1's province-level form is
   withdrawn; what replaces it is a separate open decision.
+- **2026-08-23** — RQ1 rebuilt at region level. The specified distance-decay analysis is
+  not available on four units (six pairs; Mantel's p-floor on a 4×4 is 1/24). Replaced by
+  a recipe-level permutation test on compositional separation: n=58 single-dish recipes,
+  separation +0.0588, p=0.0001. **Every significant pair involves the Northeast, and
+  removing it removes the finding** (p=0.22). See `docs/rq1_region_level.md`. Figure 2's
+  §6 spec cannot be built and needs a replacement — open.
