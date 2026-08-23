@@ -100,7 +100,11 @@ _HONORIFIC = r"(?:นางสาว|นาง|นาย|น\.ส\.|ด\.ช\.|�
 # FOLLOWED by a combining mark either: นา + ยัง extracts as a นาย match, and no personal
 # name begins with a vowel or tone mark.
 _COMBINING = "ัิีึืุู็่้๊๋์ํ"
-_H_ANCHORED = rf"(?<![ก-๎]){_HONORIFIC}(?![{_COMBINING}])"
+# `คุณ` is the one Thai letter run allowed to precede an honorific. Excluding it from
+# _HONORIFIC is right — คุณ matches inside สรรพคุณ, คุณภาพ and คุณแม่ — but the anchor then
+# blocked the honorific as well, and `โดย คุณนางสาว…` survived redaction on a kapook page.
+# Two fixed-width lookbehinds in alternation, because Python's re has no variable-width one.
+_H_ANCHORED = rf"(?:(?<![ก-๎])|(?<=คุณ)){_HONORIFIC}(?![{_COMBINING}])"
 
 PATTERNS: list[tuple[str, str, re.Pattern[str]]] = [
     # (class, description, pattern) — `class` maps to a redaction_log column.
@@ -128,6 +132,19 @@ PATTERNS: list[tuple[str, str, re.Pattern[str]]] = [
         "name",
         "signature line",
         re.compile(r"(ลงชื่อ)[^\n]{0,80}?ผู้เสนอ"),
+    ),
+    (
+        "name",
+        # Web sources credit contributors by handle rather than by name: `คุณ tukata001`,
+        # `คุณ maekwansri`. Latin script after คุณ is the discriminator — no ordinary Thai
+        # word puts it there, so this cannot fire on คุณภาพ or สรรพคุณ.
+        #
+        # Up to two further Latin tokens are taken with it. A handle is not reliably one
+        # word — `คุณ Ananya Amy_1994` left the second half standing when this matched only
+        # the first. Over-reach costs a stray English word in a Thai corpus; under-reach
+        # leaks the identifier, and the module's stated default is to redact.
+        "contributor handle after คุณ",
+        re.compile(rf"คุณ{_H}*[A-Za-z][A-Za-z0-9_.\-]{{2,}}(?:{_H}+[A-Za-z][A-Za-z0-9_.\-]{{1,}}){{0,2}}"),
     ),
     (
         "name",

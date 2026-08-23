@@ -150,3 +150,28 @@ def test_no_personal_data_in_any_table() -> None:
         assert not offenders, "personal data found in the database: " + "; ".join(offenders[:20])
     finally:
         conn.close()
+
+
+def test_khun_does_not_block_the_honorific_behind_it() -> None:
+    """`คุณ` is excluded from the honorific set because it matches inside สรรพคุณ and
+    คุณภาพ — but excluding it also let the anchor treat it as an ordinary preceding
+    letter, so `โดย คุณนางสาว…` survived redaction on a kapook contributor credit."""
+    out, report = redact("โดย คุณนางสาวเซา")
+    assert "เซา" not in out
+    assert report.n_names == 1
+
+
+def test_a_contributor_handle_is_a_name() -> None:
+    """Web sources credit by handle, not by name. Latin script after คุณ is the
+    discriminator: no ordinary Thai word puts it there."""
+    out, report = redact("สูตรจาก คุณ tukata001 นะคะ")
+    assert "tukata001" not in out
+    assert report.n_names == 1
+
+
+def test_the_khun_rules_do_not_fire_on_ordinary_thai_words() -> None:
+    """สรรพคุณ is the DCP ingredient table's own column header. คุณภาพ, คุณค่า and คุณแม่
+    are unavoidable in recipe prose. Any of them redacting would gut the corpus."""
+    for phrase in ("สรรพคุณของขิง", "อาหารมีคุณภาพดี", "คุณแม่ทำให้กิน", "เครื่องปรุงคุณค่าสูง"):
+        out, report = redact(phrase)
+        assert out == phrase and report.n_names == 0
