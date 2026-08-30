@@ -37,7 +37,6 @@ import argparse
 import csv
 import json
 from collections import Counter
-from pathlib import Path
 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -49,11 +48,11 @@ from src.analyze.region_signal import (
     ingredient_tokens,
     separation_test,
 )
-from src.config import DATA_DIR, RANDOM_SEED, RAW_DIR
+from src.config import DATA_DIR, DOCS_DIR, RANDOM_SEED, RAW_DIR
 from src.ingest.kapook_page import article_lines, parse_file
 
 CORPUS = RAW_DIR / "kapook_cooking"
-AUDIT = Path("docs/kapook_province_hits_audit.csv")
+AUDIT = DOCS_DIR / "kapook_province_hits_audit.csv"
 COHORTS = {"single": 1, "paired": 2, "pooled": 10_000}
 
 

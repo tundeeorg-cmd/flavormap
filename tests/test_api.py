@@ -13,12 +13,12 @@ import json
 import subprocess
 import sys
 import tomllib
-from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
 from src.api.main import app
+from src.config import REPO_ROOT
 
 client = TestClient(app)
 
@@ -61,7 +61,8 @@ def test_module_imports_with_no_environment_at_all() -> None:
         [sys.executable, "-c", "import src.api.main; print(src.api.main.app.title)"],
         capture_output=True,
         text=True,
-        env={"PATH": "/usr/bin:/bin", "PYTHONPATH": "."},
+        env={"PATH": "/usr/bin:/bin", "PYTHONPATH": str(REPO_ROOT)},
+        cwd=REPO_ROOT,
         check=False,
     )
     assert result.returncode == 0, result.stderr
@@ -79,7 +80,8 @@ def test_heavy_dependencies_are_not_imported() -> None:
         ],
         capture_output=True,
         text=True,
-        env={"PATH": "/usr/bin:/bin", "PYTHONPATH": "."},
+        env={"PATH": "/usr/bin:/bin", "PYTHONPATH": str(REPO_ROOT)},
+        cwd=REPO_ROOT,
         check=False,
     )
     assert result.returncode == 0, result.stderr
@@ -93,7 +95,8 @@ def test_vercel_entrypoint_resolves_to_the_app() -> None:
     rejected at build time with "no matching module file was found" — a failure that
     only surfaced after a push. Resolving the string here catches it locally.
     """
-    config = tomllib.load(open("pyproject.toml", "rb"))
+    with (REPO_ROOT / "pyproject.toml").open("rb") as fh:
+        config = tomllib.load(fh)
     entrypoint = config["tool"]["vercel"]["entrypoint"]
     assert ":" in entrypoint, f"expected module:object, got {entrypoint!r}"
 
@@ -105,5 +108,5 @@ def test_vercel_entrypoint_resolves_to_the_app() -> None:
 def test_vercel_install_command_uses_the_scoped_requirements() -> None:
     """uv.lock and pyproject.toml both sit at the repo root and would otherwise pull the
     full scientific stack — torch alone is 475 MB against a 250 MB function limit."""
-    config = json.loads(Path("vercel.json").read_text())
+    config = json.loads((REPO_ROOT / "vercel.json").read_text())
     assert "requirements.txt" in config["installCommand"]

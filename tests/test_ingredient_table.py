@@ -13,14 +13,13 @@ x≈93, so header-derived boundaries put the ingredient name in the index column
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
+from src.config import RAW_DIR
 from src.ingest.dcp_form import parse_pdf
 from src.ingest.pdf_layout import TextRun, extract_table
 
-RAW = Path("data/raw/dcp_food")
+RAW = RAW_DIR / "dcp_food"
 
 
 def _run(text: str, x: float, y: float) -> TextRun:

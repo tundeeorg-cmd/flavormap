@@ -14,10 +14,10 @@ collapses the whole list into a single line.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import pytest
 
+from src.config import RAW_DIR
 from src.ingest.kapook_page import (
     article_lines,
     article_metadata,
@@ -26,7 +26,7 @@ from src.ingest.kapook_page import (
     parse_html,
 )
 
-RAW = Path("data/raw/kapook_cooking")
+RAW = RAW_DIR / "kapook_cooking"
 
 
 def page(body: str, published: str = "2014-09-30T15:58:58+07:00", headline: str = "สูตร") -> str:

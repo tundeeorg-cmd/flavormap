@@ -19,11 +19,12 @@ from pathlib import Path
 
 import pytest
 
+from src.config import RAW_DIR
 from src.db import get_connection
 from src.ingest.pdf_layout import read_document
 from src.ingest.pdpa import find_leaks, redact
 
-RAW = Path("data/raw/dcp_food")
+RAW = RAW_DIR / "dcp_food"
 
 # Fixtures below are INVENTED, never lifted from the corpus. An earlier draft of this
 # file used a real informant's name, mobile number and house number copied out of

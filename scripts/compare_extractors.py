@@ -31,8 +31,13 @@ import re
 import unicodedata
 from pathlib import Path
 
-RAW_DIR = Path("data/raw/dcp_food")
-REPORT = Path("docs/extractor_comparison.md")
+from src.config import DATA_DIR, DOCS_DIR, PROCESSED_DIR
+
+# The dcp_food subdirectory specifically, not the whole raw tree — kept under the
+# existing local name so the four call sites below are unchanged. Imported as
+# DATA_DIR rather than config's RAW_DIR to avoid shadowing that name here.
+RAW_DIR = DATA_DIR / "raw" / "dcp_food"
+REPORT = DOCS_DIR / "extractor_comparison.md"
 
 # Thai combining marks: above/below vowels and tone marks. A space immediately before
 # one of these means the mark has been detached from its base consonant.
@@ -201,8 +206,8 @@ def main() -> int:
     )
     print(f"report -> {REPORT}")
 
-    Path("data/processed").mkdir(parents=True, exist_ok=True)
-    Path("data/processed/extractor_comparison.json").write_text(
+    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+    (PROCESSED_DIR / "extractor_comparison.json").write_text(
         json.dumps(
             {"per_doc": per_doc, "totals": totals, "fixture": fixture_results},
             ensure_ascii=False,

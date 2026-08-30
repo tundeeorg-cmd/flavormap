@@ -21,11 +21,17 @@ PROVINCE_MIN_N = 20
 DATA_DIR = REPO_ROOT / "data"
 RAW_DIR = DATA_DIR / "raw"
 INTERIM_DIR = DATA_DIR / "interim"
+PROCESSED_DIR = DATA_DIR / "processed"
+# data/reference holds curated inputs (provinces.csv). Distinct from
+# RAW_DIR / "reference", which caches downloaded source data such as the GADM
+# boundaries — different provenance, different retention, do not merge them.
 REFERENCE_DIR = DATA_DIR / "reference"
 EXPORTS_DIR = DATA_DIR / "exports"
 
 FIGURES_DIR = REPO_ROOT / "figures"
 FIGURES_FINAL_DIR = FIGURES_DIR / "final"
+
+DOCS_DIR = REPO_ROOT / "docs"
 
 MIGRATIONS_DIR = REPO_ROOT / "db" / "migrations"
 

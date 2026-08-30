@@ -33,11 +33,11 @@ from pathlib import Path
 
 import httpx
 
-from src.config import REFERENCE_DIR
+from src.config import RAW_DIR, REFERENCE_DIR
 from src.db import get_connection
 
 GADM_URL = "https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_THA_1.json.zip"
-GADM_CACHE = Path("data/raw/reference/gadm41_THA_1.json")
+GADM_CACHE = RAW_DIR / "reference" / "gadm41_THA_1.json"
 
 def _norm(name: str) -> str:
     """Space- and case-insensitive key for matching province names.

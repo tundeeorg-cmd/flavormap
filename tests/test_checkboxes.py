@@ -12,14 +12,13 @@ is เทศกาล. These tests pin that down against documents verified by h
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
+from src.config import RAW_DIR
 from src.ingest.dcp_form import parse_pdf
 from src.ingest.pdf_layout import checkboxes, read_document
 
-RAW = Path("data/raw/dcp_food")
+RAW = RAW_DIR / "dcp_food"
 pytestmark = pytest.mark.skipif(not RAW.exists(), reason="raw corpus not present")
 
 

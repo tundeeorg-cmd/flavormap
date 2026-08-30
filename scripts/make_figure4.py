@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from src.config import FIGURES_DIR
 from src.db import get_connection
 from src.viz.figure4 import Panel, ProvincePoint, render
 
@@ -103,7 +104,7 @@ def build() -> tuple[list[Panel], int, int]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--out", type=Path, default=Path("figures/figure4.html"))
+    ap.add_argument("--out", type=Path, default=FIGURES_DIR / "figure4.html")
     args = ap.parse_args()
 
     panels, provinces, recipes = build()

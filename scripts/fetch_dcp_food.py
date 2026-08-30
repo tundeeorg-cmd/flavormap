@@ -33,15 +33,14 @@ import hashlib
 import time
 import urllib.robotparser
 from dataclasses import dataclass, field
-from pathlib import Path
 
 import httpx
 
-from src.config import get_settings
+from src.config import RAW_DIR, get_settings
 
 BASE = "https://food.culture.go.th"
 ROBOTS = f"{BASE}/robots.txt"
-OUT_DIR = Path("data/raw/dcp_food")
+OUT_DIR = RAW_DIR / "dcp_food"
 LOG_PATH = OUT_DIR / "_enumeration_log.csv"
 
 RATE_LIMIT_SEC = 1.0

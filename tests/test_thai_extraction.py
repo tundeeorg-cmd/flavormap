@@ -11,14 +11,13 @@ Two were named in the project brief; the third was found by measuring the corpus
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
 from src.clean.normalize_th import normalize_thai, repair_pua
+from src.config import RAW_DIR
 from src.ingest.pdf_layout import read_document
 
-RAW = Path("data/raw/dcp_food")
+RAW = RAW_DIR / "dcp_food"
 
 
 # ── defect 3: private-use tone marks ──────────────────────────────────────────
