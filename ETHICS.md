@@ -23,7 +23,7 @@ One row per source. **Dated.** A source may not be scraped before its row exists
 
 | source_id | Domain | robots.txt | Disallowed paths | ToS reviewed | Audited | Decision |
 |---|---|---|---|---|---|---|
-| `dcp_food` | `food.culture.go.th` | `User-agent: *` → `Allow: /`. **But see content signals below** | none for our UA. `ClaudeBot`, `GPTBot`, `CCBot`, `Google-Extended`, `Bytespider`, `Amazonbot`, `Applebot-Extended`, `meta-externalagent`, `CloudflareBrowserRenderingCrawler` are each `Disallow: /` | no separate ToS page located in this pass | 2026-08-16 | **⛔ HD-3 open — not fetched** |
+| `dcp_food` | `food.culture.go.th` | `User-agent: *` → `Allow: /`. **But see content signals below** | none for our UA. `ClaudeBot`, `GPTBot`, `CCBot`, `Google-Extended`, `Bytespider`, `Amazonbot`, `Applebot-Extended`, `meta-externalagent`, `CloudflareBrowserRenderingCrawler` are each `Disallow: /` | no separate ToS page located in this pass | 2026-08-16 | **⚠️ HD-3 open — fetched 2026-08-16 under option C**, reference layer only, excluded from any public release. See the fetch record below |
 | `doae` | `www.doae.go.th` | allowed | `/wp-admin/` | pending | 2026-08-09 | **HD-3 open** |
 | `wongnai` | `www.wongnai.com` | allowed | `/users/` | pending | 2026-08-09 | **HD-3 open** — JS-hydrated, recipe path unresolved |
 | `kapook_cooking` | `cooking.kapook.com` | `User-agent: *` → `Allow: /`, no crawl-delay | none | no terms-of-use page found; linked policy is data-protection only | **2026-08-22** (re-audited) | **✅ HD-3 decided 2026-08-23 — option A.** Fetched and parsed as a *coverage* corpus; storage rules below unchanged |
@@ -69,8 +69,24 @@ therefore held at HD-3 rather than treated as cleared. See `docs/decisions.md`.
 
 ### `food.culture.go.th` — fetch record, 2026-08-16
 
-Fetched under HD-3 **option C**: reference layer only, excluded from any public release,
-pending a reply to the permission request in `docs/dcp_permission_request.md`.
+Fetched under HD-3 **option C**: reference layer only, excluded from any public release.
+
+**The permission request has not been sent.** `docs/dcp_permission_request.md` is a draft
+dated 2026-08-16, and HD-3's recommendation was option B *with C as the fallback* — send
+the request, work under C's constraints while waiting, relax to A only on an explicit yes.
+The C half is running. The B half has not started, so nothing is pending a reply and the
+draft's own "silence after three weeks" clause has no clock to run on. Until the request
+is sent, option C is not an interim posture pending an answer; it is the posture, chosen
+by default.
+
+> **Corrected 2026-08-30.** Until this date the source-audit table above recorded this
+> source as **"HD-3 open — not fetched"**, and this section described the fetch as
+> "pending a reply to the permission request". Both were wrong from 2026-08-16 onward:
+> 231 documents had been fetched the same day the row was written, and no request had
+> been sent for a reply to be pending on. The error understated what had been collected
+> and overstated what had been asked. Corrected rather than rewritten, because an ethics
+> record that quietly changes its own account of what happened is worth less than one
+> that shows the correction — the same reason `docs/archive/` is kept rather than deleted.
 
 | | |
 |---|---|

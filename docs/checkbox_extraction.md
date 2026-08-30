@@ -105,6 +105,7 @@ as a defect to be scheduled on its own terms.
 ## Provenance
 
 The corpus was fetched 2026-08-16 under HD-3 (`dcp_food`) **option C** — reference layer
-only, excluded from any public release, pending a reply to
-`docs/dcp_permission_request.md`. Nothing in this measurement is published, and nothing
-here writes to the database.
+only, excluded from any public release. The permission request that option C was meant to
+be the fallback for is still a draft and has not been sent; see the correction note in
+`ETHICS.md`. Nothing in this measurement is published, and nothing here writes to the
+database.
