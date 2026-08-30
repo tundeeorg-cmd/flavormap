@@ -1,0 +1,136 @@
+{
+  "documents": 231,
+  "field_recovery": {
+    "province_th": 201,
+    "dish_name_th": 212,
+    "dish_category": 174,
+    "occasion": 177,
+    "endangerment": 157
+  },
+  "endangerment_buckets": {
+    "recovered": 157,
+    "§3 present, none ticked": 34,
+    "§3 absent from the document": 25,
+    "no checkbox glyphs at all": 12,
+    "§3 in text, no box bound": 3
+  },
+  "endangerment_ceiling": 160,
+  "unbound_documents": [
+    "central_1_1.pdf",
+    "south_9_2.pdf",
+    "south_9_3.pdf"
+  ],
+  "value_distributions": {
+    "dish_category": {
+      "savoury": 125,
+      "sweet": 21,
+      "snack": 28,
+      "(none)": 57
+    },
+    "occasion": {
+      "everyday": 126,
+      "festival": 25,
+      "(none)": 54,
+      "other": 5,
+      "seasonal": 21
+    },
+    "endangerment": {
+      "near_lost": 105,
+      "transmitted": 42,
+      "lost": 10,
+      "(none)": 74
+    }
+  },
+  "ingredient_rows": 1132,
+  "documents_without_ingredients": [
+    "central_10_3.pdf",
+    "central_13_2.pdf",
+    "central_15_2.pdf",
+    "central_15_3.pdf",
+    "central_1_1.pdf",
+    "central_1_2.pdf",
+    "central_1_3.pdf",
+    "central_3_2.pdf",
+    "central_3_3.pdf",
+    "central_8_2.pdf",
+    "east_2_2.pdf",
+    "east_4_2.pdf",
+    "east_5_1.pdf",
+    "east_5_2.pdf",
+    "east_5_3.pdf",
+    "north_11_2.pdf",
+    "north_11_3.pdf",
+    "north_12_3.pdf",
+    "north_14_2.pdf",
+    "north_2_1.pdf",
+    "north_3_1.pdf",
+    "north_4_3.pdf",
+    "north_5_3.pdf",
+    "north_8_1.pdf",
+    "north_9_3.pdf",
+    "northeast_12_3.pdf",
+    "northeast_14_2.pdf",
+    "northeast_14_3.pdf",
+    "south_10_1.pdf",
+    "south_10_2.pdf",
+    "south_14_1.pdf",
+    "south_2_1.pdf",
+    "south_8_1.pdf",
+    "south_9_2.pdf",
+    "south_9_3.pdf"
+  ],
+  "mojibake_documents": [
+    "south_9_2.pdf",
+    "south_9_3.pdf"
+  ],
+  "fieldwork_provinces": [
+    {
+      "province": "Nan",
+      "document": "north_6_1.pdf",
+      "dish_name_th": "แกงส้มเมืองปลาคังใส่ตูน",
+      "endangerment": "transmitted",
+      "dish_category": "savoury",
+      "ingredients": 5
+    },
+    {
+      "province": "Nan",
+      "document": "north_6_2.pdf",
+      "dish_name_th": "ขนมปาดงาม่อน",
+      "endangerment": null,
+      "dish_category": null,
+      "ingredients": 5
+    },
+    {
+      "province": "Nan",
+      "document": "north_6_3.pdf",
+      "dish_name_th": "ห่อนึ่งไก่",
+      "endangerment": null,
+      "dish_category": "savoury",
+      "ingredients": 15
+    },
+    {
+      "province": "Surin",
+      "document": "northeast_15_1.pdf",
+      "dish_name_th": "ซันลอเจก (แกงกล้วย)",
+      "endangerment": "transmitted",
+      "dish_category": "savoury",
+      "ingredients": 8
+    },
+    {
+      "province": "Surin",
+      "document": "northeast_15_2.pdf",
+      "dish_name_th": "ซันลอตราวมะออม (แกงเผือกใส่อีออม)",
+      "endangerment": "transmitted",
+      "dish_category": "savoury",
+      "ingredients": 7
+    },
+    {
+      "province": "Surin",
+      "document": "northeast_15_3.pdf",
+      "dish_name_th": "ประเฮาะซัจจรูก (ปลาร้าเนื้อหมู)",
+      "endangerment": "transmitted",
+      "dish_category": "savoury",
+      "ingredients": 1
+    }
+  ]
+}

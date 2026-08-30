@@ -477,3 +477,64 @@ does not imply continuity with a distance-decay analysis that was never run.
 **Decision:**
 **Reasoning:**
 **Date decided:**
+
+---
+
+## Evidence for RQ5 — the checkbox extraction go/no-go
+**Date presented:** 2026-08-30
+**Status:** OPEN. Bible §23 item 3 and §22's HIGH risk row both resolve here.
+
+Full measurement and method: [`docs/checkbox_extraction.md`](checkbox_extraction.md).
+Regenerate with `uv run python -m scripts.measure_dcp_fields`.
+
+**The finding, in two parts.** The extraction works: endangerment is recovered on 157 of
+231 documents (68.0%) against a corpus ceiling of 160 (69.3%), so the parser is within 1.3
+points of everything that is there to get. The 32% gap is 71 documents where no value
+exists to recover — §3 present but unticked (34), §3 absent from the form variant (25),
+image-only scans (12) — plus three that were read individually, one a false positive of
+the bucket test and two genuinely corrupted.
+
+**And RQ5 still has no data.** §6 compares official endangerment against cooks in Nan and
+Surin *on the same dishes*, and the state selected three dishes per province. RQ5's sample
+is therefore six documents. Four carry an endangerment level. **All four carry the same
+level — `transmitted`.** Figure 5 is specified as a confusion matrix whose off-diagonal
+cells are the interesting ones; with one distinct official value there is no matrix, and
+no answer the cooks give can produce one.
+
+This is a question-design result, not an extraction failure, and it is not something a
+better parser can fix.
+
+**Options presented:**
+  A. **Keep RQ5, reframed as an existence claim.** Report the four Nan/Surin dishes the
+     state calls `transmitted` and ask whether cooks agree, without an agreement statistic.
+     Consequence: honest and cheap, and §6 already uses this framing for RQ3 ("six of six
+     cooks in Surin named…"). But it is a much smaller claim than "do cooks agree with the
+     state", and Figure 5 does not survive in its specified form.
+  B. **Widen the fieldwork provinces** so the official axis has variance. The corpus-wide
+     distribution does vary — `near_lost` 105, `transmitted` 42, `lost` 10 — so provinces
+     with a `near_lost` or `lost` dish exist and could be selected deliberately.
+     Consequence: the strongest version of RQ5, and the only one that yields a real matrix.
+     Costs a third trip, or replaces one of the two already planned. §22 already lists
+     unbooked trips as the top risk; this raises that risk rather than lowering it.
+  C. **Drop RQ5 and promote a replacement.** Consequence: §6 goes to four questions. §7
+     already marks RQ5 "Conditional" and §22 says to "have a replacement question ready",
+     so this is the pre-registered contingency firing exactly as designed — which is a
+     methods-section asset, not a retreat.
+  D. **Keep RQ5 against the full corpus**, comparing official endangerment to something
+     other than fieldwork. Consequence: 157 documents is a real sample, but there are no
+     cooks in it. Whatever it compares against, it is no longer the question §6 asks.
+
+**Recommendation given:** **A now, B only if a third trip is genuinely bookable.** A costs
+nothing, keeps the fieldwork honest, and can be written up in a paragraph. B is the better
+question and the worse schedule risk, and the decision between them is a calendar
+judgment rather than a methods one. C stays available and loses least if the trips slip —
+and per §7 it was always the pre-registered fallback.
+
+**Note on scope.** This measurement makes no claim that the four recovered fieldwork values
+are *correct*. They are what the extractor reads from a ticked box. Confirming four values
+against four PDFs by eye is a ten-minute job and should happen before any of the options
+above is acted on.
+
+**Decision:**
+**Reasoning:**
+**Date decided:**
