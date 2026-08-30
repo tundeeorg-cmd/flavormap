@@ -1,7 +1,13 @@
 # FlavorMap — Build Plan for Claude Code
 
-**Version:** 3.0 · **Reconciled:** 2026-08-16 · **Authority:** `FlavorMap_Project_Bible_v3.pdf`
+**Version:** 4.0 · **Reconciled:** 2026-08-30 · **Authority:** `FlavorMap_Project_Bible_v4.md`
 **Window:** Aug 2026 – Nov 2027 · **Freeze:** 31 March 2027
+
+> **Partially reconciled.** §4 (research questions) and §6 (figures) are v4. The phase
+> plan, the gate list and the schema notes still carry v3 numbering and have not been
+> re-derived — a v3 RQ number appearing outside those two sections is drift, not a
+> reference. Bible §23's "update the five research questions everywhere in the repo" is
+> done for the questions themselves; the plumbing that keys off them is not.
 
 > This file is the operational plan. The Bible is the specification. Where the two
 > disagree, **the Bible wins** and this file is wrong and should be corrected.
@@ -144,45 +150,118 @@ are never pooled without a source indicator, and any figure mixing them is facet
 
 ## 4. The five research questions
 
+**Reconciled to Bible v4 on 2026-08-30.** v4 rewrote the question set completely: four of
+the five below are new, and every figure number moved. The set this file carried until
+today was v3's, which asked about boundary geometry, network fragility and vernacular
+signal — none of which v4 retains as a research question. Where an old question survives
+as machinery, that is noted rather than silently dropped.
+
 Each is stated precisely (for the paper) and plainly (for the site, the build log, and
-interviews). All five run on the web corpus. **None can be blocked by a cancelled trip.**
+interviews). Each carries a **transferable claim** — what a reader outside Thai food
+studies takes away.
 
-### RQ1 — Are cultural boundaries discrete or continuous, and can they be located from compositional data alone?
-*Plain: how far do you travel before the food changes — and does it change gradually, or all at once?*
+> **The risk profile inverted.** This file previously said "All five run on the web
+> corpus. **None can be blocked by a cancelled trip.**" Under v4 that is false and
+> dangerous to leave standing: **four of five require fieldwork and one requires cooking**
+> (Bible §6, "Read together"). A cancelled trip does not degrade the paper, it removes
+> questions from it. §22 lists unbooked trips as the top risk for exactly this reason.
 
-- **Method** — distance-decay curve (cosine distance on province TF-IDF vs. great-circle km) with change-point detection. Louvain communities compared against **one** competing boundary set: **linguistic**.
-- **Output** — ~~a number in kilometres: the width of the boundary zone~~ **withdrawn 2026-08-23**: four regions give six pairs, and no boundary width is recoverable from them. The output is now whether regional signal exists and which boundary carries it. **Figure 2** (respecified — see §6).
-- **A NO looks like** — smooth decay everywhere, no discontinuities, meaning the four-region model is an administrative fiction over a continuum. More provocative than the positive result, not less.
-- **Constraint** — if the labelled fraction is under 35%, this collapses to region level (4–6 units) and the paper's shape changes. **This fired on 2026-08-23 at 1.3%.** See `docs/rq1_region_level.md`.
+### RQ1 — Do the state, the market, and the kitchen agree on what a province eats?
+*Plain: does the food the government picks to represent your province match what people there actually cook?*
 
-### RQ2 — Is culinary distinctiveness constituted by inclusion or by exclusion?
+- **Method** — ingredient-profile distance between the three registers for the same
+  province. Cosine distance on normalised ingredient vectors, pairwise:
+  official↔commercial, official↔domestic, commercial↔domestic.
+- **Output** — triangle plot per province, one vertex per register, edge length =
+  disagreement. **Figure 1**.
+- **Needs fieldwork** — yes. The domestic register *is* the interviews.
+- **A NO looks like** — the three registers agree, meaning official selection and web
+  recipes faithfully represent domestic practice. A genuine result in the opposite
+  direction, and reassuring for anyone who has ever built on a scraped corpus.
+- **Transferable** — cultural corpora carry the selection pressure of whoever assembled
+  them. Applies to folk music archives, craft inventories, heritage registers.
+
+This is the spine of the paper. **It is not v3's RQ1**, which asked whether cultural
+boundaries are discrete or continuous and answered it with a distance-decay curve. Bible
+v4 §1 and §14.5 retire that question and the Mantel and Moran's I tests that served it.
+
+### RQ2 — Is regional identity built from what's included or what's refused?
 *Plain: is a region's food about what it uses, or about what it refuses to use?*
 
-- **Method** — decompose each province's distinctiveness into presence-driven and absence-driven components. Validate against interview responses on stated absences (Q9).
-- **Output** — scatter, presence vs. absence, one point per province, diagonal = balanced. **Figure 3**.
-- **Why it matters** — every distinctiveness measure in computational humanities (TF-IDF, log-odds, Zeta) is a *presence* measure. Absence is structurally invisible to all of them. Best novelty-to-effort ratio in the project. No off-the-shelf measure exists, so it must be defined and defended — **HD-13**.
+- **Method** — decompose each province's distinctiveness into presence-driven and
+  absence-driven components. Validate against stated absences from interview Q9.
+- **Output** — scatter, presence-driven vs. absence-driven, one point per province,
+  diagonal = balanced. **Figure 2** (was Figure 3 under v3).
+- **Needs fieldwork** — yes, for validation. Inferred absence is weak evidence; **stated**
+  absence is strong.
+- **A NO looks like** — distinctiveness is symmetric everywhere. Still a fact nobody had.
+- **Why it matters** — every distinctiveness measure in computational humanities (TF-IDF,
+  log-odds, Zeta) is a *presence* measure. Absence is structurally invisible to all of
+  them. No off-the-shelf measure exists, so it must be defined and defended — **HD-13**.
 
-### RQ3 — How much of Thailand's culinary map is legible at all from public online data?
-*Plain: whose cooking did the internet leave out?*
+The only question carried over from v3 substantially unchanged, and still the best
+novelty-to-effort ratio in the project.
 
-- **Method** — coverage cartography. Labelled fraction, provincial recipe counts, source-domain concentration, provinces clearing each threshold. Headline analyses run at **10 / 15 / 25** recipes with conclusions reported at each.
-- **Output** — choropleth with sub-threshold provinces greyed out, plus a threshold-sensitivity panel. **Figure 1**, and rhetorically the strongest image in the paper.
-- **Lead the abstract with this one.**
+Interview question 9, to be asked out loud as written:
 
-### RQ4 — Which ingredients hold Thai cuisine together, and which regional cuisines are most fragile?
-*Plain: what happens if all the garlic in Thailand disappears?*
+> **“อะไรที่คนจังหวัดอื่นใส่ในจานนี้ แต่บ้านเราไม่มีวันใส่?”**
+> *What do people in other provinces put in this that we would never put in?*
 
-- **Method** — node-removal robustness on the PMI-weighted co-occurrence network. Delete each ingredient, measure fragmentation of regional subgraphs, rank by structural indispensability.
-- **Output** — horizontal bars faceted by region. **Figure 5**. Also the site's main interactive.
-- **Status: paper-optional.** Runs in minutes, needs no new data, and is the first to cut if the paper runs long. Four questions executed cleanly reads better than five with one thin.
+Test the phrasing on the first informant; the wording decides whether the answer is real
+or merely polite.
 
-### RQ5 — Does regional signal concentrate in vernacular practice rather than in canonical, externally-facing forms?
-*Plain: is the food Thailand is famous for the least regional food it has?*
+### RQ3 — What does the official record leave out?
+*Plain: whose cooking didn't make the government's list?*
 
-- **Method** — classifier run **separately per dish category** (nam prik, everyday/preserved, curries, restaurant-facing, desserts). **Report the majority-class baseline or the accuracy numbers mean nothing.**
-- **Output** — grouped bars, accuracy by category, baseline as a dashed line. **Figure 6**.
-- **Report at region level.** Province-level accuracy inside a single dish category will be too thin — the data splits five ways.
+- **Method** — the state selected 3 dishes per province. Ask cooks in Nan and Surin what
+  they actually cook. Measure overlap at dish level and ingredient level.
+- **Output** — table of dishes and ingredients named by cooks that appear in no register;
+  overlap bar chart. **Figure 3** (was Figure 1 under v3).
+- **Needs fieldwork** — entirely.
+- **A NO looks like** — high overlap, validating the state's selection process.
+- **Framing** — an **existence claim**, which n≈6 per province fully supports: *six of six
+  cooks in Surin named an ingredient no register associates with the province.* Never a
+  basis for ranking provinces. That distinction is what makes it unobjectionable.
 
+v3's RQ3 asked how much of the map is legible from public online data and was answered on
+2026-08-23 at **1.3%** (`docs/labelled_fraction.md`). That measurement stands and is why
+kapook is held as a coverage corpus — but under v4 it is evidence feeding this question,
+not the question itself.
+
+### RQ4 — Can you cook a dish from the normalised dataset?
+*Plain: after the computer cleans up a recipe, is it still a recipe?*
+
+- **Method** — cook 8 dishes from the **cleaned dataset's** ingredient list, not the
+  original source page. Log what was missing, what had to be substituted, what
+  normalisation destroyed, whether the result was recognisable.
+- **Output** — fidelity matrix, 8 dishes × {quantities, order, technique, specificity,
+  completeness}. **Figure 4**.
+- **Needs cooking** — entirely. This question cannot be answered any other way.
+- **A NO looks like** — everything cooks fine; normalisation is lossless in practice.
+  Reassuring, and worth reporting.
+- **Transferable** — tokenisation and canonicalisation silently delete information and
+  nobody in computational food studies measures how much. A reproducibility argument that
+  transfers to any pipeline flattening structured text.
+
+Requires a `cook_along_log` table (Bible §13). In v3 the cooking was narrative colour and
+the first thing to cut; here it is the validation layer, and cutting it removes a question.
+
+### RQ5 — Do cooks agree with the state about which dishes are disappearing?
+*Plain: the government says these dishes are at risk. Do the people who cook them agree?*
+
+- **Method** — compare the **endangerment level** field in the government PDFs against
+  what cooks in Nan and Surin say about the same dishes.
+- **Output** — agreement matrix, official level vs. cook-reported status. **Figure 5**.
+- **Needs fieldwork** — entirely.
+- **A NO looks like** — full agreement, validating the state's assessment process.
+
+> **⚠️ OPEN GATE — do not build against this question yet.** The checkbox extraction it
+> depends on works: endangerment recovers on 157 of 231 documents, within 1.3 points of
+> the corpus ceiling. But RQ5's sample is the six Nan and Surin documents, four carry a
+> level, and **all four carry the same level**. Figure 5's agreement matrix cannot be
+> built from one distinct official value. Four options and a recommendation are recorded
+> in `docs/decisions.md`; full measurement in `docs/checkbox_extraction.md`. The Decision
+> field is empty and no work proceeds past it.
 ---
 
 ## 5. Statistical corrections — Bible §4, verbatim
@@ -225,13 +304,39 @@ Seven figures, specified before implementation, axes named. All 2D. All regenera
 
 | # | Figure | X axis | Y axis | Encoding and purpose |
 |---|---|---|---|---|
-| 1 | Coverage map (RQ3) | geography | — | Fill = recipe count; sub-threshold provinces greyed. Paired sensitivity line chart: X = threshold 5–30, Y = provinces qualifying. An image of Thailand with a third of it blank is the paper's most effective figure |
-| 2 | Regional separation vs. distance (RQ1) — **respecified 2026-08-23** | km between region centroids (~350–1,050) | compositional separation, between − within mean cosine distance | Six points, one per region pair, with each pair's permutation null as a shaded band and fill by Holm-adjusted significance; companion panel places each observed value inside its own null. **No fitted line and no change point** — six points cannot carry one. Full spec: `docs/figure2_spec.md`. Replaces the ~2,900-province-pair distance-decay scatter, which a 1.3% labelled fraction makes unbuildable |
-| 3 | Distinctiveness decomposition (RQ2) | presence-driven distinctiveness | absence-driven distinctiveness | One point per province; diagonal = balanced. Above the line = defines itself by refusal. A chart type reviewers have not seen before |
-| 4 | Prevalence vs. distance (supporting) | km from Bangkok | share of province's recipes containing the ingredient (0–1) | Small multiples, 6–12 panels, shared axes, colour = region. **Include one flat panel (MSG) as a null control** so readers can calibrate what "no pattern" looks like. Most explanatory figure in the set; first to move to an appendix if space is tight |
-| 5 | Fragility ranking (RQ4) | fragmentation caused on removal | ingredient, sorted | Horizontal bars faceted by region. Also the site's main interactive |
-| 6 | Category accuracy (RQ5) | dish category | classification accuracy | Grouped bars with the majority-class baseline as a dashed horizontal line. Five bars, one line, immediately readable |
-| 7 | Province × ingredient heatmap | ingredients (top ~60 by variance) | provinces | Fill = TF-IDF. **Both axes seriated by hierarchical clustering, never alphabetical.** Blocky diagonal structure = regional cuisines exist. Good first figure in Results because no modelling sits between data and image |
+| 1 | **Register triangle** (RQ1) | — | — | One triangle per province; vertices = official / commercial / domestic; edge length = ingredient-profile distance. Small multiples for the two fieldwork provinces at full size, all others as a two-register line. The paper's signature figure |
+| 2 | **Distinctiveness decomposition** (RQ2) | presence-driven | absence-driven | One point per province, diagonal = balanced. Above the line = defines itself by refusal. A chart type reviewers have not seen |
+| 3 | **Official-record overlap** (RQ3) | province | count | Stacked bars: dishes named by cooks that are in the official three / in the commercial register / in neither. **The "neither" segment is the finding** |
+| 4 | **Pipeline fidelity** (RQ4) | dish | information class | Matrix, 8 dishes × {quantities, order, technique, specificity, completeness}. Cell = survived / degraded / lost. Reads as a table, functions as a figure |
+| 5 | **Endangerment agreement** (RQ5) | official level | cook-reported status | Confusion-matrix style; off-diagonal cells are the interesting ones. **Blocked — see the RQ5 gate in §4.** One distinct official value across the fieldwork sample means there is no matrix to draw |
+| 6 | **Province × ingredient heatmap** | ingredients (top ~60 by variance) | provinces | Fill = TF-IDF, **faceted by register**. Both axes seriated by clustering, never alphabetical. Good first Results figure because no modelling sits between data and image |
+| 7 | **Acquisition mode by province** | province, ordered by distance from Bangkok | share of ingredients | Stacked bars: grown / foraged / market / packaged. Uses a government field directly. Supporting figure, and the most immediately legible in the set |
+
+**The ordering trap.** Any matrix or heatmap must be ordered geographically or by cluster,
+**never alphabetically**. Alphabetical ordering scatters real structure into what looks
+like noise. This single choice is the difference between a figure that is the result and a
+figure that says nothing.
+
+### Built figures that this table no longer lists
+
+Two figures exist in code and do not appear above. Neither is deleted here; what happens
+to them is a researcher call, not a reconciliation one.
+
+- **`figures/figure2.png` — regional separation vs. distance.** Specified in
+  `docs/figure2_spec.md`, adopted by a decided gate on 2026-08-23, and built:
+  `src/viz/figure2.py`, `scripts/make_figure2.py`. It answers v3's RQ1, and Bible v4 §1
+  and §14.5 retire that question along with the Mantel and Moran's I tests. v4 §14.5 does
+  leave a door open — distance-decay "could return as a supporting analysis" if the
+  commercial register grows well past target. **Disposition needed:** supporting analysis,
+  appendix, or dropped.
+- **`figures/figure4.html` — the ingredient prevalence view.** Built by
+  `scripts/make_figure4.py`, and numbered for v3's Figure 4 slot, which v4 gives to
+  pipeline fidelity. The v4 figure of that number does not exist yet and needs the
+  cook-along log first.
+
+`make figures` still regenerates both, and should keep doing so until their disposition is
+settled — Rule 5 is that every figure regenerates from the database, not that every
+regenerated figure is in the paper.
 
 ---
 
@@ -476,6 +581,18 @@ scope and no work proceeds on it.
 
 ## Changelog
 
+- **2026-08-30** — Reconciled to **Bible v4**. Four of the five research questions
+  replaced: boundary geometry → three-register agreement (RQ1); coverage legibility →
+  what the official record leaves out (RQ3); network fragility → pipeline fidelity, cooked
+  (RQ4); vernacular signal → endangerment agreement (RQ5). Only RQ2, presence versus
+  absence, survives substantially unchanged. Every figure renumbered, and the figure table
+  rewritten to v4 §12. **The risk profile inverted**: this file said all five questions run
+  on the web corpus and none could be blocked by a cancelled trip; under v4 four of five
+  require fieldwork and one requires cooking. RQ5 marked as an open gate — the checkbox
+  extraction works, but the fieldwork sample carries one distinct official value and
+  Figure 5 cannot be built from it (`docs/checkbox_extraction.md`). Two built figures that
+  v4 no longer lists are recorded with their disposition left open rather than deleted.
+  **Partial**: the phase plan, gate list and schema notes still carry v3 numbering.
 - **2026-08-23** — §21 blocking item 1 discharged: the labelled-recipe fraction is
   **1.3%** on `cooking.kapook.com`, against a 35% threshold, with a researcher-confirmed
   hand audit behind it. HD-3 decided for that source (option A, coverage corpus). This is
