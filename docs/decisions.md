@@ -1134,3 +1134,106 @@ invented bulk data:**
 
 **What still needs the file, or network access to `food.culture.go.th`.** Task 0b's
 spot-verification; the real Task 2/4/5 numbers; Task 1d's year-over-year overlap.
+
+---
+
+## Note — Task 0: the gdcatalog source-catalogue tiering is of undocumented provenance
+**Date:** 2026-09-12
+**This is the note Task 0b requires.**
+
+**0a — repository search.** No script, commit, or decision entry anywhere in this
+repository produced `flavormap_gdcatalog_sources_full.csv`,
+`flavormap_gdcatalog_sources_tierA_core.csv`, or assigned their `tier` column. A
+case-insensitive search for "tier" across every `.py` and `.md` file in the repository
+turns up nothing related — the closest hits are `province_attribution`'s four
+*attribution* tiers (an unrelated concept, migration 007) and DCP document parsing.
+Nothing in `scripts/`, `docs/source_audit.md`, or `docs/decisions.md` describes
+enumerating gdcatalog's catalogue or sorting its rows into tier A/259 and tier
+B/1,634.
+
+**0b — recorded per the brief's own instruction.** The tiering is of undocumented
+provenance. What it *appears* to be based on, from the numbers alone: 259 of 1,893
+(≈13.7%) is a plausible size for a keyword- or metadata-driven first pass (e.g.
+matching a province field, a publisher allowlist, or a small set of subject-area
+terms) rather than a hand-curated shortlist of that size, which would be an unusual
+amount of manual review for a single undocumented step. This is consistent with — and
+does not contradict — the brief's own finding that tier A still contains 124 "อาหาร"
+titles that are mostly restaurant registries: a mechanical first pass would produce
+exactly that kind of noise. **Tier is therefore carried through `source_catalogue` as
+provenance only, never as the content filter** — `content_class`
+(`src/ingest/source_catalogue.py`) is computed independently, from title and
+description text, regardless of which tier a row landed in.
+
+**0c — blocked, machinery ready.** `verify_core_is_subset_of_full` (checks slug
+membership and per-column value agreement between the two files, not just row counts)
+is built and tested against synthetic fixtures, but has not run against the real
+files — both are absent from this environment, see the infrastructure note below.
+
+## Note — infrastructure: both gdcatalog inventory files absent; audit and harvest blocked
+**Date:** 2026-09-12
+**This is not a gate.** Same class of note as every prior infrastructure entry dated
+2026-09-12 in this file.
+
+Neither `flavormap_gdcatalog_sources_full.csv` nor `..._tierA_core.csv` is present in
+this session's filesystem or its connected Google Drive — the same absence every
+gdcatalog file in this task series has had. Task 2's licence audit and Task 3/4's
+harvests are additionally blocked by network access: `food.culture.go.th`,
+`culture.gdcatalog.go.th`, `gdcatalog.go.th`, `data.go.th`, and `www.doae.go.th` have
+all separately returned `EGRESS_BLOCKED` in this session, and a control fetch to
+`www.wikipedia.org` confirms this is a broad session-level policy, not a per-host
+finding — see the earlier infrastructure notes and this session's own conversation
+for the specific checks.
+
+**A scoping decision this note records rather than defers: no fetch/harvest script
+was written for Task 3 or Task 4, even as non-runnable scaffolding.** Every prior
+gdcatalog loader in this codebase (`scripts/parse_gdcatalog.py`,
+`scripts/parse_local_dish_inventory.py`, `scripts/parse_food67.py`) parses an
+*already-downloaded* local file and was safe to write regardless of the source's own
+audit status, because parsing a file already on disk is not the act rule 7 gates.
+Task 3a and Task 4b are different in kind: they ask for a **fetcher** — HTTP requests
+against `*.gdcatalog.go.th`, `data.thaihealth.or.th`, `catalog.qsds.go.th`, and
+whatever else Task 2a's domain list turns out to contain — and Task 2's own brief is
+explicit: *"Do not fetch from a domain before its entry exists in ETHICS.md."* None of
+those domains has one yet, because the audit itself (Task 2b) is exactly what network
+access blocks. Writing the fetch code now, unrun, would not violate rule 7 in any way
+that executing it would — but it would mean the next reader finds a `fetch_*.py`
+targeting five-plus ungoverned hosts sitting in the repo looking ready to run,
+which is a worse failure mode than a documented gap. **What was built instead:**
+
+- `src/ingest/source_catalogue.py`: the Task 1b classifier — a first-match-wins
+  keyword rule list over the closed vocabulary the brief proposes, with
+  `restaurant_registry` checked before any food-related class specifically because
+  "ร้านอาหาร" contains "อาหาร" (the brief's own diagnosis of why the keyword is
+  noisy) — verified with a test asserting the ordering resolves a title matching both
+  keyword sets correctly. `distinct_domains` (Task 2a) and
+  `verify_core_is_subset_of_full` (Task 0c) are pure local-file operations, tested
+  against synthetic fixtures, and need no network access to run once the CSVs exist.
+- Migration `025_source_catalogue.sql`: the tracking table Task 1 specifies —
+  `content_class`, `harvest_status`, `rejection_reason`, `assessed_at` — standalone,
+  no FK to `sources` or `raw_recipes`, so loading it is not gated on a source audit
+  the way every recipe-bearing loader in this codebase is.
+- Migration `026_gi_products.sql`: Task 4a's proposed table, product-level only —
+  no column for a registrant or applicant name exists, matching Task 4b's instruction
+  that registrant lists carry personal data and must never be stored, redacted or
+  otherwise.
+- `scripts/load_source_catalogue.py`: **not a fetcher** — reads the two CSVs from
+  disk only. `--report` runs Task 0c, Task 1's class distribution, and Task 2a's
+  domain list, all three of which need only the files, not the database or network.
+  Refuses to run without both files present, same as every other loader in this
+  codebase.
+- 25 new tests (`tests/test_source_catalogue.py`), built from the brief's own five
+  confirmed local-food titles, the four named restaurant-certification schemes, and
+  the GI/ข้าวหอมมะลิสุรินทร์ example. Full suite verified against a real empty
+  database with all 26 migrations applied from scratch: 239 passed, 19 skipped
+  (pre-existing raw-corpus-gated skips), ruff and mypy clean.
+
+**What still needs the files, or network access to at least one gdcatalog-family
+host.** Task 0c's real subset check; Task 1's real class distribution and Task 2a's
+real domain list (the machinery is ready — `load-source-catalogue --report` — only
+the files are missing); Task 2b's licence audit; Task 3's three harvests; Task 4's GI
+product harvest; Task 5's coverage-correlation analysis, which reads from a populated
+`source_catalogue` that does not yet exist. **Task 5b was not written into
+LIMITATIONS.md** — the brief asks for an observed finding (does culinary-content
+coverage correlate with anything), and there is no observation to log without the
+data. Logging a plausible-sounding but unmeasured pattern would be exactly the kind
+of thing rule 9's "negative results ship" is not — a result, ships when it is one.

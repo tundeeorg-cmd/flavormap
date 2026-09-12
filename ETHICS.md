@@ -246,6 +246,40 @@ rather than a new one, since a government-publication attribution field is the s
 shape of PII risk (informant/business name, address, phone) the DCP forms already
 carry.
 
+### gdcatalog source catalogue — licence audit not run, 2026-09-12
+
+A session was asked to audit robots.txt and licence terms for the gdcatalog family
+and for every other domain a catalogue export's `resource_url` column points at
+(`data.thaihealth.or.th`, `catalog.qsds.go.th`, "and others" per the task brief),
+ahead of harvesting three named local-food files and a set of GI product records.
+**Neither the catalogue export nor the audit could be produced.** The two CSVs this
+task depends on
+(`flavormap_gdcatalog_sources_full.csv`, `flavormap_gdcatalog_sources_tierA_core.csv`)
+are absent from this session — the same absence every gdcatalog file in this task
+series has had — so Task 2a's real domain list (extracted from `resource_url`) could
+not be computed. Separately, `food.culture.go.th`, `culture.gdcatalog.go.th`,
+`gdcatalog.go.th`, and `data.go.th` have all returned `EGRESS_BLOCKED` in this
+session; the two as-yet-untried hosts the brief itself names
+(`data.thaihealth.or.th`, `catalog.qsds.go.th`) were not attempted, since every
+`*.go.th`-family host tried so far in this session has been blocked the same way and
+there is no reason to expect a different outcome — this is recorded as an
+assumption, not a separate confirmed test.
+
+**No domain below has a completed audit, and per rule 7 none may be fetched from
+until one exists.** The three names below are transcribed from the task brief
+itself, not independently verified — listed here so the eventual audit has a
+starting point, not as a substitute for one:
+
+| Domain (per the brief, unverified) | robots.txt | ToS | Audited | Decision |
+|---|---|---|---|---|
+| `*.gdcatalog.go.th` (per-province subdomains) | not fetched | not fetched | — | **Not audited — do not fetch** |
+| `data.thaihealth.or.th` | not fetched | not fetched | — | **Not audited — do not fetch** |
+| `catalog.qsds.go.th` | not fetched | not fetched | — | **Not audited — do not fetch** |
+
+No fetcher for any of these was written, even as non-runnable code — see
+`docs/decisions.md`'s matching infrastructure note for why that is a deliberate
+scoping decision, not an oversight.
+
 ## Personal data (PDPA 2562)
 
 **No personally identifying data enters the database, ever.** Not in a table, not in a
