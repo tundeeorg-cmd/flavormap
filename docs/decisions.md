@@ -602,3 +602,79 @@ the Task 5 queries against a freshly loaded database. `.env`'s
 `SCRAPER_CONTACT_EMAIL` was set to the researcher's own address for this run, on
 explicit confirmation in session — carried here as a fact about what was configured,
 not as a decision this file records.
+
+---
+
+## HD-22 — What is a "recipe" on a kapook page?
+**Date presented:** 2026-09-12
+**Status:** OPEN — `scripts/parse_kapook.py` does not exist. `make ingest` loads
+dcp_food only; `make scrape` fetches both sources.
+
+**What depends on it.** Every kapook-derived row in `recipes` — the entire commercial
+register (Bible v4 §3's three-way official/commercial/domestic split) has no loader
+until this is settled. RQ1, RQ2, and Figure 6 all read `register='commercial'` rows
+that cannot exist before this gate closes.
+
+**The finding.** `src/ingest/kapook_page.py` already declines to answer this — its own
+docstring: "Deciding how a page maps to rows in `recipes` is an analytical choice about
+the unit of observation, not a parsing detail, and it is left to the caller." A page
+yields one or more `IngredientSection`s (heading + ingredient lines), and the corpus
+contains at least three distinct shapes that look identical structurally (N sections on
+one page) but mean different things:
+
+  1. **One dish, one section.** The common case — `title_th` is the dish name, the
+     section is its ingredient list. Unambiguous.
+  2. **One dish, several sections.** E.g. ส่วนผสม ตัวแป้ง (batter) + ส่วนผสม น้ำจิ้ม
+     (dipping sauce) — one recipe, two ingredient groups. Splitting these into two
+     `recipes` rows would double-count one dish as two.
+  3. **Several dishes, one page (a roundup).** `view159758` carries 46 ingredient
+     sections, one per dish in a listicle. Pooling these into one `recipes` row would
+     merge 46 unrelated ingredient lists into one fictitious "recipe".
+
+Nothing in the markup distinguishes (2) from (3): both are "a page with N>1 sections",
+and telling them apart requires reading whether the section headings name qualifiers of
+one dish or names of different dishes — exactly the kind of judgment `measure_labelled_
+fraction.py` sidestepped by measuring at the **page** level and saying so explicitly
+("the unit of observation is unresolved for this source").
+
+**Options presented:**
+  A. **One row per page, always.** Pool every section's items into one ingredient list;
+     `dish_name_th` from `title_th`.
+     Consequence: cheapest, and correct for shape (1) and (2). Silently wrong for shape
+     (3) — a listicle becomes one "recipe" whose ingredient list is the union of up to
+     46 unrelated dishes, which would corrupt every ingredient-profile measure RQ1/RQ2
+     run on it. No count in hand for how many of the 2,521 usable pages are listicles,
+     so the damage is unquantified.
+  B. **One row per section, always.** `dish_name_th` from the section heading (falling
+     back to `title_th` when the heading is only the ingredient-keyword itself, e.g.
+     bare "ส่วนผสม").
+     Consequence: correct for shape (3). Wrong for shape (2) — a single dish's batter
+     and sauce become two fabricated "recipes", each missing half its own ingredient
+     list, which is arguably a worse corruption than A's for exactly the well-structured
+     pages that bothered to separate components.
+  C. **Load only unambiguous single-section pages (shape 1) now; hold multi-section
+     pages out of `recipes` entirely, counted and reported rather than guessed.**
+     Consequence: no fabricated unit of observation in either direction. Costs whatever
+     fraction of the 2,521 usable pages have more than one section — unmeasured, but
+     the fetched corpus and `src/ingest/kapook_page.py` are both already in hand, so
+     that fraction is a five-minute count once this option is chosen, not a blocker to
+     choosing it.
+  D. **Read a sample of multi-section pages by hand and write a rule** (e.g. a heading
+     that repeats a known dish-category word or matches a short list of "part" nouns —
+     ตัวแป้ง, น้ำจิ้ม, ไส้ — means "same dish, split section"; anything else means "new
+     dish").
+     Consequence: recovers most of what B and C each give up, but the rule itself is a
+     vocabulary-granularity judgment call in the same class as HD-6/HD-9 — how many
+     "part" nouns, how confidently a heading must repeat one — and would need its own
+     documented inclusion rules the same way `dish_categories` does.
+
+**Recommendation given:** **C now, D as a follow-up if the held-out fraction turns out
+large enough to matter.** C is the only option that cannot silently corrupt an
+ingredient-profile measurement, and rule 9 (negative results ship) covers reporting
+the held-out count plainly rather than treating it as a defect. A and B each get one of
+the two multi-section shapes wrong in a way that would not be visible again until RQ1's
+numbers looked strange.
+
+**Decision:**
+**Reasoning:**
+**Date decided:**

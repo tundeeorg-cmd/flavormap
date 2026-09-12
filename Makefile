@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump scrape ingest clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -22,15 +22,29 @@ db-reset:
 db-dump:
 	./scripts/dump_db.sh
 
-# Fetch only — writes to data/raw/dcp_food/ (gitignored), touches no database.
-# Resumable: scripts/fetch_dcp_food.py never re-fetches a file already on disk, so
-# re-running this after a partial run only requests what is still missing.
-scrape:
+# Fetch only, per source — writes to data/raw/{source}/ (gitignored), touches no
+# database. Both are resumable: neither fetcher re-requests a file already on disk, so
+# re-running after a partial run only requests what is still missing.
+scrape-dcp:
 	uv run python -m scripts.fetch_dcp_food
 
+scrape-kapook:
+	uv run python -m scripts.fetch_kapook
+
+scrape: scrape-dcp scrape-kapook
+
 # Fetch, then parse-and-load. `ingest` depends on `scrape` so `make ingest` alone takes
-# a fresh clone all the way to a loaded `recipes` table; `make scrape` on its own still
-# works for re-fetching without touching the database.
+# a fresh clone all the way to a loaded `recipes` table; `make scrape` (or a single
+# `scrape-*` target) on its own still works for re-fetching without touching the
+# database.
+#
+# dcp_food only for now. kapook_cooking has no parse-and-load step: mapping a kapook
+# *page* to `recipes` *rows* is an open call src/ingest/kapook_page.py's own docstring
+# declines to make ("an analytical choice about the unit of observation ... left to the
+# caller") — some pages hold one dish, one holds 46 (a listicle), others split one dish
+# across two ingredient sections (batter, dipping sauce), and nothing in the markup
+# tells those two shapes apart. scripts/parse_kapook.py is not written until that call is
+# made; see docs/decisions.md.
 ingest: scrape
 	uv run python -m scripts.parse_dcp
 
