@@ -9,7 +9,9 @@ appendix, not for sending. When a reply arrives, record it as a dated row in
 
 ## Before sending — four things to fill or check
 
-1. **`[ชื่อ-นามสกุล]`** and the school year — the draft assumes ม.๕ (Grade 11).
+1. ~~`[ชื่อ-นามสกุล]`~~ — filled in as **Jenissa Vichiansin**. **School year still
+   assumed as ม.๕ (Grade 11)** — confirm or correct before sending; nothing in the
+   repository confirms current grade.
 2. **The recipient.** Find the contact for the food-heritage programme specifically rather
    than the Department's general inbox — a named programme officer answers, a general
    inbox often does not. `culture.go.th` lists divisional contacts; the programme's own
@@ -37,7 +39,7 @@ appendix, not for sending. When a reply arrives, record it as a dated row in
 
 **เรียน** ผู้อำนวยการกรมส่งเสริมวัฒนธรรม / ผู้รับผิดชอบโครงการอาหารถิ่น
 
-ดิฉัน [ชื่อ-นามสกุล] นักเรียนชั้นมัธยมศึกษาปีที่ ๕ โรงเรียนนานาชาติโรงเรียนนานาชาติร่วมฤดี (ISB) กรุงเทพมหานคร
+ดิฉัน Jenissa Vichiansin นักเรียนชั้นมัธยมศึกษาปีที่ ๕ โรงเรียนนานาชาติ ISB กรุงเทพมหานคร
 กำลังจัดทำโครงงานวิจัยอิสระด้านวิทยาการข้อมูล ในหัวข้อ **ความหลากหลายเชิงภูมิศาสตร์ของอาหารไทย**
 โดยศึกษาว่าส่วนผสมและวิธีปรุงอาหารมีความแตกต่างกันอย่างไรระหว่างจังหวัดต่าง ๆ และมีจังหวัดใดบ้าง
 ที่ข้อมูลอาหารประจำถิ่นยังไม่ปรากฏบนอินเทอร์เน็ตสาธารณะ
@@ -88,7 +90,7 @@ appendix, not for sending. When a reply arrives, record it as a dated row in
 
 ขอแสดงความนับถือ
 
-[ชื่อ-นามสกุล]
+Jenissa Vichiansin
 นักเรียนชั้นมัธยมศึกษาปีที่ ๕ · โรงเรียนนานาชาติ ISB กรุงเทพมหานคร
 อีเมล: tundee.org@gmail.com
 โครงงาน: `github.com/tundeeorg-cmd/flavormap`
@@ -103,7 +105,7 @@ appendix, not for sending. When a reply arrives, record it as a dated row in
 
 Dear Director / Programme Officer, Department of Cultural Promotion,
 
-I am [name], a Grade 11 student at International School Bangkok. I am carrying out an
+I am Jenissa Vichiansin, a Grade 11 student at International School Bangkok. I am carrying out an
 independent data-science research project on **the geography of Thai cuisine** — studying
 how ingredients and methods differ between provinces, and which provinces' local food is
 least visible on the public internet.
@@ -146,7 +148,7 @@ prefer I not use this material, I will stop immediately.
 
 Respectfully,
 
-[name] · Grade 11, International School Bangkok
+Jenissa Vichiansin · Grade 11, International School Bangkok
 tundee.org@gmail.com · `github.com/tundeeorg-cmd/flavormap`
 
 *Parent / supervising teacher:* [name] — [email]
