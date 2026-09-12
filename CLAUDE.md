@@ -127,6 +127,8 @@ needs changing gets a new forward migration, never an edit to an applied one.
 | 022 | `recipes.source_programme` | distinguishes government programmes within the `official` register — `one_province_one_menu` (the 231 DCP PDFs) vs. `thai_taste_therapy` (`culture.gdcatalog.go.th`), CHECKed against `register`, carried through both analysis views |
 | 023 | `local_dish_inventory` | community/village dish-**name** surveys (gdcatalog) — a third `source_programme` (`local_food_survey`), a distinct table from `recipes` because this source has no ingredients and cannot join the ingredient-based analysis |
 | 024 | `recipes` provenance + prose columns | `source_dish_id`, `book_page`, `pdf_pages`, `programme_year`, and the never-released prose fields (`method_th`, `method_step_count`, `benefits_th`, `history_th`, `source_info_th`) for `flavormap_food67.csv`. Also corrects `source_programme`'s vocabulary: the bare `one_province_one_menu` (022) is renamed `one_province_one_menu_2568` and a distinct `one_province_one_menu_2567` is added, so the two food-programme years are never pooled under one tag |
+| 025 | `source_catalogue` | a source *inventory*, not recipe data — every dataset in the gdcatalog catalogue export, its mechanical `content_class`, and `harvest_status`/`rejection_reason` tracking what was assessed, queued, harvested, or rejected and why |
+| 026 | `gi_products` | geographical-indication products — a product designation bound to a province by law. Product-level only; no column for a registrant/applicant name or address exists or should ever be added (Bible §4) |
 
 **Ordering correction (2026-08-16).** The v2 plan numbered `province_attribution` 006 and
 `provinces` 007, with a foreign key pointing from the earlier to the later. That cannot

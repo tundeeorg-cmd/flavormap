@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest ingest-gdcatalog ingest-local-dish ingest-food67 clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest ingest-gdcatalog ingest-local-dish ingest-food67 load-source-catalogue clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -67,6 +67,12 @@ ingest-local-dish:
 # uv run python -m scripts.parse_food67 --report
 ingest-food67:
 	uv run python -m scripts.parse_food67
+
+# Not an ingest-* target: this loads the gdcatalog CATALOGUE (a source inventory,
+# never recipe data) and never touches the network — no fetch, so no ETHICS.md gate
+# to wait on, unlike every ingest-* target above. Still needs the two CSVs on disk.
+load-source-catalogue:
+	uv run python -m scripts.load_source_catalogue
 
 clean:
 	@echo "make clean: not yet implemented" && exit 1
