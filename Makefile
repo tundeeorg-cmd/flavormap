@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest ingest-gdcatalog ingest-local-dish clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest ingest-gdcatalog ingest-local-dish ingest-food67 clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -60,6 +60,13 @@ ingest-gdcatalog:
 # audit are both preconditions this target does not itself satisfy.
 ingest-local-dish:
 	uv run python -m scripts.parse_local_dish_inventory
+
+# Same two unmet preconditions as the other gdcatalog targets (the CSV, and a sources
+# seed row), plus its own: provenance is undocumented and unverified against source
+# (docs/decisions.md, Task 0). `--report` works without either precondition —
+# uv run python -m scripts.parse_food67 --report
+ingest-food67:
+	uv run python -m scripts.parse_food67
 
 clean:
 	@echo "make clean: not yet implemented" && exit 1

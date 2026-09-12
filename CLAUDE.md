@@ -126,6 +126,7 @@ needs changing gets a new forward migration, never an edit to an applied one.
 | 021 | `v_recipes_low_confidence` | the explicit sensitivity-analysis pull (§3.2) — same shape as `v_recipes_clean`, confidence flipped to `low`, tier-4-low included |
 | 022 | `recipes.source_programme` | distinguishes government programmes within the `official` register — `one_province_one_menu` (the 231 DCP PDFs) vs. `thai_taste_therapy` (`culture.gdcatalog.go.th`), CHECKed against `register`, carried through both analysis views |
 | 023 | `local_dish_inventory` | community/village dish-**name** surveys (gdcatalog) — a third `source_programme` (`local_food_survey`), a distinct table from `recipes` because this source has no ingredients and cannot join the ingredient-based analysis |
+| 024 | `recipes` provenance + prose columns | `source_dish_id`, `book_page`, `pdf_pages`, `programme_year`, and the never-released prose fields (`method_th`, `method_step_count`, `benefits_th`, `history_th`, `source_info_th`) for `flavormap_food67.csv`. Also corrects `source_programme`'s vocabulary: the bare `one_province_one_menu` (022) is renamed `one_province_one_menu_2568` and a distinct `one_province_one_menu_2567` is added, so the two food-programme years are never pooled under one tag |
 
 **Ordering correction (2026-08-16).** The v2 plan numbered `province_attribution` 006 and
 `provinces` 007, with a foreign key pointing from the earlier to the later. That cannot

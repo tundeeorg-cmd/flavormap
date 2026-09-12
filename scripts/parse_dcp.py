@@ -37,7 +37,14 @@ REGISTER = "official"
 # general — see migration 022. `culture.gdcatalog.go.th`'s thaitastetherapy dataset is
 # a different official programme with different selection criteria and must not be
 # pooled with this one under a bare register value.
-SOURCE_PROGRAMME = "one_province_one_menu"
+#
+# food68 = 2568 (BE) — renamed from the bare 'one_province_one_menu' by migration 024
+# once flavormap_food67.csv (2567, a different cohort of the same-named programme,
+# structurally unlike this one — see docs/decisions.md) needed its own distinct value
+# and "The 2568 load must be tagged separately" (that brief's Task 1b) made the old
+# bare name ambiguous between the two years.
+SOURCE_PROGRAMME = "one_province_one_menu_2568"
+PROGRAMME_YEAR = 2568  # พ.ศ. (Buddhist Era) — matches the source's own "food68" naming
 
 
 def _payload(record: DCPRecord) -> dict[str, object]:
@@ -124,20 +131,23 @@ def load(records: list[tuple[Path, DCPRecord]], dry_run: bool) -> dict[str, int]
             recipe_id = conn.execute(
                 """
                 INSERT INTO recipes (raw_id, name_th, dish_category_source, occasion,
-                                     endangerment, register, source_programme)
-                VALUES (%s,%s,%s,%s,%s,%s,%s)
+                                     endangerment, register, source_programme,
+                                     programme_year)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
                 ON CONFLICT (raw_id) DO UPDATE
                     SET name_th = EXCLUDED.name_th,
                         dish_category_source = EXCLUDED.dish_category_source,
                         occasion = EXCLUDED.occasion,
                         endangerment = EXCLUDED.endangerment,
                         register = EXCLUDED.register,
-                        source_programme = EXCLUDED.source_programme
+                        source_programme = EXCLUDED.source_programme,
+                        programme_year = EXCLUDED.programme_year
                 RETURNING recipe_id
                 """,
                 (
                     raw_id, rec.dish_name_th, rec.dish_category_source,
                     rec.occasion_th, rec.endangerment, REGISTER, SOURCE_PROGRAMME,
+                    PROGRAMME_YEAR,
                 ),
             ).fetchone()[0]
             stats["recipes"] += 1
