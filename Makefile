@@ -22,11 +22,17 @@ db-reset:
 db-dump:
 	./scripts/dump_db.sh
 
+# Fetch only — writes to data/raw/dcp_food/ (gitignored), touches no database.
+# Resumable: scripts/fetch_dcp_food.py never re-fetches a file already on disk, so
+# re-running this after a partial run only requests what is still missing.
 scrape:
-	@echo "make scrape: not yet implemented" && exit 1
+	uv run python -m scripts.fetch_dcp_food
 
-ingest:
-	@echo "make ingest: not yet implemented" && exit 1
+# Fetch, then parse-and-load. `ingest` depends on `scrape` so `make ingest` alone takes
+# a fresh clone all the way to a loaded `recipes` table; `make scrape` on its own still
+# works for re-fetching without touching the database.
+ingest: scrape
+	uv run python -m scripts.parse_dcp
 
 clean:
 	@echo "make clean: not yet implemented" && exit 1
