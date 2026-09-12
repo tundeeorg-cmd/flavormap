@@ -689,3 +689,23 @@ for a page with exactly one `IngredientSection`. Every other fetched page still 
 not dropped, and re-visitable once shapes (2) and (3) get a rule of their own (D above,
 or a fresh option). Options A, B, and D remain available for that follow-up; this
 decision closes only "what loads today," not the rest of HD-22.
+
+---
+
+## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
+**Date:** 2026-09-12
+**This is not a gate.** It is a documentation discrepancy found while building
+`src/clean/dedupe.py`'s similarity primitives, not a judgment call this session made.
+
+§7.2's own summary sentence: "deduplicate on ingredient-set Jaccard > **0.9**." Three
+lines later, the paragraph headed "Dedupe detail worth keeping from the v2 prompts":
+"exact `content_hash` first, then Jaccard > **0.85** on canonical ingredient sets **and**
+fuzzy title ratio > 0.8 -> flagged for review." Both read as the same check — an
+ingredient-set Jaccard threshold for flagging duplicate recipes — with two different
+numbers three lines apart in the same section.
+
+**Not resolved here.** `src/clean/dedupe.py` implements `jaccard_similarity()` and
+`title_similarity()` as pure functions with no threshold baked in; callers supply
+whichever number they intend. Picking 0.85 or 0.9 as "the" project threshold is the
+researcher's call — this note exists so it is made deliberately rather than by whichever
+number a future reader (or agent) happens to copy first.
