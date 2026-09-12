@@ -908,6 +908,15 @@ already built.
 **Reasoning:**
 **Date decided:**
 
+**Addendum, 2026-09-12 — `thaitastetherapy.csv`'s remaining three region values are
+now confirmed, not just the one.** The real file arrived this session
+(`scripts/parse_gdcatalog.py --dry-run`). All four of its distinct raw `region`
+strings are now known outright: ภาคกลางและตะวันออก, ภาคตะวันออกเฉียงเหนือ, ภาคเหนือ,
+ภาคใต้ — i.e. the North/Northeast/South labels are spelled identically to food67's
+six-way scheme, and only Central+East is merged into one label, exactly as the single
+previously-confirmed value implied. This does not decide the gate — it removes the
+"file unavailable" uncertainty from three of its four rows, nothing more.
+
 ---
 
 ## Note — `อาหารพื้นถิ่น.csv` (Phetchaburi) also absent; two more hosts blocked
@@ -1511,3 +1520,247 @@ inspected further here. A possible supporting analysis — what Surin's agricult
 data says it grows, set against what the official register says Surin cooks — is
 flagged as available if the researcher wants it later. It is not one of the five
 RQs and no code toward it exists.
+
+---
+
+## `flavormap_oae_production.csv` — loaded as `crop_production`, Tasks 1–5
+**Date:** 2026-09-12
+**Scope note.** This is supporting data (the brief's own framing): it answers none of
+the five research questions and nothing here promotes it to one. Kept deliberately
+small — one table, one loader, one report, this entry — per the brief's own "if this
+task starts expanding, it has drifted."
+
+**Task 1b — province column is clean.** 77 distinct values, **all 77 match
+`data/reference/provinces.csv` exactly, zero invalid** (`scripts/load_crop_production.py
+--report`). Confirmed, not assumed — this is a structured source field, unlike
+`flavormap_datago_catalog.csv`'s free-text-derived `province` column (L21), which is
+exactly the contrast the brief asked to check for.
+
+**Task 1c — region_th is an exact match with food67.** Same six values, same
+spelling, confirmed by set comparison: ภาคกลาง, ภาคตะวันตก, ภาคตะวันออก,
+ภาคตะวันออกเฉียงเหนือ, ภาคเหนือ, ภาคใต้. One fewer mapping problem, as the brief said —
+though note this doesn't touch HD-23 (the region-scheme canonicalisation gate),
+which is about mapping these onto `provinces.region4`, still open.
+
+**Task 1d — zero PDPA exposure, confirmed by inspection.** All 17 source columns
+(province_th, region_th, commodity_th, subcommodity_th, year_be/ce, five area
+columns, production/production_unit, yield_per_rai/yield_unit/yield_basis,
+source_dataset) are geographic or numeric. No name, address, or contact field exists.
+No redaction step was added — there is nothing to redact, and adding one would be
+ceremony over a real absence of risk, per the brief's own instruction.
+
+**Task 2a — the unit trap, with real numbers.** `production_unit` takes exactly two
+values: **ตัน** (tonnes, every commodity except one) and **ผล** (individual fruits,
+มะพร้าวผลแก่ only). `yield_unit` correspondingly: กิโลกรัมต่อไร่ / ผลต่อไร่.
+`yield_basis` takes three values: harvested (7 annual-crop commodities), bearing
+(coffee, coconut, pepper), tapped (rubber only) — never "and others" as loosely
+described, exactly three. `check_unit_consistency()` (`src/ingest/oae_production.py`,
+tested) asserts one unit per commodity and found **zero violations** in the real
+482 rows. Migration 028 documents the hazard in-schema; no aggregate view exists on
+this table for the same reason.
+
+**Task 2b — area column validity by commodity, confirmed from real data, not
+guessed:**
+
+| Growth habit | Commodities | Valid area columns | yield_basis |
+|---|---|---|---|
+| Annual crop | ข้าว, ข้าวโพด, มันฝรั่ง, กระเทียม, หอมแดง, สับปะรด, หอมหัวใหญ่ | planted_area_rai, harvested_area_rai | harvested |
+| Perennial | กาแฟ, มะพร้าวผลแก่, พริกไทย | standing_area_rai, bearing_area_rai | bearing |
+| Rubber (its own case) | ยางพารา | standing_area_rai, tapped_area_rai | tapped |
+
+Every row populates exactly the two area columns its growth habit uses and leaves the
+other three blank — not one row mixes the pattern. The blanks are structural, not
+missing data; nothing was imputed into them.
+
+**Task 3a — proposed commodity → lexicon mapping, HD-24, not applied.**
+
+| Commodity (`crop_production`) | Proposed lexicon target | Status |
+|---|---|---|
+| กระเทียม | กระเทียม | Direct — same word, no inference |
+| หอมแดง | หอมแดง | Direct — same word, no inference |
+| มะพร้าวผลแก่ | กะทิ | **Inference, flagged.** The commodity is the whole fruit; the lexicon target is a derived product (coconut milk). Not the same thing, and the mapping assumes a province that grows the fruit is a reasonable proxy for a province with coconut-milk access — untested here |
+| พริกไทย | พริกไทย | Direct — same word, no inference |
+| ข้าว | *(left unmapped, per the brief)* | ข้าวนาปี/ข้าวนาปรัง are planting seasons, not the ข้าวเหนียว/ข้าวหอมมะลิ variety distinction that matters culinarily. Inferring variety from season, region, or yield was not attempted |
+| ยางพารา, มันฝรั่ง, สับปะรด, ข้าวโพด, กาแฟ, หอมหัวใหญ่ | *(left unmapped)* | Not food-lexicon-relevant (rubber) or not confirmed to map cleanly without more work than this session's scope allows |
+
+**Not applied** — this table is a proposal for the researcher's decision, per Bible
+§15's canonical-vocabulary granularity gate. No `ingredient_aliases` or
+`canonical_ingredients` row was touched.
+
+**Decision:**
+**Reasoning:**
+**Date decided:**
+
+**Task 3b — lexicon overlap, the real count.** food67's `ingredients_th` column
+splits into **1,171 distinct raw strings** (`src/ingest/food67.py::split_ingredients`,
+confirmed — this is the same figure the brief itself quotes, independently
+reproduced here rather than trusted). A naive substring-containment match against the
+four mappable commodities' targets returned 214/1171 (18.3%) — rejected as
+overcounting, the same class of false positive `thai_province_match.py` was built to
+avoid for provinces (e.g. "containing กะทิ" catches น้ำตาลมะพร้าว, a compound
+false positive of a different kind). A tighter starts-with match against each
+proposed lexicon target (กระเทียม, หอมแดง, กะทิ, พริกไทย) gives:
+
+| Target | Raw strings starting with it |
+|---|---|
+| กระเทียม | 20 |
+| หอมแดง | 17 |
+| กะทิ | 15 (plus 47 more matching น้ำกะทิ/หัวกะทิ — legitimate coconut-milk forms a strict prefix match misses) |
+| พริกไทย | 10 |
+| **Union (no double count)** | **62 / 1,171 = 5.3%** |
+
+**A low overlap, as expected, and the finding rather than a failure** — of 1,171
+distinct raw ingredient strings in the official register, only ~5% (perhaps ~9% if
+the กะทิ-variant forms are folded in) have any production counterpart in this file at
+all. The other 10 commodities and the vast majority of food67's ingredient
+vocabulary (herbs, proteins, sauces, prepared condiments) have no production-side
+cross-reference in this source.
+
+**Task 4 — production rank vs. dish-appearance frequency, logged as a possible
+supporting figure, not built into a research question, per the brief's own
+instruction.**
+
+**Year mismatch, found and flagged rather than silently resolved.** The brief said
+"use 2567 for the comparison." **2567 does not exist in the source for three of the
+four target commodities** — กระเทียม, หอมแดง, and มะพร้าวผลแก่ carry **only 2568**
+rows (18/19/43 rows respectively); only ข้าวโพด, ข้าว, ยางพารา, and สับปะรด have 2567
+data. This is a real data-availability fact, not a choice — the comparison below uses
+**2568**, the only year that exists for these three commodities, stated explicitly
+rather than silently substituted. food67 remains the 2567 programme; the one-year
+offset between the two sides of every comparison below should be read with that in
+mind.
+
+n is thin throughout (12, 12, and 27 provinces respectively, of 77) — per the brief's
+own 4b caution, **no correlation coefficient or p-value is reported**, only counts
+and named outliers.
+
+- **กระเทียม** (12 provinces with both 2568 production and ≥1 food67 dish).
+  Outliers: **ชัยภูมิ** ranks 9th of 12 in production but **1st** in dish-share
+  (3 of 6 dishes) — cooks with it far more than its production rank suggests.
+  **ลำปาง** (2nd producer) and **เชียงใหม่** (1st producer) both rank low in
+  dish-share (9th and 7th) — grow a lot, appear rarely in the official register.
+- **หอมแดง** (12 provinces). **เชียงใหม่** (2nd producer) and **ศรีสะเกษ** (**1st**
+  producer, 83,996 tonnes) both show **zero** food67 dishes naming it — the single
+  largest producer in the sample has no register-visible use at all. **ยโสธร** and
+  **ชัยภูมิ** cook with it far more than their mid-table production rank suggests.
+- **มะพร้าว/กะทิ** (27 provinces, the largest n of the three). **สุราษฎร์ธานี**
+  (3rd-largest producer, ~49 million fruits) ranks only 22nd of 27 in dish-share —
+  the biggest gap found (19 rank positions). **นครศรีธรรมราช** (2nd producer) shows
+  a similar pattern (13-position gap). Conversely **นนทบุรี** and **นครปฐม** — small
+  producers — rank near the top in dish-share.
+
+Full per-province tables (production, dish counts, ranks) are reproducible from the
+same script used to compute this; not copied in full here to keep this entry
+readable. Given n and the year mismatch, **none of this is evidence of anything on
+its own** — consistent with the brief's own framing, and the finding stands as
+"production rank and cooking-frequency rank visibly diverge for the biggest
+producers in two of three ingredients," offered as a supporting-figure candidate
+only.
+
+**Task 5 — Nan and Surin, all 7 rows each, in full** (`crop_production`, both years):
+
+| Province | Commodity | Subcommodity | Year | Production | Unit |
+|---|---|---|---|---|---|
+| น่าน | กาแฟ | กาแฟ | 2568 | 936 | ตัน |
+| น่าน | ข้าว | ข้าวนาปี | 2567 | 164,965 | ตัน |
+| น่าน | ยางพารา | ยางพารา | 2567 | 51,774 | ตัน |
+| น่าน | กระเทียม | กระเทียม | 2568 | 150 | ตัน |
+| น่าน | ข้าว | ข้าวนาปรัง | 2568 | 8,357 | ตัน |
+| น่าน | หอมแดง | หอมแดง | 2568 | 28 | ตัน |
+| น่าน | ข้าวโพด | ข้าวโพดหวาน | 2567 | 7,445 | ตัน |
+| สุรินทร์ | ข้าว | ข้าวนาปี | 2567 | 1,189,602 | ตัน |
+| สุรินทร์ | มะพร้าวผลแก่ | มะพร้าวผลแก่ | 2568 | 3,172 | ผล |
+| สุรินทร์ | ยางพารา | ยางพารา | 2567 | 49,309 | ตัน |
+| สุรินทร์ | กระเทียม | กระเทียม | 2568 | 26 | ตัน |
+| สุรินทร์ | ข้าว | ข้าวนาปรัง | 2568 | 56,798 | ตัน |
+| สุรินทร์ | หอมแดง | หอมแดง | 2568 | 123 | ตัน |
+| สุรินทร์ | ข้าวโพด | ข้าวโพดหวาน | 2567 | 1,926 | ตัน |
+
+Confirms the brief's own headline: Surin's wet-season rice (1.19M tonnes) dwarfs
+Nan's (165K tonnes) — roughly 7×. Both grow garlic and shallot in small, comparable
+quantities (26–150 tonnes each). Nan is the only one of the two growing coffee; Surin
+the only one of the two with any coconut recorded. A real difference in agricultural
+character, useful context before the trips, proving nothing on its own.
+
+**Verification.** 28/28 migrations apply cleanly from an empty database
+(`make db-reset` equivalent). 301 tests pass (up from 292 — 12 new tests in
+`tests/test_oae_production.py`), 19 skipped (pre-existing, unrelated). ruff and mypy
+clean on all new files. Real load: 482/482 rows inserted into `crop_production`,
+0 rejected.
+
+---
+
+## Note — `thaitastetherapy.csv` and `อาหารพื้นถิ่น.csv` real reports, finally
+**Date:** 2026-09-12
+**This is not a gate.** Both files arrived this session. Loading into `recipes` /
+`local_dish_inventory` remains blocked exactly as before — no dated `ETHICS.md` audit
+for `gdcatalog.go.th` exists yet, so no `sources` FK row was seeded, per rule 7 and
+this project's standing refusal to invent an audit. Only the parse/report layer
+(`--dry-run`, which touches no database) is unblocked by having the real files. The
+original Round-1 and Round-2 briefs' "report back" questions are answered below.
+
+**`thaitastetherapy.csv` (`scripts/parse_gdcatalog.py --dry-run`).** 52 rows, 21
+provinces, 4 raw region strings (see the HD-23 addendum above — this run is what
+produced it). Ingredient extraction: **clean_list 22, numbered_list 29 (both fully
+auto-extracted), prose 1** — 51/52 = 98.1% success, the one prose row
+(แกงเลียง, อุตรดิตถ์) held out for hand review rather than force-parsed. Per-province
+counts range from ปทุมธานี's 7 down to eighteen provinces with 1. **Nan: 3 dishes**
+(คั่วไก่, ตำถั่วแปป, แกงสะแล). **Dish-name overlap with food67's 2567 register: 2 of
+52** (แกงบอน/ปทุมธานี, กะลอจี๊/ระนอง) — exact-string match, so a lower bound per L19's
+own caveat, but a low number consistent with this project's broader RQ1/RQ3 finding
+that different registers rarely name the same dish the same way.
+
+**`อาหารพื้นถิ่น.csv` (`scripts/parse_local_dish_inventory.py --dry-run`).** 30
+communities, **150 dish-name mentions, 144 distinct**, all 30 communities'
+districts confirmed against `PHETCHABURI_DISTRICTS` (8 distinct districts seen,
+zero districts outside the expected set) — the province inference holds cleanly.
+Zero empty-menu rows. **Overlap with food67's 3 official Phetchaburi dishes
+(ข้าวเหนียวไข่แมงดาทะเลเชื่อม, น้ำพริกลำแพน, ผัดไอ้คุ่ย): zero**, exact-string match —
+144 community-named dishes, none of which match the state's three-dish shortlist by
+name. Phetchaburi is not a fieldwork province, so this is not RQ3 evidence in the
+strict sense, but it is the same shape of finding RQ3 predicts, found incidentally in
+a province nobody was looking at for that purpose.
+
+---
+
+## Note — `gisich.csv` received directly; characterized, not built
+**Date:** 2026-09-12
+**Not a gate, not a task.** The researcher's message asking for network access to
+`gisich.csv` was answered by direct upload rather than a successful fetch (network
+egress to `culture.gdcatalog.go.th` is still `EGRESS_BLOCKED`, re-confirmed this
+session, no change from every earlier test). The file is now at
+`data/raw/gdcatalog/gisich.csv`. No task brief scopes what to do with it, and this
+session's live brief (`flavormap_oae_production.csv`) is explicit about staying
+cheap — so this is a characterization only: row counts and column meaning, enough to
+know what it is, no migration, no loader, no test.
+
+**What it is.** 4,718 rows — Thailand's **intangible cultural heritage inventory**
+(มรดกภูมิปัญญาทางวัฒนธรรม), not a recipe or dish-name source. Columns: `id`, `Name`,
+six binary domain flags (`Literature`, `Arts`, `Festival`, `Knowledge`, `Craft`,
+`Folk games`), `TH_Year`/`PV_Year` (registration years, Thai/provincial), a `Region`
+and `Province` pair, a free-text `Status` field, a `Practice` location description,
+and `Latitude`/`Longitude`. All 77 provinces present; Nan carries 54 rows, Surin 49.
+
+**Why this might matter more than a routine characterization — flagged, not acted
+on.** `Status` is a **real endangerment field** with 9 distinct values, headlined by
+มีการปฏิบัติอย่างแพร่หลาย ("widely practiced", 3,080 rows) and
+เสี่ยงต่อการสูญหายต้องได้รับการส่งเสริมและรักษาอย่างเร่งด่วน ("at risk, urgent
+preservation needed", 1,372 rows) — real variation, not the single-value wall RQ5's
+open gate currently hits with the DCP corpus's checkbox extraction (four of six
+Nan/Surin documents carrying endangerment, all four identical, per §4's OPEN GATE and
+`docs/checkbox_extraction.md`). A rough keyword scan (อาหาร/กิน/สูตร/ต้ม/แกง/น้ำพริก/
+ขนม/ปรุง/ข้าว/ครัว in `Name`) finds **328 rows** that look food-adjacent — recipes,
+techniques, or food-related customs sit inside the `Knowledge`/`Festival` domains
+alongside dance, textile, and ritual entries this file also carries.
+
+**This is not a recommendation to fold it into RQ5.** It is a fact worth having in
+view given that gate is explicitly stuck: this file has variation where the DCP
+sample does not, covers both fieldwork provinces at real scale (54 and 49 rows), and
+carries coordinates. It is also not a food-specific source — most of its 4,718 rows
+are unrelated cultural domains, its `Status` field's semantics (self-reported by
+whichever community submitted the entry, unclear against what rubric) are unverified,
+and no PDPA check beyond a column-name glance has been done (the visible columns
+carry no name/address/contact field, but that is an inspection, not the audit this
+project's own PDPA rule requires before any load). If this is worth pursuing, it
+needs its own scoped task brief — Bible §4's RQ5 gate is a research-question
+decision, not something to resolve inside a "keep it cheap" supporting-data session.

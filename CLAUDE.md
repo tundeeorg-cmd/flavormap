@@ -130,6 +130,7 @@ needs changing gets a new forward migration, never an edit to an applied one.
 | 025 | `source_catalogue` | a source *inventory*, not recipe data — every dataset in the gdcatalog catalogue export, its mechanical `content_class`, and `harvest_status`/`rejection_reason` tracking what was assessed, queued, harvested, or rejected and why |
 | 026 | `gi_products` | geographical-indication products — a product designation bound to a province by law. Product-level only; no column for a registrant/applicant name or address exists or should ever be added (Bible §4) |
 | 027 | `source_catalogue` datago merge | merges in `data.go.th`'s catalogue export alongside gdcatalog's: `dataset_slug` relaxed to nullable (datago has none), `row_hash` is the real upsert key now, `catalogue_source` distinguishes the two, `duplicate_of_catalogue_id` flags cross-catalogue duplicates without silently merging or dropping either copy |
+| 028 | `crop_production` | supporting agricultural statistics from สำนักงานเศรษฐกิจการเกษตร (OAE) — 482 rows, 77 provinces, 11 commodities, years 2567/2568. Answers no research question on its own (a lexicon cross-reference and interview-prep aid); zero PDPA exposure, the first source in the project with that property. `production_unit` varies by commodity (tonnes vs. individual fruits for coconut) — no aggregate view is defined on this table for that reason |
 
 **Ordering correction (2026-08-16).** The v2 plan numbered `province_attribution` 006 and
 `provinces` 007, with a foreign key pointing from the earlier to the later. That cannot
@@ -594,6 +595,19 @@ scope and no work proceeds on it.
 
 ## Changelog
 
+- **2026-09-12** — `flavormap_oae_production.csv` loaded as `crop_production`
+  (migration 028) — crop production statistics from OAE, supporting data only, no
+  research question built on it. Province column confirmed clean (77/77 match the
+  official list, unlike `flavormap_datago_catalog.csv`'s substring-matching
+  corruption); `region_th` confirmed an exact match with `flavormap_food67.csv`'s
+  six-way scheme, resolving the last uncertainty in HD-23's `thaitastetherapy.csv`
+  region values as a side effect. A commodity → lexicon mapping proposed as HD-24, not
+  applied. `thaitastetherapy.csv` and `อาหารพื้นถิ่น.csv` (both supplied this session)
+  finally have real Task-3 reports (`docs/decisions.md`), though loading either into
+  the database remains blocked on the same missing `ETHICS.md`-audited `sources` row
+  as before. `gisich.csv` (Thailand's intangible-cultural-heritage inventory, 4,718
+  rows, a real multi-valued endangerment field) received directly and characterized
+  only — flagged as potentially relevant to RQ5's open gate, not acted on.
 - **2026-08-30** — Reconciled to **Bible v4**. Four of the five research questions
   replaced: boundary geometry → three-register agreement (RQ1); coverage legibility →
   what the official record leaves out (RQ3); network fragility → pipeline fidelity, cooked
