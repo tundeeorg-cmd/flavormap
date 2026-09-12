@@ -855,3 +855,93 @@ purposes. B is the safe fallback if the file's regions do not align as hypothesi
 **Decision:**
 **Reasoning:**
 **Date decided:**
+
+---
+
+## Note — `อาหารพื้นถิ่น.csv` (Phetchaburi) also absent; two more hosts blocked
+**Date:** 2026-09-12
+**This is not a gate.** Same class of infrastructure note as the two entries above
+dated the same day.
+
+A session was asked to ingest a second gdcatalog file
+(`data/raw/gdcatalog/อาหารพื้นถิ่น.csv`, a 30-row community/village dish-name survey
+for Phetchaburi) and to search for sibling files for other provinces, น่าน and
+สุรินทร์ specifically.
+
+**The file was not there either.** Not at the expected path, not elsewhere in this
+session's container. `data/raw/` is gitignored, so this is the same absence as
+`thaitastetherapy.csv`'s, not a new problem — see the first note dated today.
+
+**Task 3's sibling search could not run.** `WebFetch` on `culture.gdcatalog.go.th`,
+`gdcatalog.go.th`, and `data.go.th` (a host not tried before today) all returned
+`EGRESS_BLOCKED`. Five hosts are now confirmed blocked by this session's own network
+policy on this one date: `food.culture.go.th`, `geodata.ucdavis.edu`,
+`gdcatalog.go.th`, `culture.gdcatalog.go.th`, and `data.go.th`. No CKAN
+`package_search` call reached either catalogue. Whether a sibling file exists for
+น่าน or สุรินทร์ — the question with the most value in the brief — is genuinely
+unknown, not a negative result.
+
+**The province determination is not a gate, and is recorded rather than deferred.**
+The brief names all eight `อำเภอ` values the file is said to carry
+(เขาย้อย, บ้านแหลม, ท่ายาง, แก่งกระจาน, เมืองเพชรบุรี, บ้านลาด, ชะอำ, หนองหญ้าปล้อง)
+and asks that they be checked against a Thai administrative reference before assuming
+they are all Phetchaburi. They are: those eight names are, together, Phetchaburi's
+complete and only set of districts — checked against
+`data/reference/provinces.csv` (`TH-76`), which is this project's own reference, not
+an external fetch. Nothing was guessed. `src/ingest/local_dish_inventory.py`'s
+`check_districts_are_phetchaburi` re-runs this check in code on every load — not
+trusted from this one-time note — and `scripts/parse_local_dish_inventory.py`
+refuses to load anything if a future sibling file's districts do not all resolve.
+Per the brief's own instruction, `province_code` is set to Phetchaburi's (`TH-76`)
+with a `provenance_note` on every row recording that the value is **inferred from
+district names, not stated in the source** — see `ETHICS.md`'s matching entry, which
+is where this provenance distinction is meant to survive into the dataset card.
+
+**Two things flagged for later, not decided now, per the brief's own instructions:**
+
+- `ผลิตภัณฑ์เด่น` (mixed food/non-food community products — ขนมหม้อแกง and
+  ไข่เค็มสูตรสมุนไพร alongside ผ้าบาติก, กรอบรูป, ปูนปั้นหัวสัตว์) is stored verbatim
+  in `local_dish_inventory.featured_products`. No classification is attempted; the
+  brief calls this a decision gate explicitly and it is not opened here because
+  nobody has asked a question about it yet, only warned against pre-empting one.
+- Ingredient words embedded in dish names (ปลาทู, ตาล, ชะคราม) are never extracted.
+  Same treatment: flagged as a separate, undecided step per the brief, not attempted.
+
+**What was built regardless — machinery only, tested against synthetic fixtures
+built from the brief's own descriptions, never from the real file.**
+
+- `src/ingest/local_dish_inventory.py`: whitelist-keeps the six analytical columns,
+  drops `Unnamed:` padding and the two named columns (`ที่อยู่`, `Url รูปภาพ`)
+  unconditionally, extracts dish names from mixed `\r\n`/`\n` numbered lists, and
+  runs the district-to-province check described above.
+- Migration `023_local_dish_inventory.sql`: a new table, not `recipes` — this source
+  has no ingredients and cannot join the ingredient-based analysis views. One row per
+  (community, dish), `raw_id`-linked back to one `raw_recipes` row per community, per
+  rule 1.
+- `scripts/parse_local_dish_inventory.py`: the loader (same two preconditions unmet
+  as `scripts/parse_gdcatalog.py` — the CSV and a `sources` seed row, deliberately not
+  fabricated here) plus `--report`, which runs Task 2's arithmetic against whatever is
+  already loaded and prints zero honestly rather than a fabricated count when either
+  side has nothing in it.
+- `docs/limitations.md` L19: the official-vs-community dish-count comparison uses
+  exact string matching across two programmes with different selection criteria and
+  plausibly different naming granularity — indicative, not exact, and any mismatch
+  undercounts overlap rather than overstating it.
+- `tests/test_local_dish_inventory.py`, `tests/test_local_dish_inventory_pdpa.py`:
+  built from the brief's literal district list and format description. One real bug
+  surfaced and is worth recording here rather than only in the commit history: a
+  first draft of the test fixtures typed `อำเภอ` twice by hand and got two different
+  Unicode encodings of the same visible string — precomposed SARA AM (U+0E33) once,
+  the decomposed NIKHAHIT+SARA AA sequence (U+0E4D U+0E32) once — which silently
+  produced two different dict keys instead of one overridden value. NFC normalisation
+  does not unify them; Thai does not canonically decompose SARA AM. Fixed by deriving
+  every column name the tests use from the module's own constants rather than
+  retyping Thai literals a second time. Worth knowing about beyond this one file: any
+  future code that compares or hand-types the same Thai string twice can carry the
+  same silent mismatch, and it will not raise, just silently not match.
+
+**What still needs an environment with the right network access, or the files
+supplied directly.** Task 3's sibling inventory (the highest-value item in the
+brief), and Task 2's real arithmetic — both require either this session's egress
+policy to admit at least one of the five now-blocked hosts, or the relevant CSVs
+supplied into this environment directly.

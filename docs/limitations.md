@@ -48,6 +48,12 @@ after review reads as damage control.
 | L17 | Pattani carries no border country | **MEDIUM** | HD-2 defines borders as **land borders only**. Pattani has no land border with Malaysia and therefore no `border_country`, despite being culturally and linguistically continuous with the Malay-speaking south and having obvious maritime contact. This is a known divergence between the administrative definition and the cultural reality, chosen because "maritime adjacency" has no standard threshold. Any border-based result should be read with Pattani in mind |
 | L18 | Twelve provinces are `Transitional` | **MEDIUM** | HD-1 assigns a sixth `Transitional` dialect value to provinces that straddle a boundary rather than forcing them into a majority group. This is more honest than a clean five-way split, but it means ~16% of provinces carry no single linguistic label, and RQ1's linguistic comparison must either report them separately or exclude them in a sensitivity run — never silently absorb them |
 
+## Added 2026-09-12 — official-vs-community dish counts are not directly comparable
+
+| # | Limitation | Severity | Statement |
+|---|---|---|---|
+| L19 | Two government programmes, two dish granularities | **MEDIUM** | RQ3's official-vs-community arithmetic (`local_food_survey` vs. `one_province_one_menu` dish counts for a shared province) compares raw counts across two programmes with different selection criteria and, plausibly, different dish-naming granularity — one dish written two ways in two programmes counts as two dishes, not a match, under exact-string comparison (`scripts/parse_local_dish_inventory.py --report`). The ~150-vs-3 shape is indicative of a real asymmetry (a curated shortlist versus an open community survey), not a precise measurement of how much the state's list omits. Any overlap count between the two is a **lower bound** on true overlap for the same reason — a real match missed by string mismatch reads as "in neither register," which is exactly the finding RQ3 is built to report, so this cuts toward understating agreement, not overstating it |
+
 ---
 
 *First entry: 2026-08-16, seeded from Bible §14 plus the three institutional-corpus entries.*

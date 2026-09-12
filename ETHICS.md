@@ -184,6 +184,39 @@ seven are dropped at parse time by `src/ingest/gdcatalog.py`'s column whitelist,
 before any database write; none is fetched, cached, or resolved — a Drive URL is
 never followed, whether or not it is later found dropped correctly.
 
+### `culture.gdcatalog.go.th` — second file, `อาหารพื้นถิ่น.csv` (Phetchaburi), 2026-09-12
+
+Same host, same "consulted by hand only" row above, and the same outcome as
+`thaitastetherapy.csv`: `data/raw/gdcatalog/อาหารพื้นถิ่น.csv` was not present in this
+session's filesystem, and `culture.gdcatalog.go.th`, `gdcatalog.go.th`, and
+`data.go.th` all returned `EGRESS_BLOCKED` on a `WebFetch` attempt — a fourth and
+fifth host now blocked the same way as `food.culture.go.th`, `geodata.ucdavis.edu`,
+and `gdcatalog.go.th` itself on 2026-09-12. Task 3's sibling search (other provinces'
+community dish surveys) could not run for the same reason. See `docs/decisions.md`.
+
+This file's PII exposure is lighter than `thaitastetherapy.csv`'s but not zero, per
+the brief: no individual names (a claim `tests/test_local_dish_inventory_pdpa.py`
+checks holds across whatever fixture or real data it runs against); `ที่อยู่`, a
+village-level address the brief itself says is safe to derive district/subdistrict
+from — dropped anyway, since the file's structured `ตำบล`/`อำเภอ` columns already
+carry that information and nothing needs to be parsed out of a free-text field
+alongside them; and `Url รูปภาพ`, a link to `pic.in.th` (a third-party image host,
+not Google Drive) — never fetched, cached, or stored, same as the Drive links above.
+
+**Province is not stated in this file at all.** All eight `อำเภอ` values quoted in
+the task brief — เขาย้อย, บ้านแหลม, ท่ายาง, แก่งกระจาน, เมืองเพชรบุรี, บ้านลาด, ชะอำ,
+หนองหญ้าปล้อง — are, together, Phetchaburi's complete and only set of eight
+districts, verified against this project's own administrative reference
+(`data/reference/provinces.csv`, which lists Phetchaburi as `TH-76`) rather than
+against the real file's raw values, which this session does not have. `province =
+'เพชรบุรี'` is therefore an **inference from district names, not a value the source
+ever stated**, and every row `scripts/parse_local_dish_inventory.py` loads carries a
+`provenance_note` saying exactly that — the distinction the brief asks to preserve
+into the dataset card. Verification is re-run in code
+(`check_districts_are_phetchaburi`) on every load, not trusted from this one-time
+check, so a future sibling file whose districts do not all resolve to one province
+stops the loader rather than guessing.
+
 ## Personal data (PDPA 2562)
 
 **No personally identifying data enters the database, ever.** Not in a table, not in a
