@@ -91,6 +91,16 @@ def load(records: list[tuple[Path, DCPRecord]], dry_run: bool) -> dict[str, int]
                                            n_coordinates, n_media_links,
                                            suspected_parser_failure, note)
                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                ON CONFLICT (raw_id) DO UPDATE
+                    SET parsed_at = now(),
+                        n_names = EXCLUDED.n_names,
+                        n_addresses = EXCLUDED.n_addresses,
+                        n_phone_numbers = EXCLUDED.n_phone_numbers,
+                        n_emails = EXCLUDED.n_emails,
+                        n_coordinates = EXCLUDED.n_coordinates,
+                        n_media_links = EXCLUDED.n_media_links,
+                        suspected_parser_failure = EXCLUDED.suspected_parser_failure,
+                        note = EXCLUDED.note
                 """,
                 (
                     raw_id, SOURCE_ID, path.name, red.n_names, red.n_addresses,
