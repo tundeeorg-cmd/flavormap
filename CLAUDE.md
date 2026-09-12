@@ -119,6 +119,10 @@ needs changing gets a new forward migration, never an edit to an applied one.
 | 014 | `provinces.border_country` → `TEXT[]` | HD-2: land borders only, multi-border as an array |
 | 015 | `recipes.register` | `official \| commercial \| domestic`, NOT NULL from the first load — carried through `v_recipes_clean` |
 | 016 | `cook_along_log` | RQ4's fidelity log — 8 dishes × {quantities, order, technique, specificity, completeness}. Seeded empty |
+| 017 | seed `sources.dcp_food` | the FK row `scripts/parse_dcp.py` requires, transcribed from `ETHICS.md`'s dated audit |
+| 018 | seed `sources.kapook_cooking` | same FK gap as 017, for `scripts/parse_kapook.py` |
+| 019 | `recipes.raw_id` UNIQUE | closes a re-parse duplication gap — both loaders now upsert on it |
+| 020 | `redaction_log.raw_id` UNIQUE | the same duplication gap, one table over — both loaders upsert on it too |
 
 **Ordering correction (2026-08-16).** The v2 plan numbered `province_attribution` 006 and
 `provinces` 007, with a foreign key pointing from the earlier to the later. That cannot
