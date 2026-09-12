@@ -169,9 +169,27 @@ CHECK against `{LA,KH,MM,MY}` and a GIN index. Chiang Rai and Ubon Ratchathani a
 multi-border rows. The CSV keeps the pipe-delimited form because CSV has no array type;
 `scripts/load_geometry.py` splits on load.
 
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** (a) **A — land borders only.** (b) **B — `TEXT[]` array.** Both confirm the
+2026-08-16 in-session selection; nothing in the schema or data changes as a result — this
+formalizes what was already implemented, it does not revise it.
+**Reasoning:** (a) Matches every official boundary dataset without inventing an
+undefended "maritime adjacency" threshold. Pattani's divergence stays visible as L17
+rather than papered over with a border label the country's own boundary data doesn't
+support. Worth reading alongside `docs/hd1_dialect_rationale.md`'s Satun case — Satun is
+grouped administratively with the Malay-Muslim south but is linguistically Southern-Thai;
+Pattani is close to the mirror case, linguistically/culturally southern but with no land
+border. Neither gate resolves the other, but a reader should see them together. (b) TEXT[]
+is queryable and indexable at negligible cost for two multi-border rows; a pipe-delimited
+string just moves the parsing burden onto every future consumer, one of which will
+eventually get it wrong.
+**Date decided:** 2026-09-12
+
+**Verified consistent with the data already in place.** `data/reference/provinces.csv`:
+Pattani, Trang, Krabi, Phuket all carry an empty `border_country` (no maritime-adjacency
+label anywhere); Songkhla/Satun/Yala/Narathiwat carry `MY`; Chiang Rai carries `MM|LA` and
+Ubon Ratchathani carries `LA|KH`, both loaded into the live `TEXT[]` column by migration
+014. No migration or data change was needed to close this gate — only the record was
+missing.
 
 ---
 

@@ -596,6 +596,11 @@ scope and no work proceeds on it.
 
 ## Changelog
 
+- **2026-09-12** — HD-2 decided: (a) land borders only, no maritime-adjacency
+  extension for Malaysia — Pattani stays without a `border_country`, its divergence
+  recorded as L17 rather than encoded. (b) `TEXT[]` array confirmed for multi-border
+  provinces. Both confirm the 2026-08-16 in-session selection that migration 014 had
+  already implemented — this closes the paperwork gap, no schema or data change.
 - **2026-09-12** — HD-23 decided: canonical region is always derived from `province`
   (never trusted from a source's own stated region string), at six-way granularity
   matching `flavormap_food67.csv`. Implemented same day: migration 029 adds
