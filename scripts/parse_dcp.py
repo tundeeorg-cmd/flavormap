@@ -109,7 +109,14 @@ def load(records: list[tuple[Path, DCPRecord]], dry_run: bool) -> dict[str, int]
                 """
                 INSERT INTO recipes (raw_id, name_th, dish_category_source, occasion,
                                      endangerment, register)
-                VALUES (%s,%s,%s,%s,%s,%s) RETURNING recipe_id
+                VALUES (%s,%s,%s,%s,%s,%s)
+                ON CONFLICT (raw_id) DO UPDATE
+                    SET name_th = EXCLUDED.name_th,
+                        dish_category_source = EXCLUDED.dish_category_source,
+                        occasion = EXCLUDED.occasion,
+                        endangerment = EXCLUDED.endangerment,
+                        register = EXCLUDED.register
+                RETURNING recipe_id
                 """,
                 (
                     raw_id, rec.dish_name_th, rec.dish_category_source,
