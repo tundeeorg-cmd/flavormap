@@ -675,6 +675,17 @@ the held-out count plainly rather than treating it as a defect. A and B each get
 the two multi-section shapes wrong in a way that would not be visible again until RQ1's
 numbers looked strange.
 
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** **C — load only unambiguous single-section pages now; hold multi-section
+pages out of `recipes`, counted rather than guessed.** Recorded from the researcher's
+instruction in session, 2026-09-12; the choice is theirs, the transcription is the
+agent's.
+**Reasoning:**            ← researcher. Still empty, and it is the field the methods
+section will quote. The decision is recorded; the argument for it is not.
+**Date decided:** 2026-09-12
+
+**What C commits the project to.** `scripts/parse_kapook.py` loads a `recipes` row only
+for a page with exactly one `IngredientSection`. Every other fetched page still gets a
+`raw_recipes` row (parsed content and all, nothing lost) but no `recipes` row — held out,
+not dropped, and re-visitable once shapes (2) and (3) get a rule of their own (D above,
+or a fresh option). Options A, B, and D remain available for that follow-up; this
+decision closes only "what loads today," not the rest of HD-22.

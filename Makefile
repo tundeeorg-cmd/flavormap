@@ -33,20 +33,19 @@ scrape-kapook:
 
 scrape: scrape-dcp scrape-kapook
 
-# Fetch, then parse-and-load. `ingest` depends on `scrape` so `make ingest` alone takes
-# a fresh clone all the way to a loaded `recipes` table; `make scrape` (or a single
-# `scrape-*` target) on its own still works for re-fetching without touching the
+# Fetch, then parse-and-load both sources. `ingest` depends on `scrape` so `make ingest`
+# alone takes a fresh clone all the way to a loaded `recipes` table; `make scrape` (or a
+# single `scrape-*` target) on its own still works for re-fetching without touching the
 # database.
 #
-# dcp_food only for now. kapook_cooking has no parse-and-load step: mapping a kapook
-# *page* to `recipes` *rows* is an open call src/ingest/kapook_page.py's own docstring
-# declines to make ("an analytical choice about the unit of observation ... left to the
-# caller") — some pages hold one dish, one holds 46 (a listicle), others split one dish
-# across two ingredient sections (batter, dipping sauce), and nothing in the markup
-# tells those two shapes apart. scripts/parse_kapook.py is not written until that call is
-# made; see docs/decisions.md.
+# kapook_cooking loads under HD-22 option C only (docs/decisions.md, decided
+# 2026-09-12): a page becomes a `recipes` row only when it carries exactly one
+# ingredient section — the unambiguous case. Multi-section pages (roundups, or one dish
+# split across sections) still get a raw_recipes row, just no recipes row, pending the
+# rest of HD-22.
 ingest: scrape
 	uv run python -m scripts.parse_dcp
+	uv run python -m scripts.parse_kapook
 
 clean:
 	@echo "make clean: not yet implemented" && exit 1
