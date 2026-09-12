@@ -288,6 +288,17 @@ LEAK_PATTERNS: dict[str, re.Pattern[str]] = {
     "house_number": re.compile(rf"เลขที่{_H}*{_DIGIT}"),
     "postcode": re.compile(rf"รหัสไปรษณีย์{_H}*{_DIGIT}{{5}}"),
     "road": re.compile(rf"ถนน{_H}*[ก-๎A-Za-z]{{2,}}"),
+    # A decimal lat/long pair, unlabelled — the shape `gdcatalog`'s `gps` column takes
+    # (six decimal places, comma-separated). Same shape the DCP `PATTERNS` table above
+    # redacts as "coordinates", added here too because a leaked pair can arrive from a
+    # source this module was not originally written for.
+    "coordinates": re.compile(r"\b\d{1,2}\.\d{4,}\s*,\s*\d{2,3}\.\d{4,}\b"),
+    # Google Drive / Docs share links — `gdcatalog`'s `picowner` and `picadress`
+    # columns carry these, pointing at a photo of a person or their premises. Never
+    # fetched, never stored; this pattern exists to catch one that slipped through.
+    "drive_url": re.compile(
+        r"https?://(?:drive|docs)\.google\.com/\S+", re.IGNORECASE
+    ),
 }
 
 
