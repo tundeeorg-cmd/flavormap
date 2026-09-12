@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest ingest-gdcatalog ingest-local-dish ingest-food67 load-source-catalogue clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest ingest-gdcatalog ingest-local-dish ingest-food67 load-source-catalogue load-crop-production clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -73,6 +73,12 @@ ingest-food67:
 # to wait on, unlike every ingest-* target above. Still needs the two CSVs on disk.
 load-source-catalogue:
 	uv run python -m scripts.load_source_catalogue
+
+# Supporting data, not recipe data — crop_production has no ingredients or dishes,
+# so it is not an ingest-* target either. No fetch (the CSV is a direct researcher
+# upload), no PDPA exposure, no ETHICS.md gate. Still needs the CSV on disk.
+load-crop-production:
+	uv run python -m scripts.load_crop_production
 
 clean:
 	@echo "make clean: not yet implemented" && exit 1
