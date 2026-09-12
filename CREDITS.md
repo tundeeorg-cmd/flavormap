@@ -8,7 +8,7 @@ Reproduced in the paper's acknowledgements.
 
 | Who | Contribution |
 |---|---|
-| **The researcher** | All scraping, cleaning, lexicon construction, analysis, modelling, writing, fieldwork, transcription, cooking, and every build-log post. First author |
+| **Jenissa Vichiansin** | All scraping, cleaning, lexicon construction, analysis, modelling, writing, fieldwork, transcription, cooking, and every build-log post. First author |
 | **Advisor** | *(to be named)* — bounded role, hours stated. Co-author only for substantive contribution to design or analysis; review and advice is an acknowledgement, not authorship |
 | **Sister** | *(to be named)* — visual identity, result-card design, map interface, Line distribution, photography |
 | **Parents** | Chaperoned every interview, transported, made two introductions. Did not conduct interviews, analyse data, or write |
