@@ -60,5 +60,10 @@ test:
 
 all: clean analyze figures
 
-verify:
-	@echo "make verify: not yet implemented" && exit 1
+# Fresh-clone reproducibility check (CLAUDE.md §2.2, and db-reset's own comment: "only
+# for verifying that migrations apply from empty"). Destroys the local database volume,
+# rebuilds it from nothing, re-applies every migration in order, and runs the full test
+# suite against the result. A green `verify` is the claim "a stranger who clones this
+# repo today and runs `make setup && make verify` gets a working, tested schema" —
+# checked here rather than assumed from the last time it happened to work.
+verify: db-reset test
