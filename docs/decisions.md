@@ -1237,3 +1237,277 @@ LIMITATIONS.md** — the brief asks for an observed finding (does culinary-conte
 coverage correlate with anything), and there is no observation to log without the
 data. Logging a plausible-sounding but unmeasured pattern would be exactly the kind
 of thing rule 9's "negative results ship" is not — a result, ships when it is one.
+
+---
+
+## Note — real files supplied directly; every blocked report above now runs for real
+**Date:** 2026-09-12
+**This is not a gate.** Records that the infrastructure blockers above are partially
+resolved (the files exist now; network access to any gdcatalog-family host or
+`food.culture.go.th` is still denied, confirmed again this session), and what running
+the real numbers actually found — including two real bugs in this session's own
+machinery, fixed and tested rather than quietly worked around.
+
+The researcher supplied four CSVs directly (`flavormap_datago_catalog.csv`,
+`flavormap_food67.csv`, `flavormap_gdcatalog_sources_full.csv`,
+`flavormap_gdcatalog_sources_tierA_core.csv`), placed at `data/raw/gdcatalog/`.
+`thaitastetherapy.csv` and `อาหารพื้นถิ่น.csv` were not among them and remain absent.
+
+**food67 — real Task 4 report** (`scripts/parse_food67.py --report`):
+345 rows, 48 provinces confirmed exactly. **0 ingredient_count mismatches** — the
+`|`-split count agrees with the source's own count on every row. **42 sara-am
+corruption instances** (both shapes: bare "น้" and the "consonant + space + า"
+shape), all found in `method_th`/`history_th`/`benefits_th`/`ingredients_th` — none
+in `dish_name_th`. **31 dish-name artifacts**: the brief's own two named examples
+confirmed present verbatim (row 15 `ไก่ทอดมะแขว่น.(ไก่ประดู่หางดำ)`, row 16
+`แกงก้าม ขาหมู`), plus 29 more internal-space cases, all listed rather than corrected.
+**Correction to the brief's own framing**: "one row has null method_th and one has
+null benefits_th" reads as two different rows; the real data has **both nulls on the
+same row, 279** — worth noting because it changes what a reader should expect to find
+if they go looking for two separate gaps.
+
+**Nan (8) and Surin (9) confirmed exactly** against the brief's counts. Full lists:
+
+- **Nan, all 8**: ขนมอั่ว, ขนมปาด, ขนมดอกซ้อ, น้ำมะไฟจีน, คุกกี้กาแฟน่าน, ลาบปลา,
+  ไก่ทอดมะแขว่น.(ไก่ประดู่หางดำ), แกงก้าม ขาหมู — ingredient lists are in the raw CSV,
+  not reproduced here; `scripts/parse_food67.py --report` prints them alongside every
+  other Task 4 finding.
+- **Surin, all 9**: นมเนียล, อังแก๊บบ๊อบ (กบยัดไส้), นมปการันเจก, สันลอเจก (แกงกล้วย),
+  จรั้วะโดง (น้ำพริกกะทิ), ขนมมุ, อันซอมสะเลอะโดง (ข้าวต้มมัดใบมะพร้าว), อันซอมกะบ็อง
+  (ข้าวต้มด่าง), นมตน็อต (ขนมตาลโบราณ).
+
+**The Khmer-gloss count is 6 of 9 Surin dishes, not 5** — one more than the set the
+first task brief quoted (`นมตน็อต (ขนมตาลโบราณ)` also carries the pattern). The other
+three Surin names (นมเนียล, นมปการันเจก, ขนมมุ) carry no parenthetical gloss at all,
+though two of them share the `นม-` initial syllable with the glossed entries — plausibly
+also Khmer-origin, unconfirmed, and a determination this repository has no linguistic
+authority to make from a string pattern alone.
+
+**A real finding beyond what either task brief asked for.** The gloss-splitter run
+across all 345 rows (not just Surin) surfaces the pattern in other provinces too —
+most notably **บุรีรัมย์ (Buriram)**, which borders Surin and sits in the same
+lower-Isaan zone: `จรั๊วโดง (น้ำพริกกะทิ)` is close enough to Surin's `จรั้วะโดง` to
+plausibly be the same Khmer word transcribed slightly differently, and `อันซอมตรูย`
+uses the same `อันซอม-` prefix as two of Surin's dishes. Separately, **ยะลา,
+นราธิวาส, ปัตตานี** (the Malay-Muslim deep South) show the same structural
+name-plus-gloss shape with names that read as Thai transliterations of Malay/Yawi
+(`โรตียาลอ`, `มะตะบะครูเซ็ง`, `ขนมกอและลือเมาะห์`) — a second, separate non-Thai
+naming tradition, not the Khmer one. Neither of these is one of the five RQs and
+neither is built here — flagged as directly relevant to HD-1's dialect-group
+machinery (Isaan_Lao vs. a Khmer-influenced lower-Isaan subgroup; the existing Malay
+dialect group) and left for the researcher.
+
+**Two real bugs found by testing against real data, fixed in the same commit as this
+note — see the corresponding source files' own history for the fix, recorded here
+because a decision log entry that only shows the final state hides that the bug
+existed:**
+
+1. `classify_content`'s `agricultural_production` keywords missed bare "ผลผลิต"
+   (yield/produce) and "เพาะปลูก" (cultivation) — only the compound
+   "ผลผลิตทางการเกษตร" was listed, so the brief's own confirmed top-scoring
+   (29-37) rows, e.g. "เนื้อที่เพาะปลูกข้าวโพดเลี้ยงสัตว์ เนื้อที่เก็บเกี่ยว
+   ผลผลิต", classified as `irrelevant`. Found by a test asserting the classifier
+   catches this exact real title; fixed by adding the bare terms.
+2. The GI registrant-vs-product split the brief specifies (two exact phrases,
+   "ผู้ขอใช้" / "ผู้ผลิตที่ใช้") catches only 6 of the real 61 GI-classified
+   titles across both catalogues. The other ~49 registrant-shaped titles use
+   different phrasing entirely — "ผู้ประกอบการที่ขอใช้...", "เกษตรกรที่ได้รับ...",
+   "รายชื่อผู้ที่ได้รับ...", "ผู้ปลูก...ที่ขอ..." — all naming a list of *who*,
+   the same hazard under different words. `src/ingest/gi_catalogue.py`'s
+   `is_registrant_level` widens the check, verified against 12 real titles (the
+   brief's own two plus 5 more registrant-shaped ones this session found, plus 6
+   real aggregate/product titles that must NOT be flagged) — deliberately
+   conservative (an aggregate marker like "จำนวน"/"มูลค่า" must override, or
+   "จำนวนผู้ได้รับอนุญาต..." — a COUNT — would itself be wrongly withheld).
+
+**datago_catalog Task 1 — the province bug, quantified for real** (all 3,861 rows,
+`src/ingest/thai_province_match.py`):
+
+| Verdict | Count | What it means |
+|---|---|---|
+| `no_textual_evidence` | 1,983 | valid province name, no support in title/description — **not asserted wrong**, plausibly a structured field this CSV gives no way to see |
+| `confirmed_match` | 1,134 | province name appears as a whole word in the title/description |
+| `empty` | 674 | no province assigned |
+| `invalid_value` | 62 | not one of the 77 real province names at all (junk: "แปลง", "ศูนย์เมล็ดพันธ์ข้าว", "ประเทศไทย", ...) |
+| `trap_mismatch` | 8 | **confirmed wrong** — a known substring trap explains the value |
+
+**The confirmed-wrong count is 8, not "most of 3,861."** All 8 are the two traps the
+brief named: 7 "แพร่" rows tripped by "เผยแพร่" (published) inside a title, and the
+1 "น่าน" row tripped by "น่านน้ำ" (territorial waters) — the brief's own headline
+example, present verbatim: *"เรือประมงนอกน่านน้ำ และเรือขนถ่ายสัตว์น้ำนอกน่านน้ำ..."*
+assigned `province='น่าน'`. **62 more rows carry an outright invalid value** (not a
+real province name), which is a different, simpler kind of damage — a leaked header
+fragment or a non-geographic label, not a substring trap. The large
+`no_textual_evidence` bucket (1,983, over half the file) is **not counted as damage**
+— see Task 1c's framing below for why conflating it with the 8 confirmed errors would
+overclaim.
+
+Option (b) — PyThaiNLP `newmm` whole-token matching — is the matcher used for all of
+the above, verified empirically (not assumed) against both named traps before being
+trusted: `word_tokenize('เรือประมงนอกน่านน้ำ...')` yields `'น่านน้ำ'` as one token,
+never `'น่าน'` alone; `word_tokenize('เผยแพร่ข้อมูล')` yields `'เผยแพร่'` as one
+token, never `'แพร่'` alone. Option (c), an explicit blocklist, is implemented as a
+defense-in-depth cross-check, not the primary method — it is incomplete by
+construction (it only catches traps someone has already found; `เลย`, "at all", is
+flagged in the module itself as a name this approach cannot safely cover at all).
+Option (a) — trust a structured field where the source provides one — could not be
+implemented from this CSV alone: nothing in it distinguishes a `province` value that
+came from data.go.th's own structured metadata from one a text-matching step
+backfilled, which is itself part of why the `no_textual_evidence` bucket cannot be
+asserted wrong.
+
+**Task 1d — `flavormap_gdcatalog_sources_full.csv` is NOT contaminated the same
+way.** Re-running the identical check against its `province_th` column: **exactly 77
+distinct values, all of them real province names, zero `invalid_value`, zero
+`trap_mismatch`.** This is a materially cleaner situation than datago's, consistent
+with gdcatalog's own per-province subdomain structure
+(`{province}.gdcatalog.go.th`) plausibly providing a genuinely structured province
+field rather than one derived from title text. No correction to any previously
+reported number from this file is needed.
+
+**Task 2 — `relevance_score` and `flavormap_layer`: no script found, same pattern as
+every other undocumented-provenance finding this project has made.** A repository-wide
+search for "relevance_score", "flavormap_layer", "datago" found nothing before this
+session's own new files. The inversion is confirmed, not assumed: `3_ingredient_agri`
+(crop/livestock yield statistics) scores mean 11.2, max 37; `1_dish_culture` (the
+layer that should matter most here) scores mean 6.7, max 13 — **every row in the
+confirmed top-scoring band (29-37) checked by hand is crop-yield statistics**, none of
+it food-culture content. `score_note` (`src/ingest/datago_catalog.py`'s `SCORE_NOTE`
+constant) is attached to every row rather than the column being dropped, per Task 2b.
+
+**Task 2c — reclassified by content, not layer, confirming the brief's own
+diagnosis.** `1_dish_culture`'s 270 rows do contain the household-fuel and
+economic-survey noise the brief names verbatim
+("ร้อยละของครัวเรือนที่มีการใช้เชื้อเพลิงแข็งในการประกอบอาหาร") — these classify
+`irrelevant` under the shared content classifier
+(`src/ingest/source_catalogue.py`), never inheriting a food-culture class just from
+their layer. One real, small (2 of 3,861 rows) classifier false-positive is worth
+recording rather than silently living with: two household-technology-survey titles
+picked up `cultural_heritage` via the **description-fallback**, because a shared
+policy-boilerplate description sentence
+("...โดยอาศัยภูมิปัญญามาเสริมสร้างนวัตกรรม...") happens to contain "ภูมิปัญญา" even
+though the dataset itself has nothing to do with cultural heritage. Not patched with
+more keyword engineering (that is the exact whack-a-mole pattern Bible §7.1 already
+warns against for a different extraction problem) — recorded as a known, small
+limitation of description-fallback matching instead.
+
+**Full reclassified `content_class` distribution, both catalogues** (mechanical,
+first-match-wins, per `src/ingest/source_catalogue.py`):
+
+| content_class | gdcatalog (1,893) | datago (3,861) |
+|---|---:|---:|
+| irrelevant | 1,213 | 1,997 |
+| agricultural_production | 435 | 1,555 |
+| restaurant_registry | 116 | 157 |
+| gi_registration | 51 | 24 |
+| tourism | 49 | 67 |
+| cultural_heritage | 25 | 56 |
+| local_dish_inventory | 4 | 5 |
+
+**Task 3 — dedup, real numbers** (`src/ingest/catalogue_merge.py`,
+`build_merge_report`, counted across the full combined sequence — including any
+row that duplicates an *earlier row within the same catalogue*, not only
+cross-catalogue pairs, which is why these numbers run higher than a naive
+cross-catalogue-only set intersection):
+
+- `url_duplicate_pairs`: **1,045**
+- `title_org_duplicate_pairs` (additional, found only by title+publisher after the
+  URL pass): **303**
+- `same_title_different_resource` (reported separately, never folded into the
+  duplicate count): **962**
+- **`combined_distinct_total`: 4,406** of 5,754 raw rows (1,893 + 3,861)
+
+A simpler cross-catalogue-only check confirms the brief's own headline number
+exactly: **1,124 distinct `dataset_title_th` values appear in both files.** Of those,
+866 also share a `resource_url` (true duplicates by the brief's own two-stage
+definition) and 258 do not (same-title-different-resource). `title_org` (publisher
+name) agreement is much narrower than title agreement alone — only 146 of the 1,124
+title-matching pairs also agree on publisher/organisation name — which says the two
+catalogues format the same real organisation's name differently often enough that
+`title_org` alone would under-count the overlap; `resource_url` first, exactly as the
+brief specifies, is why the real matcher does not rely on `title_org` as its primary
+signal.
+
+**All 5,754 rows loaded into `source_catalogue` for real**, `catalogue_source`
+distinguishing the two, `duplicate_of_catalogue_id` resolved post-insert via
+`row_hash` (1,363 rows flagged as a duplicate of an earlier row). Which side of a
+flagged pair is authoritative is not decided here — same as HD-12's own scope for
+recipe-level dedup.
+
+**Task 4 — the shortlist, found and reported, not fetched** (`food.culture.go.th`
+and every `*.gdcatalog.go.th` subdomain returned `EGRESS_BLOCKED` again this
+session; harvesting stays fully blocked):
+
+- **`gisich.csv`** (Task 4a) — confirmed present in both catalogues, identical
+  resource URL: `https://culture.gdcatalog.go.th/dataset/.../download/gisich.csv`,
+  publisher กรมส่งเสริมวัฒนธรรม (the same department behind the 231-PDF programme
+  and `food67`), `dataset_slug=gdpublish-ich-51-02`, 1 resource, CSV,
+  last_modified 2024-09-02. Description confirms it is a national-level rollup of
+  both nationally- and provincially-listed ICH items
+  ("...ระดับจังหวัดในระดับภาพรวมของประเทศ ทั้งที่ขึ้นบัญชี...ระดับชาติ..."). Whether
+  it carries a food/อาหาร category, and whether any entries correspond to dishes
+  already in the official register, **cannot be answered without fetching it** — the
+  one thing this session could not do.
+- **มรดกภูมิปัญญาอาหาร [สมุทรสงคราม]** (Task 4b) — found, datago only. CSV, 3
+  resources, resource URL ends `localfood.csv`, description states plainly
+  "อาหารพื้นบ้านในจังหวัดสมุทรสงคราม ที่มีการบันทึกไว้" (folk food in Samut
+  Songkhram, recorded) — reads exactly like a local dish inventory despite
+  classifying `cultural_heritage` under the mechanical keyword rules (its title has
+  no exact `local_dish_inventory` phrase; a case the module's own docstring already
+  flags this classifier can miss). Whether it carries ingredients is unknown without
+  fetching.
+- **Provincial ICH — นนทบุรี found, ศรีสะเกษ and อุตรดิตถ์ not found.**
+  `บัญชีมรดกภูมิปัญญาทางวัฒนธรรมของจังหวัดนนทบุรี` exists (datago only; formats
+  `PDF|API`, 2 resources, one a bare `untitled.pdf`, and its `dataset_page_url`
+  itself embeds a Google Drive folder link — flagged, not followed, per rule 8's
+  standing treatment of third-party Drive links throughout this project). **Neither
+  catalogue contains a dedicated ศรีสะเกษ or อุตรดิตถ์ ICH registry** — the 7 rows
+  either province name appears in are agricultural statistics, market-price bulletins,
+  or household-debt surveys, none of them ICH-shaped. The brief's own priority
+  reasoning for ศรีสะเกษ (borders Surin, same lower-Isaan Khmer zone) stands as a
+  reason to *look for* one, not as evidence one exists — reported as a genuine
+  negative result, not a near-miss forced into a match.
+
+**Task 4c/earlier task — GI products for Nan and Surin, now concrete.** Nan: **zero**
+GI-classified rows in either catalogue. Surin: **4 GI dataset titles across both
+catalogues, and all 4 are registrant-level** (ผู้ขอใช้/ผู้ผลิตที่ใช้ for
+ข้าวหอมมะลิสุรินทร์ and ข้าวหอมมะลิทุ่งกุลาร้องไห้ — 2 products × 2 list-types) —
+**none of the 4 may ever be fetched**, per Task 4b. The 2 product names themselves
+are not personal data and are safely known from dataset-title metadata alone, with no
+file fetch required: `gi_products` now carries both
+(ข้าวหอมมะลิสุรินทร์, ข้าวหอมมะลิทุ่งกุลาร้องไห้; province TH-32; category ข้าว),
+`registration_status` left NULL because applicant-vs-certified is not determinable
+from a title.
+
+**Task 5 — Nan and Surin, corrected counts, both catalogues.** Nan: datago 14 raw →
+**13 after removing the one confirmed trap error** (the fishing-vessel row); gdcatalog
+8. Combined **0 rows classify `local_dish_inventory`, `gi_registration`, or
+`cultural_heritage` in either catalogue, for Nan, at any stage of correction.** Surin:
+datago 80 (no trap corrections needed — Surin carried none), gdcatalog 30; **0 rows
+classify `local_dish_inventory` or `cultural_heritage`** in either catalogue; GI as
+reported above. **Confirms the brief's own framing without qualification: neither
+fieldwork province has dish-level open data in either national catalogue.** Logged to
+LIMITATIONS.md (L21) per Task 5b.
+
+**A stopgap taken to unblock `gi_products`' foreign key, flagged so it is never
+mistaken for real geometry data.** `provinces` was empty in this session's database
+(no prior session in this environment had populated it — `scripts/load_geometry.py`
+needs GADM data from `geodata.ucdavis.edu`, also `EGRESS_BLOCKED` this session, same
+as every other host tried). The 77 rows were loaded directly from
+`data/reference/provinces.csv` (code, name, region4, dialect_group) with
+**`centroid_lat`/`centroid_lon` set to a placeholder `0, 0`** (a real point in the
+Gulf of Guinea, not Thailand — chosen precisely because it cannot be mistaken for a
+plausible real value) and `geom` left NULL. **Nothing that reads centroid or geometry
+should trust this table as-is** — Figure 1/2's geographic work and any distance
+calculation need `scripts/load_geometry.py` re-run against real GADM data first.
+`border_country` was left NULL for all 77 rows too (not sourced from the CSV's
+pipe-delimited column in this stopgap load) — HD-2's decision is unaffected, since
+the source-of-truth CSV itself is untouched; only this session's database copy is
+incomplete.
+
+**Task 5c, logged and not built, per the brief's own instruction.** Surin's 28
+(datago) / 7 (gdcatalog) `agricultural_production`-classified rows are not
+inspected further here. A possible supporting analysis — what Surin's agricultural
+data says it grows, set against what the official register says Surin cooks — is
+flagged as available if the researcher wants it later. It is not one of the five
+RQs and no code toward it exists.

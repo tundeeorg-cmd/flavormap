@@ -280,7 +280,24 @@ No fetcher for any of these was written, even as non-runnable code — see
 `docs/decisions.md`'s matching infrastructure note for why that is a deliberate
 scoping decision, not an oversight.
 
-## Personal data (PDPA 2562)
+### Real catalogue data supplied directly; the audit gate still stands, 2026-09-12
+
+The researcher supplied `flavormap_gdcatalog_sources_full.csv`,
+`..._tierA_core.csv`, `flavormap_datago_catalog.csv`, and `flavormap_food67.csv`
+directly rather than through a fetch this project performed. **This changes what
+could be analysed, not what may be fetched.** `WebFetch` against
+`food.culture.go.th` and `kanchanaburi.gdcatalog.go.th` (as a representative
+`*.gdcatalog.go.th` subdomain) both returned `EGRESS_BLOCKED` again this session —
+the licence-audit gate above is unchanged, and no dataset named in Task 4 of the
+`datago_catalog` brief (`gisich.csv`, มรดกภูมิปัญญาอาหาร [สมุทรสงคราม], the
+provincial ICH registries) was fetched. Only local analysis of the four supplied
+files ran.
+
+**A Google Drive link found, not followed.** The Nonthaburi ICH dataset's own
+`dataset_page_url` (in `flavormap_datago_catalog.csv`) embeds a Google Drive folder
+URL in its slug. Consistent with this project's standing treatment of third-party
+Drive links (`src/ingest/gdcatalog.py`'s `picowner`/`picadress` handling): never
+fetched, cached, or resolved, regardless of what it might contain.
 
 **No personally identifying data enters the database, ever.** Not in a table, not in a
 JSONB blob, not in a debug log. Filtering at export is too late — by then it is in the
