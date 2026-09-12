@@ -596,6 +596,14 @@ scope and no work proceeds on it.
 
 ## Changelog
 
+- **2026-09-12** — HD-3 (dcp_food) decided: **option C, reference layer only, never
+  redistributed.** The permission-request email (`docs/dcp_permission_request.md`)
+  stays unsent — explicitly not started, not a deferred fallback. Ratifies a de facto
+  posture the project had been operating under since the corpus was first fetched
+  (2026-08-16, commit `b8a90d6`, itself logged as "fetched under HD-3 option C") — this
+  entry's own "nothing has been fetched" status line was stale and wrong since that
+  same day, corrected in the process of recording the decision. No release/export
+  pipeline exists yet to enforce the exclusion; flagged for whoever builds one.
 - **2026-09-12** — HD-2 decided: (a) land borders only, no maritime-adjacency
   extension for Malaysia — Pattani stays without a `border_country`, its divergence
   recorded as L17 rather than encoded. (b) `TEXT[]` array confirmed for multi-border

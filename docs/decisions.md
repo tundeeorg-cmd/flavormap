@@ -195,7 +195,19 @@ missing.
 
 ## HD-3 (dcp_food) — Does `food.culture.go.th`'s `ai-train=no` signal apply to this project?
 **Date presented:** 2026-08-16
-**Status:** OPEN — nothing has been fetched from this domain beyond `robots.txt`.
+**Status:** DECIDED 2026-09-12 (see below). **Correction to this entry's own earlier
+text, found while recording the decision:** this line used to say "nothing has been
+fetched from this domain beyond `robots.txt`," which was already false when the
+2026-08-23 kapook note below repeated it — the corpus was fetched the same day this
+entry was written (commit `b8a90d6`, 2026-08-16, "DCP corpus enumerated and fetched —
+231/231 documents," explicitly logged as "fetched under HD-3 option C... while the
+permission request is outstanding") and has been analysed against since (Figure 4's
+signal check, the checkbox-extraction measurement in `docs/checkbox_extraction.md`).
+The project has been operating under a **de facto option C** since day one without
+ever formally deciding it — today's decision ratifies that posture rather than
+starting it fresh. The 231 PDFs are not currently present on disk in this session
+(the local environment resets between sessions; `scripts/fetch_dcp_food.py` would
+need re-running), which does not change anything about the decision itself.
 
 **The finding.** The site's robots.txt permits `FlavorMapResearchBot` to fetch every
 candidate path (`User-agent: * → Allow: /`, confirmed with `urllib.robotparser`). The same
@@ -254,9 +266,31 @@ nothing is published that would have to be retracted.
 **Note on scale.** Whatever is decided, the fetch is ~231 PDFs at 1 req/sec — about four
 minutes of traffic. Volume is not the concern here; permission is.
 
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** **C — reference layer only, never redistributed.** Use the corpus for
+RQ3's institutional-vs-commercial comparison; exclude every DCP-derived row from the
+HuggingFace release. The permission-request email (`docs/dcp_permission_request.md`,
+drafted 2026-08-16, HD-3 option B) stays **unsent** — explicitly not started today,
+not merely deferred with no clock running. No 3-week silence-becomes-C fallback is in
+effect, because B was never triggered; C is the decision on its own footing, not B's
+fallback.
+**Reasoning:** Recorded from the researcher's instruction in session, 2026-09-12. C
+honours `use=reference` close to literally, keeps the corpus's real analytical value
+(RQ3's institutional-vs-commercial comparison is the point of having it at all), and
+removes the redistribution question — the part of `ai-train=no` this project actually
+has reason to worry about — without needing the Department's reply first. It also
+matches what the project has been doing de facto since the corpus was first fetched,
+per the correction above, so this decision closes a real gap between practice and
+paper record rather than changing either.
+**Date decided:** 2026-09-12
+
+**What C commits the project to, going forward.** No DCP-derived row (`source_programme
+IN ('one_province_one_menu_2567', 'one_province_one_menu_2568')`) may appear in any
+HuggingFace release, dataset card, or public export. No release/export pipeline exists
+yet in this repository to enforce that — `data/exports/` is empty — so there is nothing
+to guard today; whoever builds the export path must add the source-type exclusion
+filter then, and this entry is the record of why. `scripts/parse_dcp.py`'s own fetch/
+parse/analyse behaviour needs no change: it was already the C-shaped behaviour before
+this decision existed to name it.
 
 ---
 
@@ -446,9 +480,12 @@ already said. RQ1's province-level form is withdrawn — §4's own constraint fi
 DCP corpus, or dropped is **a separate decision and is not taken here**. The kapook fetch,
 parse and storage rules continue unchanged under the 2026-08-22 audit.
 
-**Not affected: HD-3 (dcp_food) above, which stays open.** That gate is about
-`food.culture.go.th`'s `ai-train=no` signal and the ClaudeBot blocklist, and nothing has
-been fetched from that domain beyond robots.txt. Two sources, two go/no-go decisions.
+**Not affected: HD-3 (dcp_food) above, which stayed open until 2026-09-12.** That gate
+is about `food.culture.go.th`'s `ai-train=no` signal and the ClaudeBot blocklist. Two
+sources, two go/no-go decisions — as of the later date, both are decided (kapook: A;
+dcp_food: C). The "nothing has been fetched" claim in the previous sentence was already
+inaccurate when this note was written on 2026-08-23; see the correction attached to
+HD-3's own entry above, dated 2026-09-12.
 
 ---
 
