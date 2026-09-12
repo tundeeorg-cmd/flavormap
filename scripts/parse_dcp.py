@@ -33,6 +33,12 @@ CORPUS = RAW_DIR / "dcp_food"
 # per CLAUDE.md's schema note, so every row this loader writes carries it from the start.
 REGISTER = "official"
 
+# This corpus is the one-province-one-menu programme specifically, not "official" in
+# general — see migration 022. `culture.gdcatalog.go.th`'s thaitastetherapy dataset is
+# a different official programme with different selection criteria and must not be
+# pooled with this one under a bare register value.
+SOURCE_PROGRAMME = "one_province_one_menu"
+
 
 def _payload(record: DCPRecord) -> dict[str, object]:
     """JSON for raw_recipes.parsed_json. Contains no personal data by construction."""
@@ -118,19 +124,20 @@ def load(records: list[tuple[Path, DCPRecord]], dry_run: bool) -> dict[str, int]
             recipe_id = conn.execute(
                 """
                 INSERT INTO recipes (raw_id, name_th, dish_category_source, occasion,
-                                     endangerment, register)
-                VALUES (%s,%s,%s,%s,%s,%s)
+                                     endangerment, register, source_programme)
+                VALUES (%s,%s,%s,%s,%s,%s,%s)
                 ON CONFLICT (raw_id) DO UPDATE
                     SET name_th = EXCLUDED.name_th,
                         dish_category_source = EXCLUDED.dish_category_source,
                         occasion = EXCLUDED.occasion,
                         endangerment = EXCLUDED.endangerment,
-                        register = EXCLUDED.register
+                        register = EXCLUDED.register,
+                        source_programme = EXCLUDED.source_programme
                 RETURNING recipe_id
                 """,
                 (
                     raw_id, rec.dish_name_th, rec.dish_category_source,
-                    rec.occasion_th, rec.endangerment, REGISTER,
+                    rec.occasion_th, rec.endangerment, REGISTER, SOURCE_PROGRAMME,
                 ),
             ).fetchone()[0]
             stats["recipes"] += 1
