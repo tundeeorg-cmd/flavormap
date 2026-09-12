@@ -123,6 +123,7 @@ needs changing gets a new forward migration, never an edit to an applied one.
 | 018 | seed `sources.kapook_cooking` | same FK gap as 017, for `scripts/parse_kapook.py` |
 | 019 | `recipes.raw_id` UNIQUE | closes a re-parse duplication gap — both loaders now upsert on it |
 | 020 | `redaction_log.raw_id` UNIQUE | the same duplication gap, one table over — both loaders upsert on it too |
+| 021 | `v_recipes_low_confidence` | the explicit sensitivity-analysis pull (§3.2) — same shape as `v_recipes_clean`, confidence flipped to `low`, tier-4-low included |
 
 **Ordering correction (2026-08-16).** The v2 plan numbered `province_attribution` 006 and
 `provinces` 007, with a foreign key pointing from the earlier to the later. That cannot
