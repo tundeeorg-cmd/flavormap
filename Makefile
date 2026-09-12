@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest ingest-gdcatalog clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest ingest-gdcatalog ingest-local-dish clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -54,6 +54,12 @@ ingest: scrape
 # neither yet.
 ingest-gdcatalog:
 	uv run python -m scripts.parse_gdcatalog
+
+# Same shape as ingest-gdcatalog and the same reason it is not part of `ingest`: a
+# manually-downloaded CSV (data/raw/gdcatalog/อาหารพื้นถิ่น.csv) and a completed source
+# audit are both preconditions this target does not itself satisfy.
+ingest-local-dish:
+	uv run python -m scripts.parse_local_dish_inventory
 
 clean:
 	@echo "make clean: not yet implemented" && exit 1
