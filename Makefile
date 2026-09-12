@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest ingest-gdcatalog clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -46,6 +46,14 @@ scrape: scrape-dcp scrape-kapook
 ingest: scrape
 	uv run python -m scripts.parse_dcp
 	uv run python -m scripts.parse_kapook
+
+# Not fetched and not part of `ingest` — culture.gdcatalog.go.th is consulted by hand
+# only (ETHICS.md), and this loader needs a manually-downloaded CSV in place plus a
+# completed source audit before it can run at all (docs/decisions.md, 2026-09-12).
+# Kept as its own target so it does not break `make ingest` for a clone that has
+# neither yet.
+ingest-gdcatalog:
+	uv run python -m scripts.parse_gdcatalog
 
 clean:
 	@echo "make clean: not yet implemented" && exit 1
