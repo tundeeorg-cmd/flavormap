@@ -1587,9 +1587,25 @@ missing data; nothing was imputed into them.
 §15's canonical-vocabulary granularity gate. No `ingredient_aliases` or
 `canonical_ingredients` row was touched.
 
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** The three direct matches (กระเทียม→กระเทียม, หอมแดง→หอมแดง,
+พริกไทย→พริกไทย) are **approved**. The coconut mapping (มะพร้าวผลแก่→กะทิ) is
+**accepted, flagged as approximate** — every downstream use of it (figure, table,
+lexicon note) must carry an explicit caveat that fruit production is not the same
+measurement as coconut-milk usage. ข้าว and the six remaining commodities
+(ยางพารา, มันฝรั่ง, สับปะรด, ข้าวโพด, กาแฟ, หอมหัวใหญ่) stay unmapped, as proposed.
+**Reasoning:** The three direct matches carry no inference — same word on both sides
+of the OAE/lexicon boundary. The coconut mapping is weaker: Task 4's own numbers show
+the two biggest producers (สุราษฎร์ธานี, นครศรีธรรมราช) had the largest rank gaps
+against dish-appearance frequency in food67, mild evidence the proxy is imperfect —
+but n is too thin (27 provinces) to call it disproof, and dropping the mapping
+entirely would discard the only supporting-figure signal this commodity offers. The
+caveat requirement keeps the approximation from being read as equivalent-strength
+evidence to the three direct matches anywhere it is used later, including once HD-6
+authors the real canonical lexicon.
+**Date decided:** 2026-09-12
+**Still not applied to any table** — `canonical_ingredients` remains empty pending
+HD-6; this decision only settles how the mapping is framed in this note and in any
+future lexicon-authoring pass, not a database write made today.
 
 **Task 3b — lexicon overlap, the real count.** food67's `ingredients_th` column
 splits into **1,171 distinct raw strings** (`src/ingest/food67.py::split_ingredients`,
