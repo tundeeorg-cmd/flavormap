@@ -98,6 +98,30 @@ was accurate when written and is superseded by this note.
 **Reasoning:**
 **Date decided:**
 
+**Addendum, 2026-09-12 — the session report referenced above does not exist.**
+Searched exhaustively this session: full-text across every commit on every branch,
+including the repo's initial scaffolding commit, which already referenced it as
+existing on day one — there is no earlier history to recover it from, and no file
+anywhere in the tree contains this rationale. It was very likely a real conversation
+that produced the CSV and the two province lists above, but it was never captured as
+an artifact.
+
+**Rebuilt from scratch, not recovered, clearly labeled as new:**
+[`docs/hd1_dialect_rationale.md`](hd1_dialect_rationale.md). Covers all twelve
+Transitional provinces plus the three flagged pairs, drawn from general Thai
+dialectology rather than reconstructed memory of the missing report — it may not
+match whatever the original said, and was written without live source verification
+(no network access this session), so it should be spot-checked before being cited
+anywhere final. It surfaces one thing the original list's framing may have missed:
+**Satun's case looks conceptually different from the other eleven**, not just
+uncertain — its Malay-Muslim population is Southern-Thai-speaking, not
+Pattani-Malay-speaking, unlike Pattani/Yala/Narathiwat, which argues the current
+Transitional placement may be the wrong shape of answer rather than the wrong
+specific label. It also raises a structural question beyond HD-1's original scope:
+whether Surin/Si Sa Ket/Buri Ram's documented Northern Khmer and Kuy populations
+warrant a seventh category rather than absorption into Isaan_Lao — flagged there for
+the researcher, not decided.
+
 ---
 
 ## HD-2 — Land-border definition
