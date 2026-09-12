@@ -108,13 +108,68 @@ def index_gadm(fc: dict) -> dict[str, dict]:
     return out
 
 
+def load_without_geometry(reference: list[dict[str, str]], dry_run: bool) -> int:
+    """The documented stopgap (`docs/decisions.md`, 2026-09-12), made real: loads all
+    77 rows' non-geometry reference columns with `geom IS NULL` and a placeholder
+    centroid, so the database is usable while GADM access is blocked. `centroid_lat`/
+    `centroid_lon` are set to `(0, 0)` — the Gulf of Guinea, not Thailand — chosen
+    because it cannot be mistaken for a plausible real value. **Nothing that reads
+    centroid or geometry should trust rows loaded this way.** Re-run this script
+    without `--no-geometry` once GADM is reachable; the `ON CONFLICT` upsert will
+    overwrite the placeholder with real geometry and derived centroids."""
+    if dry_run:
+        print(f"dry run — would load {len(reference)} provinces without geometry")
+        return 0
+
+    conn = get_connection()
+    try:
+        for row in reference:
+            conn.execute(
+                """
+                INSERT INTO provinces (province_code, name_th, name_en, region4,
+                                       dialect_group, border_country, region6,
+                                       centroid_lat, centroid_lon, geom)
+                VALUES (%s, %s, %s, %s, NULLIF(%s,''), %s, NULLIF(%s,''), 0, 0, NULL)
+                ON CONFLICT (province_code) DO UPDATE SET
+                    name_th        = EXCLUDED.name_th,
+                    name_en        = EXCLUDED.name_en,
+                    region4        = EXCLUDED.region4,
+                    dialect_group  = EXCLUDED.dialect_group,
+                    border_country = EXCLUDED.border_country,
+                    region6        = EXCLUDED.region6
+                """,
+                (
+                    row["province_code"], row["name_th"], row["name_en"], row["region4"],
+                    row["dialect_group"],
+                    row["border_country"].split("|") if row["border_country"] else None,
+                    row["region6"],
+                ),
+            )
+        conn.commit()
+        n = conn.execute("SELECT count(*) FROM provinces").fetchone()[0]
+        print(f"loaded {n} provinces WITHOUT geometry — centroid is a (0,0) placeholder, "
+              f"geom is NULL. Not fit for any distance calculation or map.")
+    finally:
+        conn.close()
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--gadm", type=Path, help="path to a local gadm41_THA_1.json")
     ap.add_argument("--dry-run", action="store_true", help="match only; write nothing")
+    ap.add_argument(
+        "--no-geometry", action="store_true",
+        help="stopgap: load reference columns only, geom NULL, centroid a (0,0) "
+             "placeholder — for when GADM is unreachable. Never fit for distance work.",
+    )
     args = ap.parse_args()
 
     reference = read_reference()
+
+    if args.no_geometry:
+        return load_without_geometry(reference, args.dry_run)
+
     fc = json.loads(args.gadm.read_text(encoding="utf-8")) if args.gadm else fetch_gadm()
     by_name = index_gadm(fc)
 
@@ -142,10 +197,10 @@ def main() -> int:
             conn.execute(
                 """
                 INSERT INTO provinces (province_code, name_th, name_en, region4,
-                                       dialect_group, border_country,
+                                       dialect_group, border_country, region6,
                                        centroid_lat, centroid_lon, geom)
                 VALUES (%s, %s, %s, %s,
-                        NULLIF(%s,''), %s,
+                        NULLIF(%s,''), %s, NULLIF(%s,''),
                         0, 0,
                         ST_Multi(ST_GeomFromGeoJSON(%s)))
                 ON CONFLICT (province_code) DO UPDATE SET
@@ -154,6 +209,7 @@ def main() -> int:
                     region4        = EXCLUDED.region4,
                     dialect_group  = EXCLUDED.dialect_group,
                     border_country = EXCLUDED.border_country,
+                    region6        = EXCLUDED.region6,
                     geom           = EXCLUDED.geom
                 """,
                 (row["province_code"], row["name_th"], row["name_en"], row["region4"],
@@ -161,6 +217,7 @@ def main() -> int:
                  # border_country is TEXT[] since migration 014 (HD-2b). The CSV keeps
                  # the pipe-delimited form because CSV has no array type.
                  row["border_country"].split("|") if row["border_country"] else None,
+                 row["region6"],
                  json.dumps(feat["geometry"])),
             )
 
