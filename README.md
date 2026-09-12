@@ -71,3 +71,16 @@ make test    # pytest + ruff + mypy
 The rest of the pipeline (`scrape`, `ingest`, `clean`, `analyze`, `vision`, `figures`, `api`,
 `web`, `export`) is scaffolded in the `Makefile` and built out phase by phase — see
 [CLAUDE.md](CLAUDE.md) for what's live and what's still a stub.
+
+---
+
+## Author
+
+**Jenissa Vichiansin**  
+International School Bangkok
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE)
