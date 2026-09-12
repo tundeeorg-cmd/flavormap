@@ -125,6 +125,13 @@ _RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
             "ปศุสัตว์",
             "ประมง",
             "เกษตรกร",
+            # Added after a real classifier miss: the datago_catalog brief's own
+            # confirmed top-scoring (29-37) rows are crop-yield titles like "เนื้อที่
+            # เพาะปลูกข้าวโพดเลี้ยงสัตว์ เนื้อที่เก็บเกี่ยว ผลผลิต" — none of which
+            # contain the compound "ผลผลิตทางการเกษตร", only the bare terms below.
+            "ผลผลิต",
+            "เพาะปลูก",
+            "เนื้อที่เก็บเกี่ยว",
         ),
     ),
 )
@@ -182,9 +189,14 @@ AUTO_REJECT_CLASSES: dict[str, str] = {
 }
 
 
+#: Migration 027 — 'gdcatalog' (culture.gdcatalog.go.th) or 'datago' (data.go.th).
+CATALOGUE_GDCATALOG = "gdcatalog"
+CATALOGUE_DATAGO = "datago"
+
+
 @dataclass
 class CatalogueRow:
-    tier: str
+    tier: str | None  # gdcatalog only; always None for catalogue_source='datago'
     dataset_title_th: str
     province_th: str
     publisher_th: str
@@ -192,17 +204,41 @@ class CatalogueRow:
     formats: str
     n_resources: str
     last_modified: str
-    dataset_slug: str
+    dataset_slug: str | None  # gdcatalog only; datago has no slug at all
     resource_url: str
     content_class: str
     harvest_status: str
     rejection_reason: str | None
+
+    # Migration 027 — merged-catalogue fields. Defaulted so existing gdcatalog-only
+    # callers need no changes; NULL/None on every gdcatalog row in practice.
+    catalogue_source: str = CATALOGUE_GDCATALOG
+    row_hash: str | None = None
+    page_url: str | None = None
+    flavormap_layer: str | None = None
+    relevance_score: float | None = None
+    score_note: str | None = None
+    geo_coverage: str | None = None
 
 
 def read_raw(path: Path) -> pd.DataFrame:
     """UTF-8 with a BOM — same reason as every other gdcatalog source in this
     project: plain `"utf-8"` corrupts the first column's first value."""
     return pd.read_csv(path, encoding="utf-8-sig", dtype=str, keep_default_na=False)
+
+
+def compute_row_hash(
+    catalogue_source: str, dataset_slug: str, dataset_title_th: str, resource_url: str
+) -> str:
+    """The upsert key migration 027 needs now that `dataset_slug` alone cannot be
+    (data.go.th's export has none). Prefers `dataset_slug` when present — stable and
+    already unique within gdcatalog — and falls back to title+URL otherwise, which is
+    what every datago row has instead.
+    """
+    import hashlib
+
+    basis = dataset_slug or f"{dataset_title_th}|{resource_url}"
+    return hashlib.sha256(f"{catalogue_source}|{basis}".encode()).hexdigest()
 
 
 def validate_columns(df: pd.DataFrame) -> None:
@@ -218,6 +254,9 @@ def build_catalogue_rows(df: pd.DataFrame) -> list[CatalogueRow]:
         cls = classify_content(row["dataset_title_th"], row["description_th"])
         status = STATUS_REJECTED if cls in AUTO_REJECT_CLASSES else STATUS_NOT_ASSESSED
         reason = AUTO_REJECT_CLASSES.get(cls)
+        row_hash = compute_row_hash(
+            CATALOGUE_GDCATALOG, row["dataset_slug"], row["dataset_title_th"], row["resource_url"]
+        )
         rows.append(
             CatalogueRow(
                 tier=row["tier"],
@@ -233,6 +272,8 @@ def build_catalogue_rows(df: pd.DataFrame) -> list[CatalogueRow]:
                 content_class=cls,
                 harvest_status=status,
                 rejection_reason=reason,
+                catalogue_source=CATALOGUE_GDCATALOG,
+                row_hash=row_hash,
             )
         )
     return rows
