@@ -928,9 +928,54 @@ still a real decision and still hers: six is more faithful to what at least one
 government source actually distinguishes; four is zero-cost and matches every figure
 already built.
 
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** Mechanism: **C — derive the canonical region always from `province`,
+never trust a source's own stated region string.** Granularity: **B — six-way**,
+matching food67's actual resolution.
+**Reasoning:** Recorded from the researcher's instruction in session, 2026-09-12.
+Deriving from province survives all four known schemes at once without picking a side
+on any source's own merge/split choices; six-way was chosen over four-way because it
+is what the only real government source at this resolution (food67) actually
+distinguishes, and collapsing it to four loses that distinction irreversibly with no
+way to recover it later.
+**Date decided:** 2026-09-12
+
+**Implemented same day.** Migration `029_region6.sql` adds `provinces.region6`
+(nullable, CHECKed against food67's own six values). `data/reference/provinces.csv`
+now carries a `region6` column for all 77 provinces: **48 read directly from
+`flavormap_food67.csv`'s own `region_th`**, **29 filled from general Thai
+administrative geography this session** (no live source verification possible —
+network blocked throughout — flagged the same way `docs/hd1_dialect_rationale.md`
+was). `scripts/load_geometry.py` loads `region6` alongside the existing columns for
+future real GADM loads; a new `--no-geometry` flag turns the previously ad-hoc
+geometry-less stopgap load (used twice now this session alone, since the local
+database resets between sessions) into real, tested functionality instead of a
+disposable one-off. `scripts/backfill_provinces_reference.py` (new) refreshes
+`region4`/`dialect_group`/`border_country`/`region6` on an already-loaded `provinces`
+table from the CSV alone, without touching `geom` — the general tool the original
+geometry stopgap should have been. `province_attribution.region` (migration 007) is
+deliberately **not** backfilled from this column: joining through `province_code` to
+`provinces.region6` gives the same answer without the duplication/sync hazard that
+column already sat unused because of.
+
+**A real finding surfaced by the implementation, not assumed going in: region4 does
+not cleanly nest inside food67's six-way scheme even outside Central.** The original
+framing above ("region4 does collapse a finer scheme... Central absorbs East and
+West") undersold it. Five provinces carry `region4 = 'North'` but food67 itself places
+them elsewhere: **Nakhon Sawan, Uthai Thani, Phitsanulok, and Phichit in ภาคกลาง
+(Central)**, and **Tak in ภาคตะวันตก (West)** — confirmed from food67's own real
+data, not inferred. Northeast and South, by contrast, have zero such exceptions;
+every province in either carries the matching region6 label exactly.
+`tests/test_provinces_reference.py::test_region6_north_exceptions_are_exactly_the_confirmed_five`
+encodes this as a named, closed list so a future province silently moving in or out
+of it is caught rather than absorbed. Worth a sentence in the methods section: the
+"lower North" is apparently not northern at all by at least one government source's
+own reckoning, which is a genuine, citable finding independent of anything this
+project set out to measure.
+
+**Verification.** 29/29 migrations apply from an empty database. 305 tests pass (up
+from 301), 19 skipped (pre-existing, unrelated). ruff clean; the two new mypy findings
+in `scripts/load_geometry.py` match the same pre-existing `tuple[Any, ...] | None`
+indexing pattern already present throughout this codebase, not newly introduced.
 
 **Addendum, 2026-09-12 — `thaitastetherapy.csv`'s remaining three region values are
 now confirmed, not just the one.** The real file arrived this session

@@ -131,6 +131,7 @@ needs changing gets a new forward migration, never an edit to an applied one.
 | 026 | `gi_products` | geographical-indication products — a product designation bound to a province by law. Product-level only; no column for a registrant/applicant name or address exists or should ever be added (Bible §4) |
 | 027 | `source_catalogue` datago merge | merges in `data.go.th`'s catalogue export alongside gdcatalog's: `dataset_slug` relaxed to nullable (datago has none), `row_hash` is the real upsert key now, `catalogue_source` distinguishes the two, `duplicate_of_catalogue_id` flags cross-catalogue duplicates without silently merging or dropping either copy |
 | 028 | `crop_production` | supporting agricultural statistics from สำนักงานเศรษฐกิจการเกษตร (OAE) — 482 rows, 77 provinces, 11 commodities, years 2567/2568. Answers no research question on its own (a lexicon cross-reference and interview-prep aid); zero PDPA exposure, the first source in the project with that property. `production_unit` varies by commodity (tonnes vs. individual fruits for coconut) — no aggregate view is defined on this table for that reason |
+| 029 | `provinces.region6` | HD-23's decided canonicalisation target — region is derived from `province` only (never a source's own stated region string), at six-way granularity matching `flavormap_food67.csv`. 48 of 77 read directly from food67's own data, 29 filled from general Thai administrative geography pending live-source verification. Surfaced a real finding: five `region4 = 'North'` provinces (Nakhon Sawan, Uthai Thani, Phitsanulok, Phichit, Tak) carry a different region6 by food67's own reckoning — `region4` does not nest cleanly inside the six-way scheme outside Central the way it was assumed to |
 
 **Ordering correction (2026-08-16).** The v2 plan numbered `province_attribution` 006 and
 `provinces` 007, with a foreign key pointing from the earlier to the later. That cannot
@@ -595,6 +596,16 @@ scope and no work proceeds on it.
 
 ## Changelog
 
+- **2026-09-12** — HD-23 decided: canonical region is always derived from `province`
+  (never trusted from a source's own stated region string), at six-way granularity
+  matching `flavormap_food67.csv`. Implemented same day: migration 029 adds
+  `provinces.region6`; `scripts/load_geometry.py --no-geometry` turns the session's
+  repeated ad-hoc geometry-less stopgap into real functionality;
+  `scripts/backfill_provinces_reference.py` refreshes reference columns from the CSV
+  without touching geometry. Found in the process: region4 does not nest cleanly
+  inside the six-way scheme even outside Central — five "lower North" provinces
+  (Nakhon Sawan, Uthai Thani, Phitsanulok, Phichit, Tak) are food67-Central/West, not
+  North, contrary to the gate's original framing.
 - **2026-09-12** — `flavormap_oae_production.csv` loaded as `crop_production`
   (migration 028) — crop production statistics from OAE, supporting data only, no
   research question built on it. Province column confirmed clean (77/77 match the
