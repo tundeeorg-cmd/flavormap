@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset scrape ingest clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump scrape ingest clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -16,6 +16,11 @@ db-reset:
 	docker compose down -v
 	docker compose up -d --wait
 	uv run python -m scripts.migrate
+
+# Timestamped, gzip-compressed pg_dump to data/exports/ (gitignored) — scripts/dump_db.sh.
+# Carries the full parsed corpus, so it never leaves the machine it was taken on.
+db-dump:
+	./scripts/dump_db.sh
 
 scrape:
 	@echo "make scrape: not yet implemented" && exit 1

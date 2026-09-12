@@ -117,6 +117,8 @@ needs changing gets a new forward migration, never an edit to an applied one.
 | 012 | `v_recipes_clean` | the analysis view |
 | 013 | `provinces.dialect_group` CHECK | HD-1: five groups + `Transitional` |
 | 014 | `provinces.border_country` → `TEXT[]` | HD-2: land borders only, multi-border as an array |
+| 015 | `recipes.register` | `official \| commercial \| domestic`, NOT NULL from the first load — carried through `v_recipes_clean` |
+| 016 | `cook_along_log` | RQ4's fidelity log — 8 dishes × {quantities, order, technique, specificity, completeness}. Seeded empty |
 
 **Ordering correction (2026-08-16).** The v2 plan numbered `province_attribution` 006 and
 `provinces` 007, with a foreign key pointing from the earlier to the later. That cannot

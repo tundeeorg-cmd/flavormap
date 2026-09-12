@@ -28,6 +28,11 @@ from src.ingest.dcp_form import DCPRecord, parse_pdf
 SOURCE_ID = "dcp_food"
 CORPUS = RAW_DIR / "dcp_food"
 
+# The DCP corpus is the state's own shortlist — Bible v4's "official" register (CLAUDE.md
+# §3, §4 RQ1). Set at load time, not backfilled later: register "must not be retrofitted"
+# per CLAUDE.md's schema note, so every row this loader writes carries it from the start.
+REGISTER = "official"
+
 
 def _payload(record: DCPRecord) -> dict[str, object]:
     """JSON for raw_recipes.parsed_json. Contains no personal data by construction."""
@@ -103,12 +108,12 @@ def load(records: list[tuple[Path, DCPRecord]], dry_run: bool) -> dict[str, int]
             recipe_id = conn.execute(
                 """
                 INSERT INTO recipes (raw_id, name_th, dish_category_source, occasion,
-                                     endangerment)
-                VALUES (%s,%s,%s,%s,%s) RETURNING recipe_id
+                                     endangerment, register)
+                VALUES (%s,%s,%s,%s,%s,%s) RETURNING recipe_id
                 """,
                 (
                     raw_id, rec.dish_name_th, rec.dish_category_source,
-                    rec.occasion_th, rec.endangerment,
+                    rec.occasion_th, rec.endangerment, REGISTER,
                 ),
             ).fetchone()[0]
             stats["recipes"] += 1

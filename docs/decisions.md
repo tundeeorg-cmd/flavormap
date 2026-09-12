@@ -538,3 +538,67 @@ above is acted on.
 **Decision:**
 **Reasoning:**
 **Date decided:**
+
+---
+
+## Note — this session could not reach either the DCP corpus or GADM
+**Date:** 2026-09-12
+**This is not a gate.** It is an infrastructure fact about one execution environment,
+not a change to any ethics or research decision above.
+
+A session was asked to continue Tasks 3-5 of the build plan: run the parser against the
+real 231-document DCP corpus and `tests/test_pdpa.py` against it, load the official
+register into Postgres, and report first corpus statistics (recipes per province,
+distinct raw ingredient strings, endangerment and acquisition-mode distributions, top
+ingredients).
+
+**Outbound network access to `food.culture.go.th` is denied by this session's own
+sandbox egress policy** — confirmed both by a direct connection test and by
+`scripts/fetch_dcp_food.py`'s own robots.txt preflight, both returning a policy-level
+403 before any request reaches the site. This is unrelated to HD-3's `ai-train=no`
+question above, which is about whether the *site* permits the fetch — the site was
+never reached to ask. `data/raw/dcp_food/` is gitignored by design (rule 8 — the raw
+PDFs carry informant PII and must never enter version control), so the 231 documents
+fetched on 2026-08-16 are not present in this clone and could not be re-fetched here.
+Outbound access to GADM's host (`geodata.ucdavis.edu`, needed by
+`scripts/load_geometry.py` for `provinces.geom` and centroids) is denied the same way.
+Per this session's own proxy guidance, a policy denial is reported rather than routed
+around — no alternate mirror or workaround was attempted for either host.
+
+**Consequence.** No new document was parsed, no row was written to `recipes` beyond
+what a future load will add, and no Task 5 number in this note is a fresh measurement.
+The corpus-wide distributions already computed on 2026-08-30 and committed to
+`data/processed/dcp_field_recovery.json` — `dish_category`, `occasion`, and
+`endangerment` value counts across all 231 documents — still stand and can be quoted
+from that file; nothing about them changed today.
+
+**What was done instead — machinery only, verified against an empty database rather
+than real data.**
+
+- Migration `015_register.sql` adds `recipes.register` (`official | commercial |
+  domestic`, NOT NULL) and carries it through `v_recipes_clean`. CLAUDE.md §3 calls this
+  "the single most important column in v4" and says it "must not be retrofitted"; it did
+  not exist under any name before this migration, and is added now, before any row
+  exists in `recipes` anywhere.
+- Migration `016_cook_along_log.sql` adds the `cook_along_log` table Bible §7.4 / RQ4
+  needs, seeded empty — no cook-along has run.
+- `scripts/parse_dcp.py` now writes `register='official'` on every row it loads from the
+  DCP corpus, since that corpus is definitionally the state's own register (Bible v4
+  §3) — not a judgment call, a fact about the source.
+- `Makefile` gained a `db-dump` target wired to the pre-existing `scripts/dump_db.sh`.
+- All 16 migrations verified to apply cleanly to an empty database (`sudo -u postgres
+  psql` + local PostgreSQL 16 with `postgresql-16-postgis-3` installed, substituting for
+  the Docker Compose stack `docker-compose.yml` specifies — this session's container has
+  no Docker daemon available. The schema this produces is identical; only the
+  provisioning mechanism differs, and it is not a substitute in any environment that can
+  run `docker compose up`).
+- Full test suite, `ruff check`, and `mypy` all pass unchanged (102 passed, 19 skipped —
+  the 19 are exactly the tests gated on the raw corpus being present, per
+  `tests/*::raw corpus not present`, i.e. `pytest -rs`).
+
+**What still needs an environment with the right network access.** Running
+`scripts/fetch_dcp_food.py` and `scripts/parse_dcp.py` against the live corpus, and then
+the Task 5 queries against a freshly loaded database. `.env`'s
+`SCRAPER_CONTACT_EMAIL` was set to the researcher's own address for this run, on
+explicit confirmation in session — carried here as a fact about what was configured,
+not as a decision this file records.
