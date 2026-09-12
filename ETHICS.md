@@ -217,6 +217,35 @@ into the dataset card. Verification is re-run in code
 check, so a future sibling file whose districts do not all resolve to one province
 stops the loader rather than guessing.
 
+### `culture.gdcatalog.go.th` — third file, `flavormap_food67.csv`, 2026-09-12
+
+Different situation from the two files above: this one is not consulted-by-hand
+territory, it is a claimed **already-extracted** version of the 2567
+one-province-one-menu book — the same government programme the 231-document `food68`
+(2568) corpus above belongs to, one year earlier. Two things distinguish it from
+every other gdcatalog file handled so far:
+
+**Its provenance is undocumented**, and that is recorded as a finding, not
+softened into a footnote — full detail in `docs/decisions.md`'s dated Task 0 note.
+The only trace of "food67" anywhere in this repository is a 2026-08-16 probe that
+found a FlipBuilder-rendered volume at `bookfood67/` and explicitly did not parse it.
+Nothing in this repository explains how a 345-row structured CSV with delimited
+ingredients came to exist. It has not been spot-verified against the original book
+pages either — `food.culture.go.th` returned `EGRESS_BLOCKED` on every attempt this
+session, so 0 of the 10 rows the task brief asks for were checked.
+
+**It carries substantial government-publication prose** (`method_th`, `history_th`,
+`benefits_th`) and a free-text source-attribution field (`source_info_th`). The
+Scraping Conduct table above already states the standing rule — "Never stored: full
+recipe prose, instructions, copyrighted text" — and it applies here without
+exception: all three prose fields are written to the local database only (migration
+024 adds `COMMENT ON COLUMN` recording this restriction directly on the schema) and
+never enter the released dataset. `source_info_th` additionally gets a PDPA pass
+before being written — reusing `src/ingest/pdpa.py`'s existing DCP-forms stripper
+rather than a new one, since a government-publication attribution field is the same
+shape of PII risk (informant/business name, address, phone) the DCP forms already
+carry.
+
 ## Personal data (PDPA 2562)
 
 **No personally identifying data enters the database, ever.** Not in a table, not in a

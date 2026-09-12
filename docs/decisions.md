@@ -798,59 +798,111 @@ already work.
 
 ---
 
-## HD-23 — Region-scheme mapping for `thaitastetherapy.csv`
+## HD-23 — Region-scheme mapping across sources (was: `thaitastetherapy.csv` only)
 **Date presented:** 2026-09-12
-**Status:** OPEN, and cannot fully proceed to options until the real file is
-available — the brief confirms one region string; the other three are not.
+**Revised:** 2026-09-12, same day — a third scheme arrived (`flavormap_food67.csv`
+Task 2) before this gate was decided. Extended in place rather than opened as a
+second gate, because it is the same underlying question — "what canonical region
+value, if any, does a source's own region label map to" — now with a third answer to
+reconcile instead of one. The original text is corrected below, not hidden: the
+"structural observation" this entry offered as an untested hypothesis on first
+presentation is now **confirmed** by food67's evidence, and the option set has
+changed shape as a result — see "What food67 adds", below.
+**Status:** OPEN. Still cannot fully resolve `thaitastetherapy.csv`'s own four values
+(three of four remain unconfirmed — the file is unavailable, see the notes above) but
+food67's six values are now known outright, quoted directly in its own brief.
 
-**What depends on it.** Whether and how this source's `region` column ever becomes a
-canonical `provinces.region4` value anywhere downstream. Nothing currently loads it
-there: `scripts/parse_gdcatalog.py` writes the raw string only to
-`raw_recipes.parsed_json`, never to `province_attribution.region` — the same field
-`scripts/parse_dcp.py` also leaves NULL today, so this is not a new gap, only one now
-named for a second source.
+**What depends on it.** Whether and how any source's `region` column becomes a
+canonical `provinces.region4` value anywhere downstream. Nothing currently loads one
+there: `scripts/parse_gdcatalog.py`, `scripts/parse_food67.py`, and
+`scripts/parse_dcp.py` all write only to `raw_recipes.parsed_json`, never to
+`province_attribution.region` — not a new gap, one now named across three sources.
 
-**What is known, and what is not.** The brief states the file uses "a four-region
-scheme where `ภาคกลางและตะวันออก` merges Central and East" and asks for the exact
-set of region values present to be reported before proposing a mapping. This session
-has exactly one confirmed value — the one the brief itself quotes — and no way to see
-the other three or four, since the file was never available (see the note above).
+**Three schemes now in play, per Task 2 of the food67 brief:**
 
-**A structural observation, not a proposed decision.** `provinces.region4`
-(migration 006) is itself a four-way scheme with no separate East value — its CSV
-(`data/reference/provinces.csv`) shows exactly `{Central, North, Northeast, South}`,
-which means every province this project already calls "Central" already includes
-what a five-way scheme would call East. If `thaitastetherapy.csv`'s four Thai labels
-turn out to be the ordinary four-region set (ภาคเหนือ / ภาคตะวันออกเฉียงเหนือ or
-ภาคอีสาน / ภาคกลางและตะวันออก / ภาคใต้), the merge this source's own label names is
-the same merge `region4` already performs — a much smaller decision than HD-1's or
-HD-2's, because no folding choice would be introduced that this project has not
-already made once. This is offered as a hypothesis the real file can confirm or
-contradict, not as the decision itself.
+| Source | Scheme | Values |
+|---|---|---|
+| `flavormap_food67.csv` | 6-way | ภาคกลาง · ภาคตะวันออกเฉียงเหนือ · ภาคใต้ · ภาคเหนือ · ภาคตะวันตก · ภาคตะวันออก |
+| `thaitastetherapy.csv` | 4-way (Central+East merged) | one confirmed: ภาคกลางและตะวันออก. Other three: unconfirmed, file unavailable |
+| Wongnai (not yet used) | 3-way, no Central category at all | not sourced — the brief's own claim, unverified against a live Wongnai page in this session (network blocked) |
+| `provinces.region4` (this project's own canonical scheme, migration 006) | 4-way | Central · North · Northeast · South — no separate East or West value |
 
-**Options, contingent on that confirmation:**
-  A. **Direct name mapping**, once the exact four (or however many) Thai strings are
-     seen and, if the structural observation above holds, matched onto `region4`
-     one-to-one.
-     Consequence: cheapest, and introduces no new judgment call beyond confirming the
-     hypothesis above. Wrong only if the file's regions turn out not to align with
-     `region4`'s existing Central/East merge — unknowable without the file.
-  B. **Leave the CSV's region column unmapped indefinitely**, deriving region only
-     from `province` → `provinces.region4` the way every other source implicitly
-     would if it populated `province_attribution.region` at all (nothing currently
-     does).
-     Consequence: sidesteps the mapping question entirely, at the cost of never using
-     the source's own stated region as a cross-check against province-derived region
-     — a check that might itself surface data-quality issues worth knowing about.
-  C. **Store both**: the source's raw region string (already done, in
-     `parsed_json`) and a province-derived `region4` value, and compare them.
-     Consequence: most informative, costs nothing beyond what B already requires plus
-     a join, and turns a mapping decision into a data-quality signal instead.
+**What food67 confirms that was only a hypothesis before.** The original text of
+this entry guessed that `region4`'s Central already absorbs what a finer scheme calls
+East, and offered it as untested. food67's own 6-way scheme, quoted directly above,
+**proves the finer scheme exists and is in real use by a government source** —
+ภาคตะวันออก (East) and ภาคตะวันตก (West) are both named separately from ภาคกลาง
+(Central). So the hypothesis was directionally right (region4 does collapse a finer
+scheme) but the earlier framing of this as a small, low-cost decision does not survive
+contact with a concrete 6-way source: collapsing food67's six values onto `region4`'s
+four is a real, irreversible information loss (which of East/West/Central a province
+belonged to under the finer scheme cannot be recovered from the coarse one), not a
+free relabelling.
 
-**Recommendation given:** See the file first. If the structural observation holds, A
-costs almost nothing and C is worth doing regardless of which register-mapping
-question is chosen — it is nearly free once the province join exists for other
-purposes. B is the safe fallback if the file's regions do not align as hypothesised.
+**There is no free option, per the brief's own framing of Task 2** — quoted because
+it states the trade-off better than a paraphrase would:
+
+> collapsing 6→4 loses information irreversibly, while keeping 6 makes
+> thaitastetherapy.csv rows unmappable to ภาคกลาง versus ภาคตะวันออก. There is no
+> free option.
+
+Concretely: `thaitastetherapy.csv`'s single confirmed value, ภาคกลางและตะวันออก,
+has no counterpart in food67's 6-way scheme at all — it is *by construction* a merge
+of two of food67's six values (ภาคกลาง and ภาคตะวันออก) into one label. A scheme
+fine enough for food67 cannot represent a thaitastetherapy row without picking one of
+its two merged halves for it, and nothing in `thaitastetherapy.csv` says which. A
+scheme coarse enough for thaitastetherapy (region4, or a direct copy of its own
+four-way scheme) can represent food67 rows only by discarding the Central/East and
+(if `provinces.region4` is the target) Central/West distinctions food67's source drew
+on purpose.
+
+**Options — revised to name a canonical target explicitly, since "map onto region4"
+and "map onto a new project-wide scheme" are no longer obviously the same choice:**
+  A. **Canonicalise on `provinces.region4` (4-way, existing).** Every source's region
+     column maps down to it; food67's six values collapse to four (Central absorbs
+     East and West); thaitastetherapy's four values map close to directly if its
+     three unconfirmed values are the expected ones.
+     Consequence: zero schema change, keeps every existing figure/query working
+     unmodified. Loses food67's East/West distinction permanently for any analysis
+     that reads only the canonical column — recoverable only from
+     `raw_recipes.parsed_json`'s raw string, never from `province_attribution`.
+  B. **Adopt a 6-way canonical scheme project-wide**, matching food67's granularity,
+     and derive it for every source from `province` → a province-to-6-region lookup
+     (not from each source's own stated region string, which is Wongnai's problem
+     below).
+     Consequence: no information loss for food67. Costs a new reference column (a
+     6-way `provinces.region6` or similar) and a rebuild of every region-faceted
+     figure. Still leaves `thaitastetherapy.csv`'s ภาคกลางและตะวันออก rows unable to
+     pick a side — the brief's own point — unless resolved by province lookup instead
+     of trusting the source's stated region (which is what a province-derived
+     approach already does, sidestepping the merged label rather than solving it).
+  C. **Store every source's raw region string (already done, per source, in
+     `parsed_json`) and derive one canonical value only from `province` — never from
+     any source's own stated region column**, at whatever granularity (4-way or
+     6-way) is chosen for the canonical scheme.
+     Consequence: makes the incompatible source-stated schemes a non-issue for
+     anything downstream of `province_attribution`, because nothing downstream reads
+     them — they remain available as a per-source data-quality cross-check (does a
+     source's stated region agree with what its province implies?) without ever being
+     load-bearing. This is what B's own derivation approach already does in practice;
+     C just states it as the general rule rather than a per-scheme workaround, and
+     applies it whichever granularity (A's four-way or B's six-way) is picked for the
+     canonical column itself.
+  D. **Wongnai's 3-way scheme (no Central category)** is a fourth incompatible shape
+     waiting in the wings, unconfirmed and unsourced this session. Whatever is chosen
+     above should be checked against it *before* Wongnai is ever ingested, not
+     discovered as a fourth surprise later — flagged here so it is not forgotten,
+     not because it needs a decision today.
+
+**Recommendation given:** C, at whichever granularity (A's four-way, matching
+existing figures, or B's six-way, matching food67's actual resolution) is chosen for
+the canonical column — deriving region from province rather than trusting any
+source's own stated region label is the one move that survives all three (four,
+counting Wongnai) known schemes without picking a side on food67's East/West split or
+thaitastetherapy's Central/East merge. The four-vs-six granularity choice under C is
+still a real decision and still hers: six is more faithful to what at least one
+government source actually distinguishes; four is zero-cost and matches every figure
+already built.
 
 **Decision:**
 **Reasoning:**
@@ -945,3 +997,140 @@ supplied directly.** Task 3's sibling inventory (the highest-value item in the
 brief), and Task 2's real arithmetic — both require either this session's egress
 policy to admit at least one of the five now-blocked hosts, or the relevant CSVs
 supplied into this environment directly.
+
+---
+
+## Note — Task 0: `flavormap_food67.csv` is of undocumented provenance
+**Date:** 2026-09-12
+**This is the note Task 0c requires**, written regardless of whether the file could
+be loaded — provenance is a fact about the file, not about this session's access to
+it, and the brief is explicit that an unverified file must not be "laundered into the
+corpus" by skipping this step.
+
+**0a — repository search.** `git log --all` (57 commits) and a case-insensitive
+`grep` across `*.py`, `*.md`, `*.sql` for "food67" / "food68" / "bookfood" /
+"flavormap_food" found **no extraction script, commit, or decision entry** that
+produced or mentions `flavormap_food67.csv`. The only trace of "food67" anywhere in
+this repository is commit `b8a90d6` (2026-08-16, "DCP corpus enumerated and fetched —
+231/231 documents"), whose own commit message says:
+
+> Extension probes, reported not parsed: ... `bookfood67/` (2567 round): 200,
+> FlipBuilder shell at `/bookfood67/` and `/index.html`
+
+That is, the *source* this CSV claims to be an extracted version of was located and
+identified as a FlipBuilder-rendered digitised flipbook — structurally unlike
+`food68`'s 231 discrete per-dish PDFs — and **explicitly not parsed**, by this
+project's own record. `flavormap_food67.csv`'s existence is therefore unexplained:
+either it was produced by a process outside this repository (by hand, by a different
+tool, by a person), or its 2026-08-16 probe result is stale and the volume became
+newly extractable since. Neither can be determined from what this repository records.
+
+**0b — spot-verification against source: not possible in this session.**
+`WebFetch` on `https://food.culture.go.th/bookfood67/` returned `EGRESS_BLOCKED` — the
+same class of denial recorded against this and four other hosts on 2026-09-12 (see
+the notes above). Zero of the ten rows the brief asks for could be checked against the
+original book pages. **Match rate: 0/10 attempted, 10/10 blocked before a single
+comparison could run** — not a measurement of accuracy, a measurement of access.
+
+**0c — the required note, stated plainly:** `flavormap_food67.csv` is of undocumented
+provenance. No script, commit, or decision record in this repository explains how it
+was produced. It has not been spot-verified against the original 2567 book — 0 of 10
+planned rows were checked, because the source could not be reached from this session.
+**This file has not been loaded into `recipes`** (see the infrastructure note below —
+it is also simply absent from this environment), and nothing in
+`scripts/parse_food67.py` or `src/ingest/food67.py` treats it as verified. This note
+must reach the dataset card per the brief, and is recorded here so it does not have to
+be reconstructed later: whoever eventually loads this file for real should re-run 0b
+before trusting it, not assume this note is a stale formality once the CSV is finally
+in hand.
+
+## Note — Task 1: 2567 vs 2568 — evidence, without loading either file directly
+**Date:** 2026-09-12
+
+**1a.** Two pieces of evidence, both derivable without the file itself:
+
+- **Format.** food68 is 231 discrete per-dish PDFs at a predictable path
+  (`food68/{region}/{province_index}/{menu_index}.pdf`, commit `b8a90d6`). food67 is
+  one FlipBuilder-rendered volume at `/bookfood67/` — a fundamentally different
+  delivery format for what the brief calls "the same programme." Two cohorts of one
+  programme sharing a name is consistent with different production choices year to
+  year; it does not by itself prove they are the *same* programme with the same
+  selection rule.
+- **Coverage shape.** food68 is exactly 77 provinces × 3 dishes = 231 — a fixed
+  quota, confirmed by construction. food67, per the brief's own counts, is **345 rows
+  across 48 of 77 provinces** — roughly 7.2 dishes per covered province on average,
+  29 provinces entirely absent, and not a round multiple of any obvious fixed quota.
+  If 2567 used the same "3 dishes, every province" rule as 2568, this file does not
+  show it: either the file is a partial extract of a larger 2567 volume (consistent
+  with 0a's provenance gap — an incomplete, undocumented extraction would explain
+  exactly this shape), or the 2567 programme's own selection rule genuinely differed
+  from 2568's. **Both readings are live; this repository cannot distinguish them
+  without the file and the source.**
+
+**Conclusion for 1a:** the evidence supports "two cohorts of a same-named
+programme with at least a different delivery format, and possibly a different
+selection rule" — not confidently "consecutive cohorts of one fixed process." This is
+exactly why Task 1b's instruction to tag the two years with distinct
+`source_programme` values (`one_province_one_menu_2567` /
+`_2568`, migration 024) rather than one shared value is the right default regardless
+of which reading turns out correct.
+
+**1c — logged to LIMITATIONS.md** (L20) rather than only here, per the brief's own
+instruction to do this "before anyone is tempted to write a trend sentence."
+
+**1d — blocked.** Overlap between the years needs both loaded; only machinery for it
+exists (`scripts/parse_food67.py --report` computes what it can once the CSV exists;
+the equivalent cross-year overlap query is straightforward to add once both `_2567`
+and `_2568` rows are actually in `recipes`, and is not built speculatively against
+data that does not exist).
+
+## Note — infrastructure: `flavormap_food67.csv` also absent; 0b/Task 3 blocked
+**Date:** 2026-09-12
+**This is not a gate.** Same class of note as the three infrastructure entries above,
+all dated 2026-09-12.
+
+`data/raw/gdcatalog/flavormap_food67.csv` is not present anywhere in this session's
+filesystem, consistent with every prior file this task series has referenced. Task 0b
+(source spot-verification) and Task 3's downstream numbers (Task 2's real region
+counts once mapped, Task 4's actual sara-am/artifact/variant findings against the real
+345 rows, Task 5's actual Nan/Surin dish lists) are all blocked on the file, on
+network access to `food.culture.go.th`, or both. **What was built regardless —
+machinery only, tested against the brief's own literal examples, never against
+invented bulk data:**
+
+- `src/ingest/food67.py`: column validation; `|`-split ingredient extraction with
+  count validation against the source's own `ingredient_count`; two sara-am
+  corruption detectors (one auto-corrected — a bare "น้" with no reason to exist as
+  its own word — one report-only per Bible §7.1's explicit warning against a blanket
+  regex for the other shape); dish-name artifact detection (report-only, never
+  auto-corrected); Khmer-name/Thai-gloss splitting, verified against all five Surin
+  names the brief quotes (three split, two don't — `นมเนียล` and
+  `อันซอมสะเลอะโดง` carry no parenthetical); ingredient-variant flagging that
+  distinguishes a spelling-variant signal (`src.clean.dedupe.title_similarity`, the
+  project's existing fuzzy-string measure — reused, not reinvented) from a
+  granularity relation (substring containment), verified against all four example
+  pairs the brief gives.
+- Migration `024_food67_provenance.sql`: provenance columns (`source_dish_id`,
+  `book_page`, `pdf_pages`), the never-published prose columns (`method_th`,
+  `benefits_th`, `history_th`, `source_info_th`, each with a `COMMENT ON COLUMN`
+  recording the restriction on the schema itself), `programme_year`, and a
+  `source_programme` vocabulary correction — see the migration's own comment for why
+  the pre-existing bare `one_province_one_menu` value is renamed to
+  `one_province_one_menu_2568` rather than left standing asymmetrically next to a new
+  `_2567` value.
+- `scripts/parse_food67.py`: the loader (same two unmet preconditions as every prior
+  gdcatalog loader — the file, and a `sources` seed row deliberately not fabricated),
+  plus `--report`, which runs the full Task 4 quality pass and works the moment the
+  CSV exists, independent of the database gaps.
+- Tests (`tests/test_food67.py`, `tests/test_food67_pdpa.py`): 34 tests, built from
+  the brief's literal quoted examples (the sara-am string, both dish-name artifacts,
+  all five Surin names, all four ingredient-variant pairs) plus Bible §7.1's own
+  corruption example, plus invented PII fixtures for the `source_info_th` redaction
+  pass (`ทดสอบ` convention). Full suite: 214 passed, 19 skipped (pre-existing
+  raw-corpus-gated skips), verified against a real empty database with all 24
+  migrations applied — `ruff check` clean, `mypy` shows no findings beyond the same
+  pre-existing `tuple | None` indexing pattern already present in every other loader
+  script in this codebase.
+
+**What still needs the file, or network access to `food.culture.go.th`.** Task 0b's
+spot-verification; the real Task 2/4/5 numbers; Task 1d's year-over-year overlap.

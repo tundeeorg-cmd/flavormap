@@ -54,6 +54,12 @@ after review reads as damage control.
 |---|---|---|---|
 | L19 | Two government programmes, two dish granularities | **MEDIUM** | RQ3's official-vs-community arithmetic (`local_food_survey` vs. `one_province_one_menu` dish counts for a shared province) compares raw counts across two programmes with different selection criteria and, plausibly, different dish-naming granularity — one dish written two ways in two programmes counts as two dishes, not a match, under exact-string comparison (`scripts/parse_local_dish_inventory.py --report`). The ~150-vs-3 shape is indicative of a real asymmetry (a curated shortlist versus an open community survey), not a precise measurement of how much the state's list omits. Any overlap count between the two is a **lower bound** on true overlap for the same reason — a real match missed by string mismatch reads as "in neither register," which is exactly the finding RQ3 is built to report, so this cuts toward understating agreement, not overstating it |
 
+## Added 2026-09-12 — two programme years are cohorts, not a time series
+
+| # | Limitation | Severity | Statement |
+|---|---|---|---|
+| L20 | 2567 and 2568 are not a trend | **HIGH** | The one-province-one-menu programme has now been loaded (or is loadable) across two years, `flavormap_food67.csv` (2567) and the 231-PDF `food68` corpus (2568), tagged `source_programme = 'one_province_one_menu_2567'` / `'_2568'` (migration 024). **These are two cohorts of a curation programme, not two waves of a survey, and must never be read as a time series.** A dish present in one year's shortlist and absent from the other's reflects that year's selection committee, not a change in what anyone cooks — the same reasoning L15 already applies to the institutional corpus generally, restated here specifically because two dated cohorts existing side by side is exactly the setup that invites an unearned "X declined between 2567 and 2568" sentence. The two years also differ in more than year: 2568 covers all 77 provinces at a fixed 3 dishes each (231 by construction); 2567 covers 48 of 77 provinces at an uneven ~7.2 dishes each (345 rows, per the source CSV's own counts) — a different coverage shape, not only a different year, and evidence that the two cohorts may not even share a selection rule (`docs/decisions.md`, Task 1a note). Any year-over-year overlap number this project reports (Task 1d) is a comparison of two committees' choices, stated as exactly that |
+
 ---
 
 *First entry: 2026-08-16, seeded from Bible §14 plus the three institutional-corpus entries.*
