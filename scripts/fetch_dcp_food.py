@@ -30,20 +30,17 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
-import time
-import urllib.robotparser
 from dataclasses import dataclass, field
 
 import httpx
 
-from src.config import RAW_DIR, get_settings
+from src.config import RAW_DIR
+from src.scrape.conduct import PoliteFetcher, load_robots, user_agent
 
 BASE = "https://food.culture.go.th"
 ROBOTS = f"{BASE}/robots.txt"
 OUT_DIR = RAW_DIR / "dcp_food"
 LOG_PATH = OUT_DIR / "_enumeration_log.csv"
-
-RATE_LIMIT_SEC = 1.0
 TIMEOUT_SEC = 60.0
 
 # Province counts per region path, established empirically on 2026-08-16 by probing
@@ -69,16 +66,6 @@ REGIONS: dict[str, int] = {
 MENUS_PER_PROVINCE = 3
 
 
-def user_agent() -> str:
-    email = get_settings().scraper_contact_email
-    if not email or "example.com" in email:
-        raise SystemExit(
-            "SCRAPER_CONTACT_EMAIL is unset or still a placeholder. Rule 7 requires a "
-            "genuinely reachable address in the User-Agent before any fetch."
-        )
-    return f"FlavorMapResearchBot/0.1 (+mailto:{email}; academic research, non-commercial)"
-
-
 @dataclass
 class Result:
     fetched: list[tuple[str, int, int, str, int]] = field(default_factory=list)
@@ -86,45 +73,11 @@ class Result:
     errors: list[tuple[str, str]] = field(default_factory=list)
 
 
-class Fetcher:
-    """Polite sequential fetcher. One request per second, no concurrency."""
-
-    def __init__(self, client: httpx.Client, robots: urllib.robotparser.RobotFileParser):
-        self.client = client
-        self.robots = robots
-        self.ua = user_agent()
-        self._last = 0.0
-
-    def _wait(self) -> None:
-        elapsed = time.monotonic() - self._last
-        if elapsed < RATE_LIMIT_SEC:
-            time.sleep(RATE_LIMIT_SEC - elapsed)
-        self._last = time.monotonic()
-
-    def allowed(self, url: str) -> bool:
-        return self.robots.can_fetch(self.ua, url)
-
-    def get(self, url: str) -> httpx.Response | None:
-        if not self.allowed(url):
-            # Never fetch a disallowed URL — report it and move on (rule 7).
-            print(f"  DISALLOWED by robots.txt: {url}")
-            return None
-        self._wait()
-        return self.client.get(url)
-
-    def head(self, url: str) -> httpx.Response | None:
-        if not self.allowed(url):
-            print(f"  DISALLOWED by robots.txt: {url}")
-            return None
-        self._wait()
-        return self.client.head(url)
-
-
 def is_pdf(body: bytes) -> bool:
     return body[:5] == b"%PDF-"
 
 
-def enumerate_food68(f: Fetcher, limit: int | None, only_region: str | None) -> Result:
+def enumerate_food68(f: PoliteFetcher, limit: int | None, only_region: str | None) -> Result:
     result = Result()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     n = 0
@@ -176,7 +129,7 @@ def enumerate_food68(f: Fetcher, limit: int | None, only_region: str | None) -> 
     return result
 
 
-def probe_extensions(f: Fetcher) -> None:
+def probe_extensions(f: PoliteFetcher) -> None:
     """Report only. No parsers, no bulk fetching — Task 3b explicitly defers these."""
     print("\n" + "=" * 62)
     print("EXTENSION PROBES — reporting only, nothing parsed")
@@ -244,14 +197,12 @@ def main() -> int:
     ap.add_argument("--probe-only", action="store_true", help="run the extension probes only")
     args = ap.parse_args()
 
-    robots = urllib.robotparser.RobotFileParser()
-    robots.set_url(ROBOTS)
-    robots.read()
-    print(f"robots.txt re-checked at run time: {ROBOTS}")
-
-    headers = {"User-Agent": user_agent()}
+    ua = user_agent()
+    headers = {"User-Agent": ua}
     with httpx.Client(headers=headers, timeout=TIMEOUT_SEC, follow_redirects=True) as client:
-        f = Fetcher(client, robots)
+        robots = load_robots(client, BASE, ua)
+        print(f"robots.txt re-checked at run time: {ROBOTS}")
+        f = PoliteFetcher(client, robots, ua)
 
         if not args.probe_only:
             max_docs = sum(REGIONS.values()) * MENUS_PER_PROVINCE

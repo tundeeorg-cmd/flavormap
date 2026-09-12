@@ -24,14 +24,12 @@ import argparse
 import csv
 import hashlib
 import re
-import time
-import urllib.robotparser
-from dataclasses import dataclass
 from datetime import UTC, datetime
 
 import httpx
 
-from src.config import RAW_DIR, get_settings
+from src.config import RAW_DIR
+from src.scrape.conduct import PoliteFetcher, load_robots, user_agent
 
 BASE = "https://cooking.kapook.com"
 ROBOTS = f"{BASE}/robots.txt"
@@ -39,51 +37,11 @@ SITEMAP = f"{BASE}/sitemap.xml"
 OUT_DIR = RAW_DIR / "kapook_cooking"
 MANIFEST = OUT_DIR / "_manifest.csv"
 
-RATE_LIMIT_SEC = 1.0
 TIMEOUT_SEC = 30.0
 RECIPE_URL = re.compile(r"^https://cooking\.kapook\.com/view(\d+)\.html$")
 
 
-def user_agent() -> str:
-    email = get_settings().scraper_contact_email
-    return f"FlavorMapResearchBot/0.1 (+mailto:{email}; academic research, non-commercial)"
-
-
-@dataclass
-class Fetcher:
-    """Polite sequential fetcher. One request per second, no concurrency."""
-
-    client: httpx.Client
-    robots: urllib.robotparser.RobotFileParser
-    ua: str
-    _last: float = 0.0
-
-    def _wait(self) -> None:
-        elapsed = time.monotonic() - self._last
-        if elapsed < RATE_LIMIT_SEC:
-            time.sleep(RATE_LIMIT_SEC - elapsed)
-        self._last = time.monotonic()
-
-    def get(self, url: str) -> httpx.Response | None:
-        if not self.robots.can_fetch(self.ua, url):
-            print(f"  DISALLOWED by robots.txt: {url}")
-            return None
-        self._wait()
-        return self.client.get(url)
-
-
-def load_robots(client: httpx.Client, ua: str) -> urllib.robotparser.RobotFileParser:
-    parser = urllib.robotparser.RobotFileParser()
-    response = client.get(ROBOTS)
-    response.raise_for_status()
-    parser.parse(response.text.splitlines())
-    if not parser.can_fetch(ua, BASE + "/"):
-        raise SystemExit("robots.txt disallows our User-Agent at the root — stopping (rule 7).")
-    print(f"robots.txt: fetched, root allowed for {ua}")
-    return parser
-
-
-def recipe_urls(fetcher: Fetcher) -> list[str]:
+def recipe_urls(fetcher: PoliteFetcher) -> list[str]:
     response = fetcher.get(SITEMAP)
     if response is None or response.status_code != 200:
         raise SystemExit(f"sitemap unavailable: {response.status_code if response else 'blocked'}")
@@ -126,8 +84,9 @@ def main() -> int:
     headers = {"User-Agent": ua, "Accept-Language": "th,en;q=0.8"}
 
     with httpx.Client(headers=headers, timeout=TIMEOUT_SEC, follow_redirects=True) as client:
-        robots = load_robots(client, ua)
-        fetcher = Fetcher(client=client, robots=robots, ua=ua)
+        robots = load_robots(client, BASE, ua)
+        print(f"robots.txt: fetched, root allowed for {ua}")
+        fetcher = PoliteFetcher(client, robots, ua)
         urls = recipe_urls(fetcher)
         if args.sitemap_only:
             return 0
