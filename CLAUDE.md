@@ -124,6 +124,7 @@ needs changing gets a new forward migration, never an edit to an applied one.
 | 019 | `recipes.raw_id` UNIQUE | closes a re-parse duplication gap — both loaders now upsert on it |
 | 020 | `redaction_log.raw_id` UNIQUE | the same duplication gap, one table over — both loaders upsert on it too |
 | 021 | `v_recipes_low_confidence` | the explicit sensitivity-analysis pull (§3.2) — same shape as `v_recipes_clean`, confidence flipped to `low`, tier-4-low included |
+| 022 | `recipes.source_programme` | distinguishes government programmes within the `official` register — `one_province_one_menu` (the 231 DCP PDFs) vs. `thai_taste_therapy` (`culture.gdcatalog.go.th`), CHECKed against `register`, carried through both analysis views |
 
 **Ordering correction (2026-08-16).** The v2 plan numbered `province_attribution` 006 and
 `provinces` 007, with a foreign key pointing from the earlier to the later. That cannot

@@ -143,6 +143,47 @@ lists, publication dates and derived labels only. The page's JSON-LD carries an
 |---|---|
 | `gdcatalog.go.th` | Disallows automated access. Its dataset listing is consulted manually only |
 
+### `gdcatalog.go.th` / `culture.gdcatalog.go.th` — audit attempt, 2026-09-12
+
+A session was asked to audit the catalogue (robots.txt, licence text, dataset
+inventory via the CKAN `package_list` / `package_show` API where available) ahead of
+ingesting a manually-downloaded `thaitastetherapy.csv`. **Neither host could be
+reached.** `WebFetch` on `https://culture.gdcatalog.go.th/robots.txt` and
+`https://gdcatalog.go.th/robots.txt` both returned `EGRESS_BLOCKED` — this session's
+own network egress policy denies the domain outright, the same class of denial
+recorded in `docs/decisions.md` on the same date for `food.culture.go.th` and
+`geodata.ucdavis.edu`. This is an infrastructure fact about one execution
+environment, not a finding about the site: **no robots.txt was read, no licence text
+was seen, and no dataset was enumerated in this session.**
+
+**This does not confirm or update the row above.** That row — "Disallows automated
+access. Its dataset listing is consulted manually only" — was written in the very
+first commit of this file (2026-08-16, `b8a90d6`) with no corresponding entry in
+`docs/source_audit.md` and no dated robots.txt fetch behind it that this repository's
+history shows. It may be accurate; it is also, on the evidence in this repository, an
+unverified carried-forward claim rather than an audited one. Both facts are recorded
+rather than one silently standing in for the other: the row is unverified, and this
+session separately could not verify it either way.
+
+**The manually-downloaded CSV was not available to ingest.** `thaitastetherapy.csv`
+was not present at `data/raw/gdcatalog/thaitastetherapy.csv` or anywhere else in this
+session's filesystem or its connected Google Drive. `data/raw/` is gitignored by
+design (raw sources never enter version control), so a file placed there on the
+researcher's own machine would not appear in a fresh clone or a cloud session — the
+same reason the 231 DCP PDFs were absent in the 2026-09-12 session noted above. No
+data was fabricated to stand in for it. See `docs/decisions.md` for what was built
+instead: parsing and PDPA-stripping machinery for this source's documented column
+shapes, tested against synthetic fixtures rather than the real file.
+
+**PII columns this source is known to carry**, from the task brief rather than from
+an audit: `ownerprefix`, `ownername`, `ownersurname` (a named individual),
+`address` (house number, moo, tambon, amphoe), `gps` (coordinates to six decimal
+places — their home or shop location in a different notation), `picowner` and
+`picadress` (Google Drive links to photos of the person and their premises). All
+seven are dropped at parse time by `src/ingest/gdcatalog.py`'s column whitelist,
+before any database write; none is fetched, cached, or resolved — a Drive URL is
+never followed, whether or not it is later found dropped correctly.
+
 ## Personal data (PDPA 2562)
 
 **No personally identifying data enters the database, ever.** Not in a table, not in a

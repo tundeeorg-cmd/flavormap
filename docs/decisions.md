@@ -709,3 +709,149 @@ numbers three lines apart in the same section.
 whichever number they intend. Picking 0.85 or 0.9 as "the" project threshold is the
 researcher's call — this note exists so it is made deliberately rather than by whichever
 number a future reader (or agent) happens to copy first.
+
+---
+
+## Note — this session could not reach `gdcatalog.go.th` or obtain `thaitastetherapy.csv`
+**Date:** 2026-09-12
+**This is not a gate.** Like the note above dated the same day, it is an
+infrastructure fact about one execution environment, not a change to any ethics or
+research decision.
+
+A session was asked to (1) audit `culture.gdcatalog.go.th` and its parent
+`gdcatalog.go.th` — robots.txt, licence, a CKAN dataset inventory — and (2) ingest a
+manually-downloaded `thaitastetherapy.csv` into the schema, with PDPA stripping of
+seven owner/location columns as the ingester's definition of done.
+
+**Neither task's precondition held in this environment.** `WebFetch` on both hosts'
+`robots.txt` returned `EGRESS_BLOCKED` — an organisation egress-policy denial, per
+`/root/.ccr/README.md`'s own guidance to report such a denial rather than route around
+it, not a robots.txt-based finding about the site. This is the same class of denial
+the prior note on this date recorded for `food.culture.go.th` and
+`geodata.ucdavis.edu`; `gdcatalog.go.th` is a third host blocked the same way. No
+robots.txt was read, no licence text was seen, and the catalogue was not enumerated.
+
+Separately, `thaitastetherapy.csv` does not exist anywhere in this session — not at
+`data/raw/gdcatalog/` (which the task brief assumed it had already been moved to),
+not elsewhere in the container, and a Google Drive search for it
+(`mcp__Google_Drive__search_files`, titles containing "thaitastetherapy" or "taste"
++ "therapy") returned no results. `data/raw/` is gitignored, so even a real download
+on the researcher's own machine would not appear in a fresh clone or a cloud session —
+the same reason the 231 DCP PDFs were absent from the prior note's session. Nothing
+was fabricated to stand in for the missing file: no row counts, no region values
+beyond the one string the brief itself quotes (`ภาคกลางและตะวันออก`), no ingredient
+content.
+
+**What was done instead — machinery only, tested against synthetic fixtures.**
+
+- `src/ingest/gdcatalog.py`: whitelist-selects the six analytical columns
+  (`region`, `province`, `foodname`, `originalfoodname`, `otherfoodname`, `material`)
+  and never the seven PII ones, by column name rather than by blacklisting the PII
+  columns — a schema change that added an eighth personal-data column would still be
+  dropped. Classifies `material` into the three shapes the brief documents (clean
+  space-separated list, numbered list, prose) and extracts from the first two;
+  prose rows are reported unparsed, never guessed at, per the brief's own instruction
+  not to run an LLM pass over this field without asking first.
+- `src/ingest/pdpa.py`'s shared leak detector (`find_leaks`, already used by
+  `tests/test_pdpa.py`'s whole-database scan) gained two classes this source
+  specifically introduces: `coordinates` (a bare decimal lat/long pair) and
+  `drive_url` (a `drive.google.com` / `docs.google.com` link). Both were already
+  redacted by the DCP-forms stripper's `PATTERNS` table; they were missing from the
+  broader `LEAK_PATTERNS` table the test suite actually scans with, which is now
+  closed for every source, not just this one.
+- `tests/test_gdcatalog.py` and `tests/test_gdcatalog_pdpa.py`: format-classification
+  and PDPA-guarantee tests built from the brief's own literal examples (the three
+  `material` format samples, the three Nan dish names `คั่วไก่` / `ตำถั่วแปป` /
+  `แกงสะแล`) and from invented PII fixtures in the `ทดสอบ` ("test") convention
+  `tests/test_pdpa.py` already uses — never from the real file, which does not exist
+  here to copy from.
+- Migration `022_recipes_source_programme.sql`: `recipes.source_programme`
+  distinguishes `one_province_one_menu` from `thai_taste_therapy` within the
+  `official` register (Task 2c), with a CHECK tying it to `register` and a backfill
+  for the DCP rows already loaded. `scripts/parse_dcp.py` now sets it explicitly.
+  Verified against an empty database: all 22 migrations apply cleanly
+  (`uv run python -m scripts.migrate`, local PostgreSQL 16 +
+  `postgresql-16-postgis-3`, substituting for Docker Compose as the prior note
+  already established for this environment), and the full test suite passes
+  unchanged plus the new tests (158 passed, 19 skipped — the pre-existing
+  raw-corpus-gated skips; `ruff check` clean; `mypy` shows no errors beyond the two
+  pre-existing `parse_dcp.py` findings this session did not introduce).
+- `scripts/parse_gdcatalog.py`: the loader, written to the same shape as
+  `scripts/parse_dcp.py` (raw_recipes → redaction_log → recipes → province_attribution,
+  no `recipe_ingredients` write — that still waits on HD-6). It refuses to run without
+  the CSV in place, and it will additionally fail on the `raw_recipes.source_id`
+  foreign key: no `sources` row exists for this source, deliberately — seeding one
+  would mean inventing the `robots_ok` and audit-date values migrations 017/018
+  transcribed from a completed, dated audit, and no such audit exists yet (see
+  `ETHICS.md`'s 2026-09-12 gdcatalog entry). Region is written nowhere but
+  `raw_recipes.parsed_json`, unmapped — see the gate immediately below.
+
+**What still needs an environment with the right network access, or the file
+supplied directly.** The actual audit (Task 1) and the actual ingestion and its
+Task 3 numbers (recipe counts per province/region, extraction success rate by
+format, lexicon overlap, the three Nan dishes against fieldwork, the effect on the
+corpus-wide labelled fraction) all require either this session's egress policy to
+allow `gdcatalog.go.th`, or the CSV to be supplied directly into this environment
+(e.g. pasted, or added to a connected Drive this session can read). Whichever the
+researcher prefers, nothing above depends on the choice — the parser and its tests
+already work.
+
+---
+
+## HD-23 — Region-scheme mapping for `thaitastetherapy.csv`
+**Date presented:** 2026-09-12
+**Status:** OPEN, and cannot fully proceed to options until the real file is
+available — the brief confirms one region string; the other three are not.
+
+**What depends on it.** Whether and how this source's `region` column ever becomes a
+canonical `provinces.region4` value anywhere downstream. Nothing currently loads it
+there: `scripts/parse_gdcatalog.py` writes the raw string only to
+`raw_recipes.parsed_json`, never to `province_attribution.region` — the same field
+`scripts/parse_dcp.py` also leaves NULL today, so this is not a new gap, only one now
+named for a second source.
+
+**What is known, and what is not.** The brief states the file uses "a four-region
+scheme where `ภาคกลางและตะวันออก` merges Central and East" and asks for the exact
+set of region values present to be reported before proposing a mapping. This session
+has exactly one confirmed value — the one the brief itself quotes — and no way to see
+the other three or four, since the file was never available (see the note above).
+
+**A structural observation, not a proposed decision.** `provinces.region4`
+(migration 006) is itself a four-way scheme with no separate East value — its CSV
+(`data/reference/provinces.csv`) shows exactly `{Central, North, Northeast, South}`,
+which means every province this project already calls "Central" already includes
+what a five-way scheme would call East. If `thaitastetherapy.csv`'s four Thai labels
+turn out to be the ordinary four-region set (ภาคเหนือ / ภาคตะวันออกเฉียงเหนือ or
+ภาคอีสาน / ภาคกลางและตะวันออก / ภาคใต้), the merge this source's own label names is
+the same merge `region4` already performs — a much smaller decision than HD-1's or
+HD-2's, because no folding choice would be introduced that this project has not
+already made once. This is offered as a hypothesis the real file can confirm or
+contradict, not as the decision itself.
+
+**Options, contingent on that confirmation:**
+  A. **Direct name mapping**, once the exact four (or however many) Thai strings are
+     seen and, if the structural observation above holds, matched onto `region4`
+     one-to-one.
+     Consequence: cheapest, and introduces no new judgment call beyond confirming the
+     hypothesis above. Wrong only if the file's regions turn out not to align with
+     `region4`'s existing Central/East merge — unknowable without the file.
+  B. **Leave the CSV's region column unmapped indefinitely**, deriving region only
+     from `province` → `provinces.region4` the way every other source implicitly
+     would if it populated `province_attribution.region` at all (nothing currently
+     does).
+     Consequence: sidesteps the mapping question entirely, at the cost of never using
+     the source's own stated region as a cross-check against province-derived region
+     — a check that might itself surface data-quality issues worth knowing about.
+  C. **Store both**: the source's raw region string (already done, in
+     `parsed_json`) and a province-derived `region4` value, and compare them.
+     Consequence: most informative, costs nothing beyond what B already requires plus
+     a join, and turns a mapping decision into a data-quality signal instead.
+
+**Recommendation given:** See the file first. If the structural observation holds, A
+costs almost nothing and C is worth doing regardless of which register-mapping
+question is chosen — it is nearly free once the province join exists for other
+purposes. B is the safe fallback if the file's regions do not align as hypothesised.
+
+**Decision:**
+**Reasoning:**
+**Date decided:**
