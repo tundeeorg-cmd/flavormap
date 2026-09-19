@@ -14,7 +14,7 @@ services:
       POSTGRES_USER: flavormap
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       # Named volume, not a bind mount: keeps Postgres's data directory off the host
       # filesystem, which avoids permission and fsync surprises on macOS.
