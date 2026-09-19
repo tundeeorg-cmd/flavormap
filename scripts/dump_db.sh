@@ -3,23 +3,19 @@
 # archive. Used for the Phase 2 dataset freeze and for `make verify` reproducibility
 # checks (CLAUDE.md §Tests, §Phase 2 exit).
 #
+# Runs pg_dump inside the db container, so the client always matches the server
+# (Postgres 15) and nothing needs installing on the host. The connection string is
+# never printed, because it contains the password.
+#
 # Usage: scripts/dump_db.sh
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-if [ -f .env ]; then
-  set -a
-  # shellcheck disable=SC1091
-  source .env
-  set +a
-fi
-
-: "${DATABASE_URL:?DATABASE_URL not set — check .env}"
-
 mkdir -p data/exports
 timestamp="$(date +%Y%m%d_%H%M%S)"
 out="data/exports/flavormap_${timestamp}.sql.gz"
+trap 'rm -f "$out"' ERR
 
-pg_dump "$DATABASE_URL" | gzip > "$out"
-echo "Dumped $DATABASE_URL -> $out"
+docker compose exec -T db sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB"' | gzip > "$out"
+echo "Dumped database -> $out ($(du -h "$out" | cut -f1))"

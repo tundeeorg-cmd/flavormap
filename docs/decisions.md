@@ -711,3 +711,4 @@ researcher's call — this note exists so it is made deliberately rather than by
 number a future reader (or agent) happens to copy first.
 - 2026-09-19: Moved dev environment to Dad's Mac
 - 2026-09-19: Migration 015 (register) was first applied after 201 dcp_food recipes were already loaded. Backfilled all 201 as 'official', derived from source (dcp_food = food.culture.go.th), not guessed. NOT NULL enforced after backfill so any non-dcp_food row fails loudly. Migrations 016–021 applied the same day.
+- 2026-09-19: Backups stay on this Mac only for now (data/exports/, gitignored), per the Makefile rule that the parsed corpus never leaves the machine. Accepted risk: the laptop is a single point of failure (Bible §13). Revisit before fieldwork data arrives. dump_db.sh/restore_db.sh now run pg_dump/psql inside the db container (version-matched, no host install, no password printed). Restore verified: 201 official recipes.
