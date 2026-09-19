@@ -17,9 +17,22 @@
 -- NOT NULL with no default: every future loader must decide this explicitly rather
 -- than inherit a silently-guessed value.
 
+-- Backfill note (2026-09-19): first applied after 201 dcp_food rows were already
+-- loaded, so the "before any row exists" premise above did not hold. Register is
+-- derived deterministically from source, not guessed: every row whose raw record came
+-- from dcp_food (food.culture.go.th) is 'official' by the definition above. NOT NULL is
+-- then enforced, so any row not traceable to dcp_food makes this migration fail loudly.
 ALTER TABLE recipes
-  ADD COLUMN register TEXT NOT NULL
+  ADD COLUMN register TEXT
     CHECK (register IN ('official', 'commercial', 'domestic'));
+
+UPDATE recipes r
+SET register = 'official'
+FROM raw_recipes rr
+WHERE rr.raw_id = r.raw_id
+  AND rr.source_id = 'dcp_food';
+
+ALTER TABLE recipes ALTER COLUMN register SET NOT NULL;
 
 CREATE INDEX recipes_register_idx ON recipes (register);
 

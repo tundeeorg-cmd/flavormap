@@ -710,3 +710,4 @@ whichever number they intend. Picking 0.85 or 0.9 as "the" project threshold is 
 researcher's call — this note exists so it is made deliberately rather than by whichever
 number a future reader (or agent) happens to copy first.
 - 2026-09-19: Moved dev environment to Dad's Mac
+- 2026-09-19: Migration 015 (register) was first applied after 201 dcp_food recipes were already loaded. Backfilled all 201 as 'official', derived from source (dcp_food = food.culture.go.th), not guessed. NOT NULL enforced after backfill so any non-dcp_food row fails loudly. Migrations 016–021 applied the same day.
