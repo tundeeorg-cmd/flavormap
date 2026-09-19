@@ -709,3 +709,4 @@ numbers three lines apart in the same section.
 whichever number they intend. Picking 0.85 or 0.9 as "the" project threshold is the
 researcher's call — this note exists so it is made deliberately rather than by whichever
 number a future reader (or agent) happens to copy first.
+- 2026-09-19: Moved dev environment to Dad's Mac
