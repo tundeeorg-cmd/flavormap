@@ -95,26 +95,38 @@ def test_endangerment_is_none_when_section_three_is_untouched() -> None:
 @pytest.mark.parametrize(
     ("document", "level"),
     [
-        ("northeast_15_1.pdf", "transmitted"),
-        ("northeast_15_2.pdf", "transmitted"),
-        ("northeast_15_3.pdf", "transmitted"),
-        ("north_6_1.pdf", "transmitted"),
+        ("north_6_1.pdf", "transmitted"),      # Nan
+        ("north_6_2.pdf", None),               # Nan
+        ("north_6_3.pdf", None),               # Nan
+        ("northeast_6_1.pdf", "transmitted"),  # Buri Ram
+        ("northeast_6_2.pdf", None),           # Buri Ram
+        ("northeast_6_3.pdf", "near_lost"),    # Buri Ram
     ],
 )
-def test_fieldwork_sample_is_pinned(document: str, level: str) -> None:
-    """RQ5's entire official axis, pinned.
+def test_fieldwork_sample_is_pinned(document: str, level: str | None) -> None:
+    """RQ5's entire official axis, pinned: the six Nan and Buri Ram documents (HD-29).
 
-    §10 puts the domestic register in Nan and Surin and the state selected three dishes
-    per province, so these four documents — plus two carrying no §3 tick — are the whole
-    sample RQ5 compares cooks against. `docs/checkbox_extraction.md` reports that all
-    four carry the same level, which is why Figure 5's agreement matrix cannot be built.
+    The state selected three dishes per province, so these six are the whole sample RQ5
+    compares cooks against: three levels, two distinct values. That is why HD-29 chose
+    Buri Ram. Under the original Surin pairing the axis had one value (see
+    `test_original_surin_sample_is_still_reproducible`).
 
     This pins the finding, not a hand-verified ground truth: these are the values the
-    extractor reads from a ticked box. If a parser change moves any of them, the go/no-go
-    in `docs/decisions.md` rests on a different corpus than the one it was written from
-    and has to be re-run rather than quietly inherited.
+    extractor reads from a ticked box. If a parser change moves any of them, the RQ5
+    gate and HD-29 in `docs/decisions.md` rest on a different corpus than the one they
+    were written from, and have to be re-run rather than quietly inherited.
     """
     assert parse_pdf(RAW / document).endangerment == level
+
+
+@pytest.mark.parametrize(
+    "document", ["northeast_15_1.pdf", "northeast_15_2.pdf", "northeast_15_3.pdf"]
+)
+def test_original_surin_sample_is_still_reproducible(document: str) -> None:
+    """The evidence behind the RQ5 gate and HD-29: Surin's three documents all read
+    `transmitted`, so Nan + Surin gave the official axis a single value. Kept pinned so
+    the recorded reason for the switch stays checkable."""
+    assert parse_pdf(RAW / document).endangerment == "transmitted"
 
 
 @pytest.mark.xfail(
@@ -131,6 +143,6 @@ def test_mojibake_document_loses_its_endangerment_level() -> None:
 
     The larger cost is not this field: both mojibake documents also yield zero ingredient
     rows against a corpus mean of 4.9. Left unfixed inside the go/no-go deliberately — it
-    cannot change the RQ5 answer, whose sample is Nan and Surin, not the South.
+    cannot change the RQ5 answer, whose sample is Nan and Buri Ram, not the South.
     """
     assert parse_pdf(RAW / "south_9_2.pdf").endangerment == "near_lost"

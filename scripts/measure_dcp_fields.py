@@ -62,11 +62,11 @@ CORPUS = RAW_DIR / "dcp_food"
 
 ENDANGERMENT_NEEDLES = [needle for needle, _ in ENDANGERMENT]
 
-# §10 puts the domestic register in Nan and Surin, and RQ5 compares the official
-# endangerment level against what cooks there say about *the same dishes*. The state
-# selected three dishes per province, so the corpus-wide recovery rate is not RQ5's
-# sample — these six documents are. Reported separately for that reason.
-FIELDWORK_PROVINCES = {"น่าน": "Nan", "สุรินทร์": "Surin"}
+# The domestic register is Nan and Buri Ram (HD-29, 2026-09-28; Surin before that), and
+# RQ5 compares the official endangerment level against what cooks there say about *the
+# same dishes*. The state selected three dishes per province, so the corpus-wide recovery
+# rate is not RQ5's sample — these six documents are. Reported separately for that reason.
+FIELDWORK_PROVINCES = {"น่าน": "Nan", "บุรีรัมย์": "Buri Ram"}
 
 # Thai combining marks arriving as Latin-1 letters. A handful of stray accented
 # characters could be legitimate; a document carrying dozens is corrupted.
