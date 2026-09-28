@@ -41,6 +41,17 @@ _CASES: list[tuple[str, str | None, str]] = [
 @pytest.fixture
 def fixture_recipes() -> Iterator[None]:
     conn = get_connection()
+    # Provinces are loaded by scripts/load_geometry.py, not by a migration, so a fresh
+    # database (make verify) has none. Create Nan's row only if it is missing, and remove
+    # only a row this fixture created. The live row, when present, is never touched.
+    created_province = conn.execute(
+        """INSERT INTO provinces (province_code, name_th, name_en, region4,
+                                 centroid_lat, centroid_lon)
+           VALUES (%s, 'น่าน', 'Nan', 'North', 18.8, 100.8)
+           ON CONFLICT (province_code) DO NOTHING RETURNING province_code""",
+        (_PROVINCE,),
+    ).fetchone() is not None
+    conn.commit()
     try:
         conn.execute(
             """INSERT INTO sources (source_id, source_type, base_url, robots_ok, audited_on)
@@ -101,6 +112,8 @@ def fixture_recipes() -> Iterator[None]:
         )
         conn.execute("DELETE FROM raw_recipes WHERE source_id = %s", (_SOURCE_ID,))
         conn.execute("DELETE FROM sources WHERE source_id = %s", (_SOURCE_ID,))
+        if created_province:
+            conn.execute("DELETE FROM provinces WHERE province_code = %s", (_PROVINCE,))
         conn.commit()
         conn.close()
 
