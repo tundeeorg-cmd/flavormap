@@ -73,6 +73,19 @@ The rest of the pipeline (`scrape`, `ingest`, `clean`, `analyze`, `vision`, `fig
 `web`, `export`) is scaffolded in the `Makefile` and built out phase by phase — see
 [CLAUDE.md](CLAUDE.md) for what's live and what's still a stub.
 
+### Backing up off this laptop
+
+```bash
+make backup TO=/Volumes/YourDrive
+```
+
+This encrypts the fieldwork interview files and the newest database dump into one file
+on an external drive or a cloud-synced folder. It refuses any folder on this laptop's
+own disk. gpg asks for a passphrase; **lose it and the backup cannot be opened**, so keep
+it somewhere safe. The backup is checked before it reports success. To restore:
+`gpg --decrypt <file>.tar.gz.gpg | tar -xz`, then `scripts/restore_db.sh --force` on the
+dump inside, and copy the interview files back into `data/interviews/`.
+
 ### Checking progress
 
 ```bash

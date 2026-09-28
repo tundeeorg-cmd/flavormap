@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest cook-along lexicon interviews status status-snapshot clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest cook-along lexicon interviews backup status status-snapshot clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -18,6 +18,13 @@ db-reset:
 	docker compose down -v
 	docker compose up -d --wait
 	uv run python -m scripts.migrate
+
+# HD-31: encrypted off-laptop backup of the interview files and the newest dump.
+#   make backup TO=/Volumes/YourDrive
+# Refuses a destination on the laptop's own disk; gpg asks for the passphrase.
+backup:
+	@test -n "$(TO)" || (echo "Usage: make backup TO=/path/to/external/drive" >&2; exit 1)
+	./scripts/backup.sh "$(TO)"
 
 # Timestamped, gzip-compressed pg_dump to data/exports/ (gitignored) — scripts/dump_db.sh.
 # Carries the full parsed corpus, so it never leaves the machine it was taken on.
