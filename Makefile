@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest cook-along lexicon status status-snapshot clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest cook-along lexicon interviews status status-snapshot clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -54,6 +54,12 @@ ingest: scrape
 # nothing is ever deleted.
 lexicon:
 	uv run python -m scripts.load_lexicon
+
+# HD-29/HD-30 — fieldwork interview files (data/interviews/*.toml, gitignored) into
+# informants, interview_dishes and the domestic register. All-or-nothing; refuses any
+# file without consent or with personal data.
+interviews:
+	uv run python -m scripts.load_interviews
 
 # RQ4 — hand-written cook-along logs (data/cook_along/*.toml) into cook_along_log.
 # All-or-nothing: one invalid file, including one carrying personal data, loads none.

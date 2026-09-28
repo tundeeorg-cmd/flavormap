@@ -4,6 +4,10 @@ pgdata/
 data/raw/
 data/interim/
 data/photos/
+# Fieldwork interviews (HD-30): gitignored, local only, until the HD-20 release review.
+# Only the blank template is tracked.
+data/interviews/*
+!data/interviews/_template.toml
 
 # Source PDFs anywhere under data/. The DCP corpus carries informant personal data
 # (name, house number, road, postcode, mobile) and must never be committed. Scoped to

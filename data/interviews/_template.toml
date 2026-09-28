@@ -1,0 +1,42 @@
+# Fieldwork interview template (HD-29, HD-30). Copy to INT_BRM_001.toml (or INT_NAN_001.toml),
+# fill in during or right after the interview, then run: make interviews
+#
+# This directory is gitignored: only this template is tracked. Nothing here is published
+# before the HD-20 release review.
+#
+# PDPA, enforced by the loader, which refuses the whole file rather than redacting:
+#   - NO names, nicknames, phone numbers, LINE IDs, addresses, house numbers or GPS.
+#     Refer to people by role: ยาย, แม่, แม่ค้า, ป้าข้างบ้าน.
+#   - District only, never subdistrict or village (HD-21).
+#   - Free text is limited to 500 characters. Summarise; don't transcribe.
+#
+# Leave a field out if it wasn't recorded. Absent = NULL = "not recorded".
+
+informant_id   = "INT_BRM_001"   # INT_BRM_nnn for Buri Ram, INT_NAN_nnn for Nan. Must match the file name
+province_code  = "TH-31"         # TH-31 Buri Ram, TH-55 Nan
+district       = ""              # อำเภอ only
+age_bracket    = "40_60"         # lt40 | 40_60 | gt60
+role           = ""              # how they'll be described in the paper, e.g. "home cook, rice farmer"
+# acquisition_mode = "grown"     # the cook's main sourcing: grown | foraged | market | packaged
+
+consent_form   = true            # the signed Thai consent form. The loader refuses anything else
+consent_date   = 2026-11-01
+interview_date = 2026-11-01
+
+# One [[dishes]] block per dish discussed. Number them yourself; never renumber later.
+[[dishes]]
+dish_no = 1
+name_th = ""                     # the dish as the cook named it
+ingredients = [                  # as recorded, one line each, in the cook's words
+  "",
+]
+# official_recipe_id = 0         # HD-30: the official dish this corresponds to, if any.
+#                                # Leave out for "no official counterpart" (RQ3's "neither").
+#                                # Never guessed by the loader.
+# cook_status_verbatim = ""      # RQ5: the cook's words on whether this dish is disappearing
+# cook_status_level = ""         # lost | near_lost | transmitted. Leave out until coded (HD-11)
+# distinctiveness_claim = ""     # Q4: what makes it this province's
+# stated_absence = ""            # Q9: อะไรที่คนจังหวัดอื่นใส่ในจานนี้ แต่บ้านเราไม่มีวันใส่?
+# stated_substitutions = ""      # what they substitute, and why
+# differs_from_bangkok = ""
+# validation_notes = ""          # their reaction to the recipes from their province
