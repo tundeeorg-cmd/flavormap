@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest cook-along lexicon clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest cook-along lexicon status status-snapshot clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -86,6 +86,15 @@ web:
 
 export:
 	@echo "make export: not yet implemented" && exit 1
+
+# Read-only snapshot of where the project stands. Never writes to the database.
+status:
+	uv run python -m scripts.status
+
+# The same snapshot, aggregate counts only (HD-28), written to
+# data/coverage/status_YYYY-MM-DD.md for committing, so progress shows in git history.
+status-snapshot:
+	uv run python -m scripts.status --snapshot
 
 test:
 	uv run pytest

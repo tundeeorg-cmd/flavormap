@@ -15,6 +15,10 @@ data/**/*.pdf
 # directory is tracked so the path exists on clone (Bible §11); its contents are not.
 data/coverage/*
 !data/coverage/.gitkeep
+# Exception (HD-28): status snapshots from `make status-snapshot` ARE committed. They
+# carry aggregate counts only, never the DCP-derived per-province lists this rule exists
+# to keep out, so progress is visible in git history rather than only in one database.
+!data/coverage/status_*.md
 
 # Database dumps (scripts/dump_db.sh writes data/exports/flavormap_*.sql.gz).
 # The directory stays tracked via .gitkeep so the path exists on clone; its contents

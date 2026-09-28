@@ -72,6 +72,23 @@ The rest of the pipeline (`scrape`, `ingest`, `clean`, `analyze`, `vision`, `fig
 `web`, `export`) is scaffolded in the `Makefile` and built out phase by phase — see
 [CLAUDE.md](CLAUDE.md) for what's live and what's still a stub.
 
+### Checking progress
+
+```bash
+make status            # print a snapshot to the terminal
+make status-snapshot   # write it to data/coverage/status_YYYY-MM-DD.md for committing
+```
+
+`make status` prints row counts, province coverage per register, lexicon health,
+migrations, whether the database container is up, backup age, the latest decision, and
+whether each research question's input data exists yet. Questions waiting on fieldwork
+show as `blocked-on-fieldwork`, not as failures. It never writes to the database, and any
+line it can't compute shows `n/a`, so it also runs on a fresh clone.
+
+`make status-snapshot` writes the same report in aggregate form (counts only, with no
+per-province name lists), so it can be committed to this public repo. Commit one now and
+then, and the project's progress shows up in git history.
+
 ---
 
 ## Author
