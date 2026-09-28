@@ -8,6 +8,7 @@ cleanup cannot touch a real lexicon entry. Includes CLAUDE.md §13's
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -19,6 +20,7 @@ from src.clean.lexicon import (
     ALIASES_FILE,
     CANONICAL_COLUMNS,
     CANONICAL_FILE,
+    CATEGORIES,
     CONFLATION_COLUMNS,
     CONFLATION_VIOLATIONS,
     CONFLATIONS_FILE,
@@ -32,8 +34,8 @@ from src.db import get_connection
 
 GOOD = {
     CANONICAL_FILE: [
-        "ING_0001,พริกขี้หนู,bird's eye chilli,chilli,,small and hot",
-        "ING_0002,พริกชี้ฟ้า,spur chilli,chilli,,",
+        "ING_0001,พริกขี้หนู,bird's eye chilli,chilli,false,,small and hot",
+        "ING_0002,พริกชี้ฟ้า,spur chilli,chilli,false,,",
     ],
     ALIASES_FILE: ["พริกขี้หนูสวน,ING_0001", "พริกขี้หนู,ING_0001"],
     CONFLATIONS_FILE: ["ING_0002,ING_0001,different heat and use"],
@@ -68,36 +70,63 @@ def test_strings_are_nfc_and_whitespace_normalised(tmp_path: Path) -> None:
 
     decomposed = unicodedata.normalize("NFD", "น้ำปลา")
     lex = read_lexicon(_write(tmp_path, {
-        CANONICAL_FILE: [f"ING_0001,  {decomposed} ,fish sauce,condiment,,"],
+        CANONICAL_FILE: [f"ING_0001,  {decomposed} ,fish sauce,protein_fish,true,,"],
     }))
     assert lex.canonicals[0].name_th == "น้ำปลา"
+    assert lex.canonicals[0].is_fermented is True
+
+
+def test_categories_are_hd27s_fifteen() -> None:
+    assert len(CATEGORIES) == len(set(CATEGORIES)) == 15
+    assert "seasoning" not in CATEGORIES and "fermented" not in CATEGORIES
+    assert {"coconut", "acid", "other"} <= set(CATEGORIES)
+
+
+def _entries(n: int, n_other: int) -> list[str]:
+    return [f"ING_{i:04d},ทดสอบ{i},test {i},{'other' if i < n_other else 'herb'},false,,"
+            for i in range(n)]
+
+
+def test_other_at_exactly_five_percent_is_allowed(tmp_path: Path) -> None:
+    read_lexicon(_write(tmp_path, {CANONICAL_FILE: _entries(20, 1)}))
+
+
+def test_other_over_five_percent_stops_the_load(tmp_path: Path) -> None:
+    with pytest.raises(LexiconError, match=r"2 of 20 entries \(10.0%\).*limitations.md"):
+        read_lexicon(_write(tmp_path, {CANONICAL_FILE: _entries(20, 2)}))
 
 
 @pytest.mark.parametrize(
     ("files", "message"),
     [
-        ({CANONICAL_FILE: ["ING_1,พริก,chilli,chilli,,"]}, "not ING_ followed by 4 digits"),
-        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,,",
-                           "ING_0001,ข่า,galangal,rhizome,,"]}, "used twice"),
-        ({CANONICAL_FILE: ["ING_0001,พริก,,chilli,,"]}, "name_en is required"),
-        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,,,"]}, "category is required"),
-        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,,",
-                           "ING_0002,พริก,chilli 2,chilli,,"]}, "already ING_0001"),
-        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,,"],
+        ({CANONICAL_FILE: ["ING_1,พริก,chilli,chilli,false,,"]}, "not ING_ followed by 4 digits"),
+        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,false,,",
+                           "ING_0001,ข่า,galangal,aromatic,false,,"]}, "used twice"),
+        ({CANONICAL_FILE: ["ING_0001,พริก,,chilli,false,,"]}, "name_en is required"),
+        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,,false,,"]}, "category is required"),
+        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,false,,",
+                           "ING_0002,พริก,chilli 2,chilli,false,,"]}, "already ING_0001"),
+        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,false,,"],
           ALIASES_FILE: ["พริกแห้ง,ING_0009"]}, "not an entry"),
-        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,,",
-                           "ING_0002,ข่า,galangal,rhizome,,"],
+        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,false,,",
+                           "ING_0002,ข่า,galangal,aromatic,false,,"],
           ALIASES_FILE: ["พริก,ING_0002"]}, "is the name of ING_0001"),
-        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,,",
-                           "ING_0002,ข่า,galangal,rhizome,,"],
+        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,false,,",
+                           "ING_0002,ข่า,galangal,aromatic,false,,"],
           ALIASES_FILE: ["x,ING_0001", "x,ING_0002"]}, "maps to both"),
-        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,,"],
+        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,false,,"],
           CONFLATIONS_FILE: ["ING_0001,ING_0001,same"]}, "conflated with itself"),
-        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,,",
-                           "ING_0002,ข่า,galangal,rhizome,,"],
+        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,false,,",
+                           "ING_0002,ข่า,galangal,aromatic,false,,"],
           CONFLATIONS_FILE: ["ING_0001,ING_0002,"]}, "reason is required"),
-        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,,นางสมหญิง ทดสอบ said so"]},
+        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,false,,นางสมหญิง ทดสอบ said so"]},
          "personal data"),
+        ({CANONICAL_FILE: ["ING_0001,กะปิ,shrimp paste,seasoning,true,,"]},
+         "not in HD-27's list"),
+        ({CANONICAL_FILE: ["ING_0001,ปลาร้า,fermented fish,fermented,true,,"]},
+         "not in HD-27's list"),
+        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,,,"]}, "is_fermented must be"),
+        ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,no,,"]}, "is_fermented must be"),
     ],
 )
 def test_invalid_lexicons_are_refused(
@@ -110,7 +139,7 @@ def test_invalid_lexicons_are_refused(
 def test_every_problem_is_reported_at_once(tmp_path: Path) -> None:
     with pytest.raises(LexiconError) as exc:
         read_lexicon(_write(tmp_path, {
-            CANONICAL_FILE: ["ING_1,พริก,chilli,chilli,,", "ING_0002,ข่า,,rhizome,,"],
+            CANONICAL_FILE: ["ING_1,พริก,chilli,chilli,false,,", "ING_0002,ข่า,,aromatic,false,,"],
         }))
     assert "ING_ followed by 4 digits" in str(exc.value)
     assert "name_en is required" in str(exc.value)
@@ -150,8 +179,8 @@ def cleanup() -> Iterator[None]:
 
 def _lexicon(**aliases: str) -> Lexicon:
     return Lexicon(
-        canonicals=[Canonical(A, NAME_A, "test a", "test", None, None),
-                    Canonical(B, NAME_B, "test b", "test", None, "a note")],
+        canonicals=[Canonical(A, NAME_A, "test a", "other", False, None, None),
+                    Canonical(B, NAME_B, "test b", "other", False, None, "a note")],
         aliases={NAME_A: A, NAME_B: B, **aliases},
         conflations=[Conflation(A, B, "test pair")],
     )
@@ -178,7 +207,7 @@ def test_load_marks_everything_human_approved_and_manual(cleanup: None) -> None:
 def test_reloading_updates_in_place(cleanup: None) -> None:
     load(_lexicon())
     edited = _lexicon()
-    edited.canonicals[0] = Canonical(A, NAME_A, "test a, edited", "test", None, None)
+    edited.canonicals[0] = Canonical(A, NAME_A, "test a, edited", "other", False, None, None)
     load(edited)
     assert _db("SELECT name_en FROM canonical_ingredients WHERE canonical_id = %s", A) == [
         ("test a, edited",)
@@ -196,13 +225,29 @@ def test_conflation_guard_aborts_a_load_and_writes_nothing(cleanup: None) -> Non
     finally:
         conn.close()
     edited = _lexicon()
-    edited.canonicals[0] = Canonical(A, NAME_A, "should not land", "test", None, None)
+    edited.canonicals[0] = Canonical(A, NAME_A, "should not land", "other", False, None, None)
     edited.aliases.pop(NAME_B)  # the file no longer re-points it, so the DB row stands
     with pytest.raises(LexiconError, match="across a conflation pair"):
         load(edited)
     assert _db("SELECT name_en FROM canonical_ingredients WHERE canonical_id = %s", A) == [
         ("test a",)
     ]
+
+
+def test_code_and_database_agree_on_the_categories() -> None:
+    """The list lives in two places, src/clean/lexicon.py and migration 023's CHECK."""
+    [(definition,)] = _db(
+        "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+        "WHERE conname = 'canonical_ingredients_category_check'"
+    )
+    assert set(re.findall(r"'([a-z_]+)'::text", str(definition))) == set(CATEGORIES)
+
+
+def test_is_fermented_has_no_default() -> None:
+    assert _db(
+        "SELECT column_default, is_nullable FROM information_schema.columns "
+        "WHERE table_name = 'canonical_ingredients' AND column_name = 'is_fermented'"
+    ) == [(None, "NO")]
 
 
 def test_conflation_guard() -> None:

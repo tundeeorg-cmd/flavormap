@@ -31,12 +31,13 @@ LEXICON_DIR = REFERENCE_DIR / "lexicon"
 
 UPSERT_CANONICAL = """
 INSERT INTO canonical_ingredients
-    (canonical_id, name_th, name_en, category, regional_note, decision_note,
-     approved_by_human)
-VALUES (%s, %s, %s, %s, %s, %s, true)
+    (canonical_id, name_th, name_en, category, is_fermented, regional_note,
+     decision_note, approved_by_human)
+VALUES (%s, %s, %s, %s, %s, %s, %s, true)
 ON CONFLICT (canonical_id) DO UPDATE SET
     name_th = EXCLUDED.name_th, name_en = EXCLUDED.name_en,
-    category = EXCLUDED.category, regional_note = EXCLUDED.regional_note,
+    category = EXCLUDED.category, is_fermented = EXCLUDED.is_fermented,
+    regional_note = EXCLUDED.regional_note,
     decision_note = EXCLUDED.decision_note, approved_by_human = true
 """
 
@@ -64,7 +65,8 @@ def load(lexicon: Lexicon) -> dict[str, list[str]]:
         with conn.transaction():
             for c in lexicon.canonicals:
                 conn.execute(UPSERT_CANONICAL, (c.canonical_id, c.name_th, c.name_en,
-                                                c.category, c.regional_note,
+                                                c.category, c.is_fermented,
+                                                c.regional_note,
                                                 c.decision_note))
             for alias, cid in lexicon.aliases.items():
                 conn.execute(UPSERT_ALIAS, (alias, cid))

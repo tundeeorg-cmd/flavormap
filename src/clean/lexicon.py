@@ -3,7 +3,8 @@
 Three CSV files in ``data/reference/lexicon/``, one per table in migration 004:
 
 ``canonical_ingredients.csv``
-    ``canonical_id, name_th, name_en, category, regional_note, decision_note``
+    ``canonical_id, name_th, name_en, category, is_fermented, regional_note,
+    decision_note``
 ``ingredient_aliases.csv``
     ``alias, canonical_id``
 ``ingredient_conflations.csv``
@@ -29,10 +30,16 @@ its own entry above — so the guard runs against the *database*, where aliases 
 arrive by other routes (``CONFLATION_VIOLATIONS``). Pairs are stored with the lower ID
 first, so (A, B) and (B, A) are one pair.
 
-**What this module does not decide.** ``category`` is required but not checked against a
-fixed list: the category set is a researcher decision that has not been made. Strings
-are compared after NFC normalisation and whitespace collapsing only (``key()``), the same
-comparison ``scripts/lexicon_worklist.py`` uses for its ``mapped`` column.
+**Categories are HD-27's.** ``category`` must be one of ``CATEGORIES``, assigned by
+culinary role rather than botany. ``is_fermented`` is a separate, required ``true`` /
+``false``: fermentation is an axis, not a category. ``other`` may be at most
+``OTHER_CEILING`` of the lexicon; past that the load stops, because HD-27 says the
+taxonomy then needs revisiting and the fact belongs in ``docs/limitations.md``. The same
+list is a CHECK constraint in migration 023; a test keeps the two in step.
+
+**What this module does not decide.** Strings are compared after NFC normalisation and
+whitespace collapsing only (``key()``), the same comparison
+``scripts/lexicon_worklist.py`` uses for its ``mapped`` column.
 
 Free-text fields are refused if they carry personal data, as for cook-along logs
 (``personal_data_classes()``). These files are committed.
@@ -52,12 +59,23 @@ CANONICAL_FILE = "canonical_ingredients.csv"
 ALIASES_FILE = "ingredient_aliases.csv"
 CONFLATIONS_FILE = "ingredient_conflations.csv"
 
-CANONICAL_COLUMNS = ("canonical_id", "name_th", "name_en", "category", "regional_note",
-                     "decision_note")
+CANONICAL_COLUMNS = ("canonical_id", "name_th", "name_en", "category", "is_fermented",
+                     "regional_note", "decision_note")
 ALIAS_COLUMNS = ("alias", "canonical_id")
 CONFLATION_COLUMNS = ("canonical_id_a", "canonical_id_b", "reason")
 
 CANONICAL_ID = re.compile(r"ING_\d{4}")
+
+# HD-27 (docs/decisions.md, 2026-09-28), in the decision's order. Mirrored by the CHECK
+# constraint in db/migrations/023_ingredient_category_taxonomy.sql.
+CATEGORIES: tuple[str, ...] = (
+    "aromatic", "chilli", "herb", "spice", "vegetable", "fruit", "protein_meat",
+    "protein_fish", "protein_other", "coconut", "acid", "fat", "starch", "sweetener",
+    "other",
+)
+
+# HD-27: `other` stays under 5% of the lexicon.
+OTHER_CEILING = 0.05
 
 _WS = re.compile(r"\s+")
 
@@ -92,6 +110,7 @@ class Canonical:
     name_th: str
     name_en: str
     category: str
+    is_fermented: bool
     regional_note: str | None
     decision_note: str | None
 
@@ -142,6 +161,10 @@ def read_lexicon(directory: Path) -> Lexicon:
         for column in ("name_th", "name_en", "category"):
             if not row[column]:
                 errors.append(f"{where}: {column} is required")
+        if row["category"] and row["category"] not in CATEGORIES:
+            errors.append(f"{where}: category {row['category']!r} is not in HD-27's list")
+        if row["is_fermented"] not in ("true", "false"):
+            errors.append(f"{where}: is_fermented must be true or false")
         if row["name_th"] and row["name_th"] in by_name:
             errors.append(
                 f"{where}: name_th {row['name_th']} is already {by_name[row['name_th']]}"
@@ -150,11 +173,21 @@ def read_lexicon(directory: Path) -> Lexicon:
             if classes := personal_data_classes(row[column]):
                 errors.append(f"{where}: {column} contains personal data ({', '.join(classes)})")
         entry = Canonical(cid, row["name_th"], row["name_en"], row["category"],
+                          row["is_fermented"] == "true",
                           _optional(row["regional_note"]), _optional(row["decision_note"]))
         canonicals.append(entry)
         by_id.setdefault(cid, entry)
         if row["name_th"]:
             by_name.setdefault(row["name_th"], cid)
+
+    n_other = sum(c.category == "other" for c in canonicals)
+    if canonicals and n_other / len(canonicals) > OTHER_CEILING:
+        errors.append(
+            f"{CANONICAL_FILE}: {n_other} of {len(canonicals)} entries "
+            f"({n_other / len(canonicals):.1%}) are 'other', over HD-27's "
+            f"{OTHER_CEILING:.0%} ceiling. Stop: the taxonomy needs revisiting, and that "
+            "goes in docs/limitations.md."
+        )
 
     aliases: dict[str, str] = dict(by_name)
     for line, row in enumerate(_read(directory / ALIASES_FILE, ALIAS_COLUMNS), 2):

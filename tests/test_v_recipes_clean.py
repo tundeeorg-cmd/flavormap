@@ -35,8 +35,9 @@ def one_high_and_one_low_confidence_recipe() -> Iterator[tuple[int, int]]:
         )
         for i, canonical_id in enumerate(canonical_ids):
             conn.execute(
-                """INSERT INTO canonical_ingredients (canonical_id, name_th, name_en, category)
-                   VALUES (%s, %s, 'test', 'test')""",
+                """INSERT INTO canonical_ingredients
+                   (canonical_id, name_th, name_en, category, is_fermented)
+                   VALUES (%s, %s, 'test', 'other', false)""",
                 (canonical_id, f"ทดสอบ{i}"),
             )
 
