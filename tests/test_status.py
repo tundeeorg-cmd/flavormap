@@ -260,3 +260,61 @@ def test_snapshot_writes_the_public_form(
     assert text.startswith("# FlavorMap status")
     assert "zero:" not in text
     assert not find_leaks(text)
+
+
+# ── lexicon category check (HD-27) ────────────────────────────────────────────
+
+def test_category_lines_empty_populated_and_off_list() -> None:
+    from src.status import _category_lines
+
+    assert _category_lines(None) == ["  by category (HD-27)    n/a"]
+    assert _category_lines({}) == ["  by category (HD-27)    none yet"]
+    [line] = _category_lines({"other": 1, "aromatic": 3, "coconut": 2})
+    # HD-27's order, zero categories omitted for readability.
+    assert line == "  by category (HD-27)    aromatic 3, coconut 2, other 1"
+    lines = _category_lines({"aromatic": 3, "seasoning": 1})
+    assert lines[1] == "  ⚠ not in HD-27's list  seasoning"
+
+
+_LEX_IDS = ("_TEST_STATUS_A", "_TEST_STATUS_B", "_TEST_STATUS_C")
+
+
+@pytest.fixture
+def three_entries() -> Iterator[None]:
+    conn = get_connection()
+    try:
+        for cid, name, cat, fermented in zip(
+            _LEX_IDS, ("ทดสอบก", "ทดสอบข", "ทดสอบค"),
+            ("aromatic", "protein_fish", "other"), (False, True, False), strict=True,
+        ):
+            conn.execute(
+                """INSERT INTO canonical_ingredients
+                       (canonical_id, name_th, name_en, category, is_fermented)
+                   VALUES (%s, %s, 'test', %s, %s)""",
+                (cid, name, cat, fermented),
+            )
+        conn.commit()
+        yield
+    finally:
+        conn.rollback()
+        conn.execute("DELETE FROM canonical_ingredients WHERE canonical_id = ANY(%s)",
+                     (list(_LEX_IDS),))
+        conn.commit()
+        conn.close()
+
+
+def test_status_tracks_real_lexicon_categories(three_entries: None) -> None:
+    conn = get_connection()
+    try:
+        expected = dict(conn.execute(
+            "SELECT category, count(*) FROM canonical_ingredients GROUP BY 1").fetchall())
+        fermented = conn.execute(
+            "SELECT count(*) FROM canonical_ingredients WHERE is_fermented").fetchone()[0]
+    finally:
+        conn.close()
+    status = collect(today=TODAY, check_container=False)
+    assert status.categories == expected
+    assert status.lexicon["fermented"] == fermented
+    text = render(status, public=True)  # aggregates: allowed in the committed snapshot
+    assert "by category (HD-27)" in text and f"aromatic {expected['aromatic']}" in text
+    assert f"fermented              {fermented}" in text

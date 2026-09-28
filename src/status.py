@@ -34,12 +34,12 @@ from typing import Any
 
 import psycopg
 
+from src.clean.lexicon import OTHER_CEILING, check_categories
 from src.config import DOCS_DIR, EXPORTS_DIR, MIGRATIONS_DIR, REPO_ROOT
 
 TOTAL_PROVINCES = 77
 REGISTERS = ("official", "commercial", "domestic")
 BACKUP_MAX_AGE_DAYS = 7
-OTHER_CEILING = 0.05  # HD-27; mirrors src.clean.lexicon.OTHER_CEILING
 RQ4_PLANNED_DISHES = 8  # CLAUDE.md §7.4
 
 NA = "n/a"
@@ -116,6 +116,7 @@ class Status:
     provinces_missing: dict[str, list[str] | None] = field(default_factory=dict)
     provinces_total: int = TOTAL_PROVINCES
     lexicon: dict[str, int | None] = field(default_factory=dict)
+    categories: dict[str, int] | None = None
     migrations_applied: int | None = None
     migrations_present: int = 0
     container_up: bool | None = None
@@ -173,7 +174,12 @@ def _collect_db(db: ReadOnlyDB, s: Status) -> None:
             "WHERE category IS NULL OR btrim(category) = ''"),
         "other": db.scalar(
             "SELECT count(*) FROM canonical_ingredients WHERE category = 'other'"),
+        "fermented": db.scalar(
+            "SELECT count(*) FROM canonical_ingredients WHERE is_fermented"),
     }
+    s.categories = _grouped(
+        db, "SELECT category, count(*) FROM canonical_ingredients "
+            "WHERE category IS NOT NULL GROUP BY 1")
     s.migrations_applied = db.count("schema_migrations")
 
     def with_ingredients(register: str) -> int | None:
@@ -327,6 +333,20 @@ def _breakdown(d: dict[str, int] | None, keys: tuple[str, ...]) -> str:
     return ", ".join(f"{k} {d.get(k, 0)}" for k in keys)
 
 
+def _category_lines(categories: dict[str, int] | None) -> list[str]:
+    """HD-27's check, via the same function the authoring worklist uses."""
+    if categories is None:
+        return [f"  by category (HD-27)    {NA}"]
+    check = check_categories(categories)
+    if check.total == 0:
+        return ["  by category (HD-27)    none yet"]
+    lines = ["  by category (HD-27)    " + ", ".join(
+        f"{c} {n}" for c, n in check.by_category.items() if n)]
+    if check.unknown:
+        lines.append(f"  ⚠ not in HD-27's list  {', '.join(check.unknown)}")
+    return lines
+
+
 def render(s: Status, public: bool = False) -> str:
     """The snapshot as plain text. `public=True` omits per-province name lists (HD-28)."""
     out: list[str] = [f"FlavorMap status — {s.today.isoformat()}", ""]
@@ -377,7 +397,9 @@ def render(s: Status, public: bool = False) -> str:
         f"  canonical entries      {_n(entries)}",
         f"  with English gloss     {_n(lx.get('with_gloss'))}",
         f"  uncategorised          {_n(lx.get('uncategorised'))}",
+        *_category_lines(s.categories),
         f"  category 'other'       {other_line}",
+        f"  fermented              {_n(lx.get('fermented'))}",
         "",
         "Pipeline health",
         f"  migrations             {_n(s.migrations_applied)} applied of "

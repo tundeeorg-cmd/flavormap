@@ -50,6 +50,7 @@ from __future__ import annotations
 import csv
 import re
 import unicodedata
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -98,6 +99,34 @@ SELECT a.alias, a.canonical_id AS maps_to, own.canonical_id AS is_name_of
  WHERE a.canonical_id IN (c.canonical_id_a, c.canonical_id_b)
    AND a.canonical_id <> own.canonical_id
 """
+
+
+@dataclass(frozen=True)
+class CategoryCheck:
+    """HD-27's check over the lexicon's entries-per-category counts. The one definition
+    shared by ``make status`` and the authoring worklist, so they cannot disagree."""
+
+    total: int
+    by_category: dict[str, int]  # every HD-27 category, in HD-27's order, zeros included
+    unknown: list[str]           # categories present that are not on HD-27's list
+    other: int
+
+    @property
+    def other_share(self) -> float:
+        return self.other / self.total if self.total else 0.0
+
+    @property
+    def over_ceiling(self) -> bool:
+        return self.other_share > OTHER_CEILING
+
+
+def check_categories(entries_by_category: Mapping[str, int]) -> CategoryCheck:
+    return CategoryCheck(
+        total=sum(entries_by_category.values()),
+        by_category={c: entries_by_category.get(c, 0) for c in CATEGORIES},
+        unknown=sorted(set(entries_by_category) - set(CATEGORIES)),
+        other=entries_by_category.get("other", 0),
+    )
 
 
 class LexiconError(ValueError):

@@ -253,3 +253,17 @@ def test_is_fermented_has_no_default() -> None:
 def test_conflation_guard() -> None:
     """CLAUDE.md §13: no alias maps across an ingredient_conflations pair."""
     assert _db(CONFLATION_VIOLATIONS) == []
+
+
+def test_check_categories_is_hd27_ordered_and_counts_other() -> None:
+    from src.clean.lexicon import check_categories
+
+    check = check_categories({"other": 1, "aromatic": 19, "seasoning": 2})
+    assert list(check.by_category) == list(CATEGORIES)
+    assert check.by_category["chilli"] == 0
+    assert check.total == 22 and check.other == 1
+    assert check.unknown == ["seasoning"]
+    assert round(check.other_share, 4) == round(1 / 22, 4)
+    assert not check.over_ceiling
+    assert check_categories({"other": 2, "herb": 18}).over_ceiling
+    assert check_categories({}).other_share == 0.0

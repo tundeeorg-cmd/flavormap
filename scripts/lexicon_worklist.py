@@ -45,7 +45,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-from src.clean.lexicon import CATEGORIES, OTHER_CEILING, key
+from src.clean.lexicon import OTHER_CEILING, check_categories, key
 from src.config import INTERIM_DIR
 from src.db import get_connection
 
@@ -138,21 +138,19 @@ def category_check(
     """HD-27's category check, as printable lines: entries per category (HD-27's order),
     any category not on the list, the `other` share against its ceiling, and the share
     of all (recipe, string) pairs each category's mapped strings cover."""
-    total = sum(entries_by_category.values())
-    if total == 0:
+    check = check_categories(entries_by_category)
+    if check.total == 0:
         return ["lexicon: no entries yet, so there is nothing to check against HD-27"]
 
     lines = ["lexicon entries by HD-27 category: " + ", ".join(
-        f"{c} {entries_by_category.get(c, 0)}" for c in CATEGORIES
+        f"{c} {n}" for c, n in check.by_category.items()
     )]
-    unknown = sorted(set(entries_by_category) - set(CATEGORIES))
-    if unknown:
-        lines.append(f"  ⚠ not in HD-27's list: {', '.join(unknown)}")
-    other = entries_by_category.get("other", 0)
-    share = other / total
+    if check.unknown:
+        lines.append(f"  ⚠ not in HD-27's list: {', '.join(check.unknown)}")
     flag = (f"  ⚠ over HD-27's {OTHER_CEILING:.0%} ceiling: the taxonomy needs revisiting "
-            "(docs/limitations.md)") if share > OTHER_CEILING else ""
-    lines.append(f"  'other': {other} of {total} entries ({share:.1%}){flag}")
+            "(docs/limitations.md)") if check.over_ceiling else ""
+    lines.append(f"  'other': {check.other} of {check.total} entries "
+                 f"({check.other_share:.1%}){flag}")
 
     pairs = sum(r.n_recipes for r in worklist)
     by_category: Counter[str] = Counter()
