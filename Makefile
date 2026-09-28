@@ -70,6 +70,7 @@ vision:
 figures:
 	uv run python -m scripts.make_figure2
 	uv run python -m scripts.make_figure4
+	uv run python -m scripts.make_fidelity_matrix
 
 api:
 	uv run uvicorn src.api.main:app --reload --port 8000
