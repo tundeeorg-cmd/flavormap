@@ -692,6 +692,76 @@ decision closes only "what loads today," not the rest of HD-22.
 
 ---
 
+## HD-23 — Which register does the eligibility threshold apply to?
+**Date presented:** 2026-09-28
+
+**The finding.** §7.5 sweeps eligibility over thresholds 5–30, written when every
+research question ran on a single web corpus. Under Bible v4 the corpus is three
+registers, and two of them can never clear the lowest threshold by construction:
+**official** has at most 3 recipes per province (the state selected three dishes;
+measured 2026-09-28: 73 provinces, max 3, median 3), and **domestic** will be ~6
+interviews in each of Nan and Surin and nothing elsewhere. `sweep_by_register()`
+(`src/analyze/eligibility.py`) reports every register separately and never pools them
+(§3.2); what it does not settle is which register's count decides whether a province
+enters an analysis.
+
+**Options presented:**
+  A. **Commercial only.** The threshold applies to the commercial register; official
+     and domestic are complete-by-design samples, included wherever they exist.
+     (consequence: the sweep measures the one register whose size is a sampling
+     accident. RQ1 includes a province when its commercial count clears k; official is
+     always present, domestic only for Nan and Surin. With kapook's 1.3% labelled
+     fraction, few provinces may clear even k=10 — visible in the sweep output now
+     rather than discovered at analysis time.)
+  B. **Every compared register must clear k.** (consequence: official never clears 5,
+     so every province is excluded from every register comparison — RQ1 is empty by
+     construction.)
+  C. **Pooled count across registers.** (consequence: violates §3.2 — 3 official plus
+     12 commercial recipes is not 15 of anything.)
+  D. **Decide per analysis.** (consequence: most flexible, but defers the question to
+     each analysis and invites inconsistent eligibility across figures.)
+
+**Recommendation given:** A. Official and domestic are not samples whose size is chosen
+by a threshold; B empties RQ1 and C breaks §3.2.
+
+**Decision:** **A — the threshold applies to the commercial register only.** Recorded
+from the researcher's instruction in session, 2026-09-28; the choice is theirs, the
+transcription is the agent's.
+**Reasoning:**            ← researcher
+**Date decided:** 2026-09-28
+
+**What A commits the project to.** `scripts/eligibility_sweep.py` sweeps the commercial
+register only. Official and domestic rows enter analyses wherever they exist, without a
+count threshold. Headline results are still reported at k = 10 / 15 / 25 (§7.5).
+
+---
+
+## HD-24 — `PROVINCE_MIN_N`, the caption helper's default threshold
+**Date presented:** 2026-09-28
+
+**The finding.** `PROVINCE_MIN_N = 20` (`src/config.py`) is only the default threshold
+for `eligibility.caption()` — not a gate (§7.5). But 20 is not one of the headline
+thresholds (10 / 15 / 25), so a caption written with the default describes a threshold
+no headline result is reported at.
+
+**Options presented:**
+  A. **10** — the lowest headline threshold. (consequence: with a sparse commercial
+     register (HD-23), a default caption is least likely to read "n = 0 of 77".)
+  B. **15** — the middle headline threshold. (consequence: matches the central
+     result; more captions may show very small n.)
+  C. **Keep 20.** (consequence: default caption matches no headline result.)
+  D. **Remove the default; every caller passes a threshold.** (consequence: no
+     implicit threshold anywhere, at the cost of one argument per figure.)
+
+**Recommendation given:** A.
+
+**Decision:** **A — `PROVINCE_MIN_N = 10`.** Recorded from the researcher's instruction
+in session, 2026-09-28; the choice is theirs, the transcription is the agent's.
+**Reasoning:**            ← researcher
+**Date decided:** 2026-09-28
+
+---
+
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
 **Date:** 2026-09-12
 **This is not a gate.** It is a documentation discrepancy found while building
