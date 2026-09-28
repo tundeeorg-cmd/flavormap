@@ -15,7 +15,8 @@ RANDOM_SEED = 42
 # Pinned explicitly; bump deliberately, never silently.
 ANTHROPIC_MODEL = "claude-sonnet-5"
 
-# §7.4 — the degradation rule's threshold for province-level analysis eligibility.
+# §7.5 — default threshold for eligibility.caption() only, not a gate; eligibility is
+# swept over 5–30 instead.
 PROVINCE_MIN_N = 20
 
 DATA_DIR = REPO_ROOT / "data"
