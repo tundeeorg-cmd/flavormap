@@ -15,6 +15,11 @@ Both `dish_category` and `endangerment` depend on them.
 the ceiling — every document where a §3 box is ticked at all — is 160 (69.3%). The
 extractor is within 1.3 points of the most any parser could get from this corpus.
 
+> **Update, 2026-09-28.** HD-29 replaced Surin with Buri Ram as the second fieldwork
+> province, because of the finding below. The Nan + Buri Ram sample has two distinct
+> official values (`transmitted` ×2, `near_lost` ×1). This document stays as the
+> measurement that motivated the switch.
+
 **RQ5 still has no data, for an unrelated reason.** The question compares official
 endangerment against cooks in Nan and Surin *on the same dishes*. The state selected three
 dishes per province, so RQ5's sample is six documents, not 231:

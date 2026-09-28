@@ -222,14 +222,14 @@ or merely polite.
 ### RQ3 — What does the official record leave out?
 *Plain: whose cooking didn't make the government's list?*
 
-- **Method** — the state selected 3 dishes per province. Ask cooks in Nan and Surin what
-  they actually cook. Measure overlap at dish level and ingredient level.
+- **Method** — the state selected 3 dishes per province. Ask cooks in Nan and Buri Ram
+  (HD-29; was Surin) what they actually cook. Measure overlap at dish level and ingredient level.
 - **Output** — table of dishes and ingredients named by cooks that appear in no register;
   overlap bar chart. **Figure 3** (was Figure 1 under v3).
 - **Needs fieldwork** — entirely.
 - **A NO looks like** — high overlap, validating the state's selection process.
 - **Framing** — an **existence claim**, which n≈6 per province fully supports: *six of six
-  cooks in Surin named an ingredient no register associates with the province.* Never a
+  cooks in Buri Ram named an ingredient no register associates with the province.* Never a
   basis for ranking provinces. That distinction is what makes it unobjectionable.
 
 v3's RQ3 asked how much of the map is legible from public online data and was answered on
@@ -259,18 +259,19 @@ the first thing to cut; here it is the validation layer, and cutting it removes 
 *Plain: the government says these dishes are at risk. Do the people who cook them agree?*
 
 - **Method** — compare the **endangerment level** field in the government PDFs against
-  what cooks in Nan and Surin say about the same dishes.
+  what cooks in Nan and Buri Ram say about the same dishes.
 - **Output** — agreement matrix, official level vs. cook-reported status. **Figure 5**.
 - **Needs fieldwork** — entirely.
 - **A NO looks like** — full agreement, validating the state's assessment process.
 
 > **⚠️ OPEN GATE — do not build against this question yet.** The checkbox extraction it
 > depends on works: endangerment recovers on 157 of 231 documents, within 1.3 points of
-> the corpus ceiling. But RQ5's sample is the six Nan and Surin documents, four carry a
-> level, and **all four carry the same level**. Figure 5's agreement matrix cannot be
-> built from one distinct official value. Four options and a recommendation are recorded
-> in `docs/decisions.md`; full measurement in `docs/checkbox_extraction.md`. The Decision
-> field is empty and no work proceeds past it.
+> the corpus ceiling. With the original Nan + Surin sample, four documents carried a level
+> and **all four carried the same level**, so Figure 5's matrix could not be built.
+> **HD-29 (2026-09-28) replaced Surin with Buri Ram**: the sample now has three levels
+> with **two** distinct values (`transmitted` ×2, `near_lost` ×1), still unverified by eye.
+> That removes the blocker the gate describes, but the gate's Decision field in
+> `docs/decisions.md` is still empty, and no work proceeds past it until it is filled.
 ---
 
 ## 5. Statistical corrections — Bible §4, verbatim
@@ -387,14 +388,16 @@ and cannot be scraped into existence. **~130 hours, cannot be delegated.**
 
 ### 7.3 Fieldwork — rescoped
 
-**12–15 interviews across 2 provinces: Nan and Surin.** 60–90 minutes each, 2 trips.
+**12–15 interviews across 2 provinces: Nan and Buri Ram** (HD-29, 2026-09-28; Bible v4
+§10 says Surin and needs the researcher's amendment). 60–90 minutes each, 2 trips.
 No research question depends on this. Its job is (1) ground-truthing the RQ3 coverage gap
 as an *existence claim*, (2) validating the RQ2 measure against stated absences, (3)
 authorship evidence.
 
-If only one trip happens, **do Surin** — six interviews beats zero by an enormous margin,
-and Surin carries the upper-vs-lower Isaan question that RQ1's linguistic comparison
-turns on.
+If only one trip happens, **do Buri Ram** — six interviews beats zero by an enormous
+margin. Buri Ram is the lower-Isaan, Cambodian-border half of the pairing. Its own three
+official dishes also carry both RQ5 values (`transmitted`, `near_lost`), so RQ5 survives
+losing the Nan trip. Its dialect assignment is part of HD-1, which is still open.
 
 Eight-question protocol retained verbatim from v2, **plus Q9**:
 
@@ -431,7 +434,7 @@ province-level figure caption auto-includes `n = {k} of 77 provinces`.
 helper, not as a gate — set to 10, the lowest headline threshold (HD-24).
 
 **The threshold applies to the commercial register only (HD-23, 2026-09-28).** Official
-(at most 3 dishes per province, by state selection) and domestic (the Nan and Surin
+(at most 3 dishes per province, by state selection) and domestic (the Nan and Buri Ram
 interviews) are complete-by-design samples and enter analyses wherever they exist.
 
 ---
@@ -488,7 +491,7 @@ and the ISB calendar, which puts intensive work in the June–August break rathe
 | Window | Build | Fieldwork / cooking | Output |
 |---|---|---|---|
 | **Aug–Sep 2026** | Three blocking items (§11). Labelled-fraction measurement. Figure 4 signal check. Postgres/PostGIS running. Scrapers 1–3 | Cook the origin dish with family. Book both trips | Repo public. `hypotheses.md` committed. Post 1. **Go/no-go on province-level analysis** |
-| **Oct–Dec 2026** | Corpus to ~1,400. Tokenisation and normalisation. Lexicon v0.5. Dish-category taxonomy defined | Trip 1 — Surin, 6 interviews. Cook 2 dishes | Post 2. Lexicon first release. `ETHICS.md` complete |
+| **Oct–Dec 2026** | Corpus to ~1,400. Tokenisation and normalisation. Lexicon v0.5. Dish-category taxonomy defined | Trip 1 — Buri Ram, 6 interviews. Cook 2 dishes | Post 2. Lexicon first release. `ETHICS.md` complete |
 | **Jan–Mar 2027** | Corpus to ~2,200. Normalisation complete. Category labelling. Second-annotator κ on 100 recipes | Trip 2 — Nan, 6 interviews. Transcription. Cook 3 dishes | Post 3 (failure post). **FREEZE 31 MARCH** |
 | **Apr–May 2027** | RQ3 coverage cartography. RQ1 distance-decay + change points. Network, Louvain, backbone | Cook 3 dishes, including ones the classifier gets wrong | Post 4. Figures 1, 2, 7 |
 | **Jun–Aug 2027** | RQ2 decomposition. RQ4 fragility. RQ5 classifier + baseline. Full analysis complete | Send results back to participants | Post 5. Figures 3–6. Paper drafted. Dataset packaged |
@@ -594,6 +597,12 @@ scope and no work proceeds on it.
 
 ## Changelog
 
+- **2026-09-28** — **HD-29: Buri Ram replaces Surin** as the second fieldwork province.
+  Updated §4 (RQ3, RQ5 and the RQ5 gate text, which stays open), §7.3, §7.5 and §10.
+  Bible v4 §10 still says Surin and needs the researcher's amendment. Also this session:
+  HD-23 to HD-28 recorded, migrations 022–023, the kapook commercial register loaded
+  (1,360 recipes), `make status`, a safe `restore_db.sh`, and a non-destructive
+  `make verify`.
 - **2026-08-30** — Reconciled to **Bible v4**. Four of the five research questions
   replaced: boundary geometry → three-register agreement (RQ1); coverage legibility →
   what the official record leaves out (RQ3); network fragility → pipeline fidelity, cooked
