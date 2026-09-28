@@ -109,28 +109,28 @@
       "ingredients": 15
     },
     {
-      "province": "Surin",
-      "document": "northeast_15_1.pdf",
-      "dish_name_th": "ซันลอเจก (แกงกล้วย)",
+      "province": "Buri Ram",
+      "document": "northeast_6_1.pdf",
+      "dish_name_th": "จรั๊วะโดง (น้ำพริกกะทิ)",
       "endangerment": "transmitted",
       "dish_category": "savoury",
-      "ingredients": 8
+      "ingredients": 6
     },
     {
-      "province": "Surin",
-      "document": "northeast_15_2.pdf",
-      "dish_name_th": "ซันลอตราวมะออม (แกงเผือกใส่อีออม)",
-      "endangerment": "transmitted",
-      "dish_category": "savoury",
-      "ingredients": 7
+      "province": "Buri Ram",
+      "document": "northeast_6_2.pdf",
+      "dish_name_th": "ต้มไก่ดำยอดใบหม่อน",
+      "endangerment": null,
+      "dish_category": null,
+      "ingredients": 10
     },
     {
-      "province": "Surin",
-      "document": "northeast_15_3.pdf",
-      "dish_name_th": "ประเฮาะซัจจรูก (ปลาร้าเนื้อหมู)",
-      "endangerment": "transmitted",
+      "province": "Buri Ram",
+      "document": "northeast_6_3.pdf",
+      "dish_name_th": "ยำลูกผึ้ง",
+      "endangerment": "near_lost",
       "dish_category": "savoury",
-      "ingredients": 1
+      "ingredients": 11
     }
   ]
 }
