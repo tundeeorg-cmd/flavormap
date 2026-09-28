@@ -762,6 +762,39 @@ in session, 2026-09-28; the choice is theirs, the transcription is the agent's.
 
 ---
 
+## HD-25 — Dish order on the pipeline-fidelity matrix (RQ4)
+**Date presented:** 2026-09-28
+
+**The finding.** The RQ4 matrix is 8 dishes × 5 information classes (§6). §5's ordering
+trap applies — never alphabetical — but "geographic or by cluster" was written for
+province matrices; with 8 dishes the order needs choosing. The five classes keep §6's
+order (quantities, order, technique, specificity, completeness).
+
+**Options presented:**
+  A. **By information lost** — score lost = 2, degraded = 1, survived = 0; most-damaged
+     dish first; ties broken by cook date. (consequence: the matrix analogue of
+     cluster ordering — the loss gradient is the first thing the eye reads.)
+  B. **Geographic** — by the recipe's province, distance from Bangkok. (consequence:
+     consistent with other figures, but 8 dishes may carry no geographic pattern in
+     fidelity, and the figure would then read as noise.)
+  C. **Classifier-wrong group first**, each group by loss. (consequence: foregrounds a
+     contrast §7.4 plans for, at the cost of splitting the gradient.)
+  D. **By cook date.** (consequence: no structure; could encode the researcher's own
+     learning curve rather than the pipeline's.)
+
+**Recommendation given:** A.
+
+**Decision:** **A — by information lost, ties by cook date.** Recorded from the
+researcher's instruction in session, 2026-09-28; the choice is theirs, the
+transcription is the agent's.
+**Reasoning:**            ← researcher
+**Date decided:** 2026-09-28
+
+**Open detail the decision leaves:** a cell that was not recorded (NULL) scores 0 for
+ordering — it is drawn as "not recorded", never as survived.
+
+---
+
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
 **Date:** 2026-09-12
 **This is not a gate.** It is a documentation discrepancy found while building
