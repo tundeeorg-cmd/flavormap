@@ -126,6 +126,7 @@ needs changing gets a new forward migration, never an edit to an applied one.
 | 021 | `v_recipes_low_confidence` | the explicit sensitivity-analysis pull (§3.2) — same shape as `v_recipes_clean`, confidence flipped to `low`, tier-4-low included |
 | 022 | `cook_along_log.log_key` UNIQUE | the file stem of each hand-written cook-along log, so `make cook-along` upserts rather than duplicates |
 | 023 | `canonical_ingredients` category CHECK + `is_fermented` | HD-27: 15 categories by culinary role; fermentation as a required boolean with no default, not a category |
+| 024 | `interview_dishes` for v4 + `sources.fieldwork_interviews` | HD-30: `dish_key` (stable, UNIQUE), cook's dish name, researcher-entered `official_recipe_id`, cook's endangerment view verbatim + HD-11 level, stated substitutions |
 
 **Ordering correction (2026-08-16).** The v2 plan numbered `province_attribution` 006 and
 `provinces` 007, with a foreign key pointing from the earlier to the later. That cannot
