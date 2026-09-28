@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest cook-along clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -46,6 +46,11 @@ scrape: scrape-dcp scrape-kapook
 ingest: scrape
 	uv run python -m scripts.parse_dcp
 	uv run python -m scripts.parse_kapook
+
+# RQ4 — hand-written cook-along logs (data/cook_along/*.toml) into cook_along_log.
+# All-or-nothing: one invalid file, including one carrying personal data, loads none.
+cook-along:
+	uv run python -m scripts.load_cook_along
 
 clean:
 	@echo "make clean: not yet implemented" && exit 1

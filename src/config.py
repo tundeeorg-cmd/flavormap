@@ -28,6 +28,8 @@ PROCESSED_DIR = DATA_DIR / "processed"
 # boundaries — different provenance, different retention, do not merge them.
 REFERENCE_DIR = DATA_DIR / "reference"
 EXPORTS_DIR = DATA_DIR / "exports"
+# Hand-written cook-along logs (RQ4), one TOML file per dish cooked. Tracked in git.
+COOK_ALONG_DIR = DATA_DIR / "cook_along"
 
 FIGURES_DIR = REPO_ROOT / "figures"
 FIGURES_FINAL_DIR = FIGURES_DIR / "final"

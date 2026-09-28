@@ -1,0 +1,38 @@
+# Cook-along log template (RQ4). Copy to YYYY-MM-DD_<dish>.toml and fill in.
+# Files starting with "_" are skipped by the loader. Load with: make cook-along
+#
+# Cook from the CLEANED dataset's ingredient list, not the original source page —
+# the point is to test what the pipeline produced (CLAUDE.md §7.4).
+#
+# PDPA: refer to people by role (ยาย, แม่, ป้า), never by name. No phone numbers or
+# addresses. The loader refuses a file that carries any.
+#
+# Leave a field out (or commented) if it was not recorded. Absent = NULL = "not
+# recorded" — never fill one in after the fact from memory.
+
+# Required
+recipe_id = 0            # recipes.recipe_id of the dish cooked
+cook_date = 2026-01-01   # the real date you cooked it
+
+# Did the dish come out recognisable as the named dish?
+# result_recognizable = true
+
+# Is this one of the dishes the classifier gets wrong? (§7.4: include at least two)
+# classifier_gets_wrong = false
+
+# Figure 4 cells — each one of: "survived", "degraded", "lost"
+# fidelity_quantities   = ""
+# fidelity_order        = ""
+# fidelity_technique    = ""
+# fidelity_specificity  = ""
+# fidelity_completeness = ""
+
+# Free text. Triple quotes allow several lines.
+# missing_ingredients = """
+# """
+# substitutions_made = """
+# """
+# normalization_losses = """
+# """
+# notes = """
+# """
