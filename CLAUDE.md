@@ -426,7 +426,11 @@ at a single pinned value. Headline results reported at **10 / 15 / 25**. Every
 province-level figure caption auto-includes `n = {k} of 77 provinces`.
 
 `PROVINCE_MIN_N` in `src/config.py` is retained only as the default for the caption
-helper, not as a gate.
+helper, not as a gate — set to 10, the lowest headline threshold (HD-24).
+
+**The threshold applies to the commercial register only (HD-23, 2026-09-28).** Official
+(at most 3 dishes per province, by state selection) and domestic (the Nan and Surin
+interviews) are complete-by-design samples and enter analyses wherever they exist.
 
 ---
 

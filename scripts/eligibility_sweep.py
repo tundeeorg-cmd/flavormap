@@ -2,8 +2,9 @@
 
     uv run python -m scripts.eligibility_sweep [--out data/processed/eligibility_sweep.csv]
 
-Counts recipes per province in `v_recipes_clean`, separately for each register, and
-writes one row per (register, threshold) for every threshold 5–30. Prints the headline
+Counts recipes per province in `v_recipes_clean` for each register the threshold
+applies to — the commercial register only, per HD-23 — and writes one row per
+(register, threshold) for every threshold 5–30. Prints the headline
 thresholds (10 / 15 / 25) to stdout.
 
 Recipes with `province_code IS NULL` are excluded from the counts, never assigned
@@ -21,7 +22,12 @@ import argparse
 import csv
 from pathlib import Path
 
-from src.analyze.eligibility import HEADLINE_THRESHOLDS, TOTAL_PROVINCES, sweep_by_register
+from src.analyze.eligibility import (
+    HEADLINE_THRESHOLDS,
+    THRESHOLD_REGISTERS,
+    TOTAL_PROVINCES,
+    sweep_by_register,
+)
 from src.config import PROCESSED_DIR
 from src.db import get_connection
 
@@ -29,22 +35,20 @@ QUERY = """
 SELECT register, province_code, count(*)
   FROM v_recipes_clean
  WHERE province_code IS NOT NULL
+   AND register = ANY(%s)
  GROUP BY register, province_code
 """
 
-# Every register the schema allows (migration 015's CHECK). Listed explicitly so a
-# register with zero rows still appears in the output as zero, rather than vanishing.
-REGISTERS = ("official", "commercial", "domestic")
-
-
 def province_counts_by_register() -> dict[str, dict[str, int]]:
-    """`{register: {province_code: n_recipes}}` from `v_recipes_clean`."""
+    """`{register: {province_code: n_recipes}}` from `v_recipes_clean`, for the
+    registers in `THRESHOLD_REGISTERS`. Each appears even with zero rows, so an empty
+    register reports zero rather than vanishing from the output."""
     conn = get_connection()
     try:
-        rows = conn.execute(QUERY).fetchall()
+        rows = conn.execute(QUERY, (list(THRESHOLD_REGISTERS),)).fetchall()
     finally:
         conn.close()
-    counts: dict[str, dict[str, int]] = {r: {} for r in REGISTERS}
+    counts: dict[str, dict[str, int]] = {r: {} for r in THRESHOLD_REGISTERS}
     for register, province_code, n in rows:
         counts.setdefault(register, {})[province_code] = n
     return counts

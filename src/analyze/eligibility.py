@@ -22,6 +22,12 @@ from src.config import PROVINCE_MIN_N
 THRESHOLDS: range = range(5, 31)
 HEADLINE_THRESHOLDS: tuple[int, ...] = (10, 15, 25)
 
+# HD-23 (docs/decisions.md, 2026-09-28): the threshold applies to the commercial
+# register only. Official (at most 3 dishes per province, by state selection) and
+# domestic (the Nan and Surin interviews) are complete-by-design samples and enter
+# analyses wherever they exist, without a count threshold.
+THRESHOLD_REGISTERS: tuple[str, ...] = ("commercial",)
+
 # Thailand's province count. Not configurable — it is not a modelling choice.
 TOTAL_PROVINCES = 77
 

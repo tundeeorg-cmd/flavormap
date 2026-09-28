@@ -6,11 +6,12 @@ whose fixture pattern this follows: a synthetic FK chain inserted under a test-o
 source_id and deleted afterward in dependency order, pass or fail. Names use ทดสอบ
 ("test"), the marker tests/test_pdpa.py uses for synthetic fixtures.
 
-Four recipes, one per case:
-  - commercial, TH-55, high confidence, 3 ingredients   → counted
-  - commercial, TH-55, medium confidence, 3 ingredients → counted
-  - commercial, NULL province, high confidence          → excluded (rule 2)
-  - commercial, TH-55, low confidence                   → excluded (not in the view)
+Five recipes, one per case, all with 3 ingredients:
+  - commercial, TH-55, high confidence   → counted
+  - commercial, TH-55, medium confidence → counted
+  - commercial, NULL province, high      → excluded (rule 2)
+  - commercial, TH-55, low confidence    → excluded (not in the view)
+  - official,   TH-55, high confidence   → excluded (HD-23: threshold is commercial-only)
 """
 
 from __future__ import annotations
@@ -19,19 +20,21 @@ from collections.abc import Iterator
 
 import pytest
 
-from scripts.eligibility_sweep import REGISTERS, province_counts_by_register
+from scripts.eligibility_sweep import province_counts_by_register
+from src.analyze.eligibility import THRESHOLD_REGISTERS
 from src.db import get_connection
 
 _SOURCE_ID = "_test_eligibility_src"
 _CANONICAL_IDS = [f"_TEST_ELIG_ING_{i}" for i in range(3)]
 _PROVINCE = "TH-55"  # Nan
 
-# (province_code, confidence)
-_CASES: list[tuple[str | None, str]] = [
-    (_PROVINCE, "high"),
-    (_PROVINCE, "medium"),
-    (None, "high"),
-    (_PROVINCE, "low"),
+# (register, province_code, confidence)
+_CASES: list[tuple[str, str | None, str]] = [
+    ("commercial", _PROVINCE, "high"),
+    ("commercial", _PROVINCE, "medium"),
+    ("commercial", None, "high"),
+    ("commercial", _PROVINCE, "low"),
+    ("official", _PROVINCE, "high"),
 ]
 
 
@@ -50,7 +53,7 @@ def fixture_recipes() -> Iterator[None]:
                    VALUES (%s, %s, 'test', 'test')""",
                 (canonical_id, f"ทดสอบ{i}"),
             )
-        for n, (province_code, confidence) in enumerate(_CASES):
+        for n, (register, province_code, confidence) in enumerate(_CASES):
             raw_id = conn.execute(
                 """INSERT INTO raw_recipes (source_id, source_url, raw_path, content_hash)
                    VALUES (%s, %s, '/tmp/_test', %s) RETURNING raw_id""",
@@ -58,8 +61,8 @@ def fixture_recipes() -> Iterator[None]:
             ).fetchone()[0]
             recipe_id = conn.execute(
                 """INSERT INTO recipes (raw_id, name_th, register)
-                   VALUES (%s, 'ทดสอบ', 'commercial') RETURNING recipe_id""",
-                (raw_id,),
+                   VALUES (%s, 'ทดสอบ', %s) RETURNING recipe_id""",
+                (raw_id, register),
             ).fetchone()[0]
             conn.execute(
                 """INSERT INTO province_attribution
@@ -118,6 +121,7 @@ def test_counts_only_high_and_medium_rows_that_carry_a_province(fixture_recipes:
     assert None not in counts
 
 
-def test_every_register_is_present_even_when_empty() -> None:
-    counts = province_counts_by_register()
-    assert set(REGISTERS) <= set(counts)
+def test_only_threshold_registers_are_counted(fixture_recipes: None) -> None:
+    # The official fixture row is in v_recipes_clean, but HD-23 keeps the official
+    # register out of the threshold entirely.
+    assert set(province_counts_by_register()) == set(THRESHOLD_REGISTERS) == {"commercial"}
