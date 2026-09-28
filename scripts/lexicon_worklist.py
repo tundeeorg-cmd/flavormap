@@ -21,8 +21,16 @@ it. What a worklist can do honestly is put them in front of the researcher, rank
     (§3.2); the ranking uses the total only because it is a to-do list, not an analysis.
   - ``cum_share``: running share of all (recipe, string) pairs covered by this row and
     those above it.
-  - ``mapped``: the string is already an ``ingredient_aliases`` alias or a
-    ``canonical_ingredients`` Thai name, so it can be skipped.
+  - ``mapped``: ``yes`` when the string is already an ``ingredient_aliases`` alias or a
+    ``canonical_ingredients`` Thai name, so it can be skipped; ``conflict`` when it maps
+    to more than one entry, which the lexicon loader should have refused.
+  - ``canonical_id``, ``category``: the entry a mapped string belongs to, and that
+    entry's HD-27 category. Blank for unmapped strings. **No category is ever
+    suggested**: assigning one is the researcher's call (HD-27's culinary-role rule).
+
+**The category check.** After the table, the script prints the lexicon's entries per
+HD-27 category, flags any category not on HD-27's list and an ``other`` share over the
+5% ceiling, and shows how much of the corpus each category's mapped strings cover.
 
 The output is derived from the DCP corpus, which HD-3 holds to reference-only, so it
 goes to ``data/interim/`` (gitignored) and is never committed.
@@ -37,7 +45,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-from src.clean.lexicon import key
+from src.clean.lexicon import CATEGORIES, OTHER_CEILING, key
 from src.config import INTERIM_DIR
 from src.db import get_connection
 
@@ -50,10 +58,15 @@ SELECT rr.source_id, r.recipe_id, i ->> 'name_th'
 """
 
 MAPPED_QUERY = """
-SELECT alias FROM ingredient_aliases
+SELECT a.alias, a.canonical_id, ci.category
+  FROM ingredient_aliases a JOIN canonical_ingredients ci USING (canonical_id)
 UNION
-SELECT name_th FROM canonical_ingredients
+SELECT name_th, canonical_id, category FROM canonical_ingredients
 """
+
+CATEGORY_QUERY = "SELECT category, count(*) FROM canonical_ingredients GROUP BY category"
+
+CONFLICT = "conflict"
 
 @dataclass(frozen=True)
 class WorklistRow:
@@ -63,32 +76,53 @@ class WorklistRow:
     by_source: dict[str, int]
     cum_share: float
     mapped: bool
+    canonical_id: str | None = None
+    category: str | None = None  # an HD-27 category, or CONFLICT
+
+
+def mapping_index(
+    mappings: Iterable[tuple[str, str, str]],
+) -> dict[str, tuple[str, str]]:
+    """`{string: (canonical_id, category)}` from `(alias, canonical_id, category)` rows.
+    A string that maps to two different entries gets `(CONFLICT, CONFLICT)`."""
+    index: dict[str, tuple[str, str]] = {}
+    for alias, canonical_id, category in mappings:
+        k = key(alias)
+        if k in index and index[k][0] != canonical_id:
+            index[k] = (CONFLICT, CONFLICT)
+        elif k not in index:
+            index[k] = (canonical_id, category)
+    return index
 
 
 def build_worklist(
-    rows: Iterable[tuple[str, int, str | None]], mapped: set[str]
+    rows: Iterable[tuple[str, int, str | None]],
+    mapped: dict[str, tuple[str, str]],
 ) -> list[WorklistRow]:
-    """Rank strings from `(source_id, recipe_id, name_th)` rows by recipe count."""
+    """Rank strings from `(source_id, recipe_id, name_th)` rows by recipe count.
+    `mapped` is `mapping_index()`'s output."""
     recipes: defaultdict[str, set[tuple[str, int]]] = defaultdict(set)
     for source_id, recipe_id, name in rows:
         if name and (k := key(name)):
             recipes[k].add((source_id, recipe_id))
 
     total_pairs = sum(len(v) for v in recipes.values())
-    mapped_keys = {key(m) for m in mapped}
     ordered = sorted(recipes.items(), key=lambda kv: (-len(kv[1]), kv[0]))
 
     out: list[WorklistRow] = []
     covered = 0
     for rank, (name, pairs) in enumerate(ordered, start=1):
         covered += len(pairs)
+        canonical_id, category = mapped.get(name, (None, None))
         out.append(WorklistRow(
             rank=rank,
             name_th=name,
             n_recipes=len(pairs),
             by_source=dict(Counter(source for source, _ in pairs)),
             cum_share=covered / total_pairs,
-            mapped=name in mapped_keys,
+            mapped=name in mapped,
+            canonical_id=canonical_id,
+            category=category,
         ))
     return out
 
@@ -98,17 +132,59 @@ def rank_reaching(worklist: list[WorklistRow], share: float) -> int | None:
     return next((r.rank for r in worklist if r.cum_share >= share), None)
 
 
+def category_check(
+    entries_by_category: dict[str, int], worklist: list[WorklistRow]
+) -> list[str]:
+    """HD-27's category check, as printable lines: entries per category (HD-27's order),
+    any category not on the list, the `other` share against its ceiling, and the share
+    of all (recipe, string) pairs each category's mapped strings cover."""
+    total = sum(entries_by_category.values())
+    if total == 0:
+        return ["lexicon: no entries yet, so there is nothing to check against HD-27"]
+
+    lines = ["lexicon entries by HD-27 category: " + ", ".join(
+        f"{c} {entries_by_category.get(c, 0)}" for c in CATEGORIES
+    )]
+    unknown = sorted(set(entries_by_category) - set(CATEGORIES))
+    if unknown:
+        lines.append(f"  ⚠ not in HD-27's list: {', '.join(unknown)}")
+    other = entries_by_category.get("other", 0)
+    share = other / total
+    flag = (f"  ⚠ over HD-27's {OTHER_CEILING:.0%} ceiling: the taxonomy needs revisiting "
+            "(docs/limitations.md)") if share > OTHER_CEILING else ""
+    lines.append(f"  'other': {other} of {total} entries ({share:.1%}){flag}")
+
+    pairs = sum(r.n_recipes for r in worklist)
+    by_category: Counter[str] = Counter()
+    for r in worklist:
+        if r.category:
+            by_category[r.category] += r.n_recipes
+    if pairs and by_category:
+        mapped_share = sum(by_category.values()) / pairs
+        lines.append(f"  mapped strings cover {mapped_share:.1%} of (recipe, string) pairs: "
+                     + ", ".join(f"{c} {n / pairs:.1%}"
+                                 for c, n in sorted(by_category.items(),
+                                                    key=lambda kv: (-kv[1], kv[0]))))
+    conflicts = [r.name_th for r in worklist if r.category == CONFLICT]
+    if conflicts:
+        lines.append(f"  ⚠ mapped to more than one entry: {', '.join(conflicts)}")
+    return lines
+
+
 def write_csv(worklist: list[WorklistRow], out: Path) -> None:
     sources = sorted({s for r in worklist for s in r.by_source})
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(["rank", "name_th", "n_recipes", *(f"n_{s}" for s in sources),
-                    "cum_share", "mapped"])
+                    "cum_share", "mapped", "canonical_id", "category"])
         for r in worklist:
             w.writerow([r.rank, r.name_th, r.n_recipes,
                         *(r.by_source.get(s, 0) for s in sources),
-                        f"{r.cum_share:.4f}", "yes" if r.mapped else ""])
+                        f"{r.cum_share:.4f}",
+                        (CONFLICT if r.category == CONFLICT else "yes") if r.mapped else "",
+                        "" if r.category == CONFLICT else (r.canonical_id or ""),
+                        "" if r.category == CONFLICT else (r.category or "")])
 
 
 def main() -> int:
@@ -119,7 +195,8 @@ def main() -> int:
     conn = get_connection()
     try:
         rows = conn.execute(QUERY).fetchall()
-        mapped = {m for (m,) in conn.execute(MAPPED_QUERY)}
+        mapped = mapping_index(conn.execute(MAPPED_QUERY).fetchall())
+        entries_by_category = {c: n for c, n in conn.execute(CATEGORY_QUERY)}
     finally:
         conn.close()
 
@@ -135,6 +212,8 @@ def main() -> int:
         print(f"top {top.rank} strings cover {top.cum_share:.1%} of (recipe, string) pairs")
         for share in (0.5, 0.8, 0.9):
             print(f"  {share:.0%} coverage at rank {rank_reaching(worklist, share)}")
+    for line in category_check(entries_by_category, worklist):
+        print(line)
     return 0
 
 
