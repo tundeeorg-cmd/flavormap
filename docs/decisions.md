@@ -880,6 +880,59 @@ amendment here, never an edit to 023.
 
 ---
 
+## HD-28 — Progress visibility: `make status` and committed status snapshots
+**Date presented:** 2026-09-28
+
+**What was specified (researcher).** A single plain-text `make status` that reports
+corpus counts, per-register province coverage, lexicon health, pipeline health, decision
+dates and RQ1–5 input readiness. It must be read-only, fast, and survive an empty
+database. Plus `make status-snapshot`, writing the same report to
+`data/coverage/status_YYYY-MM-DD.md`, **committed**, so progress is visible in git
+history and does not live only in a database on one laptop. Fieldwork-dependent inputs
+(RQ3, RQ5, the domestic side of RQ1) report as `blocked-on-fieldwork`, not as failures.
+
+**Rejected by the researcher's specification:**
+  A. **A web UI / dashboard.** ("No web UI.") A terminal command is enough and costs
+     nothing to keep running.
+  B. **New dependencies.** ("No new dependencies.") Built on psycopg and the standard
+     library only.
+  C. **A snapshot that stays gitignored, or status that lives only in the database.**
+     ("Committed, not gitignored.") Progress kept only on one laptop is invisible and
+     lost with the laptop (the single point of failure already noted 2026-09-19).
+
+**The conflict this raised, and how it was resolved.** `.gitignore` keeps all of
+`data/coverage/` out of git, because coverage tables are DCP-derived and HD-3 holds that
+source to reference-only, excluded from public release pending the permission reply. A
+snapshot naming the provinces with zero official recipes is exactly such a table.
+
+**Options presented:**
+  1. **Commit, aggregates only.** The committed snapshot carries counts ("official: 73 of
+     77") and omits per-province name lists; the terminal `make status` still names
+     them. (consequence: progress in git history; no DCP-derived table published.)
+  2. **Commit everything,** province names included. (consequence: amends the HD-3
+     gitignore rule by judgment that aggregate coverage is not a protected table.)
+  3. **Keep the snapshot local** until HD-3 closes. (consequence: defeats the purpose;
+     progress stays on one laptop.)
+
+**Recommendation given:** 1.
+
+**Decision:** **Option 1 — commit aggregate-only snapshots.** Recorded from the
+researcher's instruction in session, 2026-09-28; the specification and the choice are
+theirs, the transcription is the agent's. `.gitignore` gains one exception,
+`!data/coverage/status_*.md`; every other file in `data/coverage/` stays ignored.
+**Reasoning:** (researcher's, from the specification.) Progress should be visible in git
+history over time rather than living only in a database on one laptop. Aggregate-only
+keeps that without publishing a DCP-derived coverage table while HD-3 is open.
+**Date decided:** 2026-09-28
+
+**How it is enforced.** `src/status.py` opens its connection with
+`default_transaction_read_only=on`, so Postgres rejects any write. It never prints
+exception text, and `render(public=True)`, the snapshot form, omits the name lists.
+`tests/test_status.py` asserts each of these, and asserts that no personal data and no
+connection string or password can reach the output.
+
+---
+
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
 **Date:** 2026-09-12
 **This is not a gate.** It is a documentation discrepancy found while building
