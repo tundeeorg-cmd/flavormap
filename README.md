@@ -65,6 +65,7 @@ make test    # pytest + ruff + mypy
 |---|---|
 | `make setup` | Start the database, install dependencies, apply migrations |
 | `make test` | Run the test suite, linter, and type checker |
+| `make verify` | Fresh-clone check: apply every migration to a throwaway empty database and run the full suite there. Never touches your live database |
 | `scripts/dump_db.sh` | Dump the local database to `data/exports/` |
 | `scripts/restore_db.sh <dump.sql.gz>` | Restore the database from a dump. Refuses a database that already has tables unless given `--force`. Restores into a staging copy first, stops at the first error, and replaces the target only on success. `--db NAME` restores into a different database, e.g. to check a dump without touching the live one |
 

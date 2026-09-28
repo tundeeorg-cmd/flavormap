@@ -11,7 +11,9 @@ db-up:
 db-down:
 	docker compose down
 
-# Destroys the named volume. Only for verifying that migrations apply from empty.
+# DESTROYS THE LIVE DATABASE VOLUME, and every row in it. Not needed for restores
+# (scripts/restore_db.sh --force replaces a database safely) or for verification
+# (make verify uses a throwaway stack). Take `make db-dump` first if you run this.
 db-reset:
 	docker compose down -v
 	docker compose up -d --wait
@@ -103,10 +105,9 @@ test:
 
 all: clean analyze figures
 
-# Fresh-clone reproducibility check (CLAUDE.md §2.2, and db-reset's own comment: "only
-# for verifying that migrations apply from empty"). Destroys the local database volume,
-# rebuilds it from nothing, re-applies every migration in order, and runs the full test
-# suite against the result. A green `verify` is the claim "a stranger who clones this
-# repo today and runs `make setup && make verify` gets a working, tested schema" —
-# checked here rather than assumed from the last time it happened to work.
-verify: db-reset test
+# Fresh-clone reproducibility check (CLAUDE.md §2.2): applies every migration to an
+# empty database and runs the full test suite against it. Runs on a THROWAWAY stack
+# (project flavormap_verify, port $${VERIFY_PORT:-5439}) via scripts/verify.sh, and never
+# touches the live database. It used to be `db-reset test`, which deleted the live volume.
+verify:
+	./scripts/verify.sh
