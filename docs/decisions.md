@@ -999,6 +999,68 @@ re-confirmed after the corrections above; the transcription is the agent's.
 
 ---
 
+## HD-30 — How fieldwork interviews enter the database
+**Date presented:** 2026-09-29
+
+**The finding.** The fieldwork tables (migration 008) predate Bible v4. v4 asks two things
+of an interview that 008 has no columns for: RQ5 needs the cook's own view of whether
+each official dish is disappearing, and RQ3 and RQ5 both compare cooks against the
+official dishes "on the same dishes", which needs a link from a cook's dish to an
+official one. The archived v2 loader spec
+(`docs/archive/FlavorMap_Prompts_Phase2-5_Full.md`, P2.3) already fixes the rest: one
+file per interview, and each dish becomes a `domestic` recipe attributed at tier 1 to
+the interview's province.
+
+**1. Linking a cook's dish to an official dish.**
+  A. **The researcher enters it by hand:** an optional `official_recipe_id` per dish,
+     blank meaning "no official counterpart". The loader never guesses.
+  B. **Automatic Thai-name matching.** (consequence: a matching rule becomes part of
+     RQ3's dish-level overlap result without being decided.)
+  **Decision: A.**
+
+**2. The cook's view of endangerment (RQ5).**
+  A. **Verbatim plus a coded level:** the cook's answer word for word, and a level on the
+     state's own scale (`lost` / `near_lost` / `transmitted`). The level stays empty until
+     the researcher codes it under HD-11; the loader never infers one from the words.
+  B. **Coded level only.** (consequence: the words are lost, and the coding cannot be
+     checked by a reviewer.)
+  C. **Verbatim only.** (consequence: Figure 5 needs a separate coding step later.)
+  **Decision: A.**
+
+**3. Where interview files live.**
+  A. **Gitignored, local only** (`data/interviews/`; only the blank template is tracked).
+     Province + district + age bracket + role can identify someone in a small village,
+     and HD-20 says nothing identifying goes public before the final release review.
+  B. **Committed.** (consequence: published immediately, before any release review; not
+     reversible.)
+  **Decision: A.** Accepted cost: like the database, the files live only on this laptop,
+  which the 2026-09-19 backup note says to revisit before fieldwork data arrives.
+
+**Recommendation given:** A for all three.
+
+**Decision:** **1A, 2A, 3A.** Decided by the researcher in session, 2026-09-29; the
+transcription is the agent's.
+**Reasoning:**            ← researcher
+**Date decided:** 2026-09-29
+
+**Machinery defaults taken without a gate** (mechanical, and consistent with the ethics
+rules already in force):
+- **Consent is enforced.** An interview with `consent_form` not explicitly true, or a
+  consent date after the interview, is refused.
+- **Informant IDs** follow the archived pattern `INT_{PROVINCE}_{NNN}`: `INT_NAN_…` and
+  `INT_BRM_…`, one per HD-29 fieldwork province. An ID whose prefix disagrees with its
+  province is refused.
+- **Ingredients are stored as recorded**, in `raw_recipes.parsed_json`, as the other
+  sources do. They reach `recipe_ingredients` through the same canonicalisation
+  (HD-6), never through a separate path.
+- **No personal data, refused, not redacted.** This uses the same check as the lexicon and
+  the cook-along logs, plus refusal of name- and contact-shaped keys and of free text over
+  500 characters (the archived spec's limits).
+- **Photos are out of scope.** Vision is out of scope (CLAUDE.md §14), and no question
+  needs them.
+
+---
+
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
 **Date:** 2026-09-12
 **This is not a gate.** It is a documentation discrepancy found while building
