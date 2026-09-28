@@ -16,8 +16,8 @@ RANDOM_SEED = 42
 ANTHROPIC_MODEL = "claude-sonnet-5"
 
 # §7.5 — default threshold for eligibility.caption() only, not a gate; eligibility is
-# swept over 5–30 instead.
-PROVINCE_MIN_N = 20
+# swept over 5–30 instead. 10 = the lowest headline threshold (HD-24, 2026-09-28).
+PROVINCE_MIN_N = 10
 
 DATA_DIR = REPO_ROOT / "data"
 RAW_DIR = DATA_DIR / "raw"
