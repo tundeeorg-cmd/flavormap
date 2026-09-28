@@ -795,6 +795,37 @@ ordering — it is drawn as "not recorded", never as survived.
 
 ---
 
+## HD-26 — What the RQ4 cooking sheet shows
+**Date presented:** 2026-09-28
+
+**The finding.** RQ4 cooks 8 dishes "from the cleaned dataset's ingredient list, not the
+original source page" (§7.4). What the sheet prints *is* the treatment: every field it
+shows is information the pipeline is credited with preserving. `recipe_ingredients`
+carries no position column and keys on `(recipe_id, canonical_id)`, so ingredient order
+is not stored and the sheet cannot restore it; it lists ingredients by category, then
+Thai name — an order carrying no information from the source.
+
+**Options presented:**
+  A. **Cleaned table, no raw text** — canonical Thai name, English gloss, `quantity_g`
+     where convertible (else "no quantity" / "quantity not converted"), acquisition
+     mode. (consequence: tests the cleaned dataset as stored; the quantities class
+     is a real measurement, survived or degraded.)
+  B. **Release view only** — Thai name and English gloss, as `recipes.parquet` ships
+     (§12). (consequence: tests the public artifact strictly; quantities is "lost"
+     for every dish by construction.)
+  C. **Also include `raw_text`.** (consequence: the source line leaks back in — RQ4
+     would no longer test the pipeline.)
+
+**Recommendation given:** A.
+
+**Decision:** **A — cleaned table, no raw text.** Recorded from the researcher's
+instruction in session, 2026-09-28; the choice is theirs, the transcription is the
+agent's.
+**Reasoning:**            ← researcher
+**Date decided:** 2026-09-28
+
+---
+
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
 **Date:** 2026-09-12
 **This is not a gate.** It is a documentation discrepancy found while building
