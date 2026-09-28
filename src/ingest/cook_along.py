@@ -13,7 +13,7 @@ recorded", never a guessed value. Unknown keys are an error, so a typo such as
 
 **PDPA.** The free-text fields are the researcher's own notes, and a note about cooking
 with family can name someone. This module does not redact: a file carrying anything
-``redact()`` would strip, or anything ``find_leaks()`` detects, is **refused** with the
+``personal_data_classes()`` detects is **refused** with the
 field named. Redacting on load would keep the database clean while leaving the
 personal data sitting in a file that is meant to be committed; refusing makes the fix
 happen at the source. The pattern-based check catches honorific names (นาย, นาง, …),
@@ -29,7 +29,7 @@ import tomllib
 from dataclasses import dataclass, fields
 from pathlib import Path
 
-from src.ingest.pdpa import find_leaks, redact
+from src.ingest.pdpa import personal_data_classes
 
 FIDELITY_LEVELS = ("survived", "degraded", "lost")
 
@@ -112,12 +112,8 @@ def parse_entry(log_key: str, data: dict[str, object]) -> CookAlongEntry:
         value = data[key]
         if not isinstance(value, str):
             raise CookAlongError(f"{log_key}: {key} must be a string")
-        _, report = redact(value)
-        leaks = find_leaks(value)
-        if report.total or leaks:
-            # Do not echo the matched text: it is the personal data being refused.
-            classes = sorted(set(leaks) | {c for c, col in report.COLUMNS.items()
-                                           if getattr(report, col)})
+        # Do not echo the matched text: it is the personal data being refused.
+        if classes := personal_data_classes(value):
             raise CookAlongError(
                 f"{log_key}: {key} contains personal data ({', '.join(classes)}). "
                 "Refer to people by role, not name, and remove contact details."

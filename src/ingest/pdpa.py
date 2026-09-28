@@ -303,3 +303,17 @@ def find_leaks(text: str) -> dict[str, list[str]]:
         if hits:
             out[name] = hits
     return out
+
+
+def personal_data_classes(text: str) -> list[str]:
+    """Every personal-data class in `text` that `redact()` would strip or `find_leaks()`
+    detects, sorted. Empty means clean.
+
+    For hand-written project files (cook-along logs, the lexicon), which are refused
+    rather than redacted when this is non-empty: the file itself is committed, so the fix
+    has to happen at the source. Returns class names only, never the matched text, so a
+    caller's error message cannot echo the personal data it is refusing.
+    """
+    _, report = redact(text)
+    stripped = {cls for cls, column in report.COLUMNS.items() if getattr(report, column)}
+    return sorted(stripped | set(find_leaks(text)))
