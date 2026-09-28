@@ -47,6 +47,28 @@ def headline(counts: Mapping[str, int]) -> dict[int, int]:
     return {t: len(eligible_provinces(counts, t)) for t in HEADLINE_THRESHOLDS}
 
 
+def sweep_by_register(
+    counts_by_register: Mapping[str, Mapping[str, int]],
+    thresholds: range = THRESHOLDS,
+) -> list[tuple[str, int, int, list[str]]]:
+    """The sweep run separately for each register, as long-format rows of
+    `(register, threshold, n_eligible, eligible_province_codes)`.
+
+    Registers are never summed: §3.2 forbids pooling corpora without a source
+    indicator, and a province with 12 official plus 12 commercial recipes is not a
+    province with 24 of anything. Whether an analysis needs a province to clear the
+    threshold in one register, in each compared register, or in some combination is a
+    per-analysis decision this function does not make — it reports every register and
+    leaves the choice to the caller.
+    """
+    return [
+        (register, t, len(codes), codes)
+        for register in sorted(counts_by_register)
+        for t in thresholds
+        for codes in [eligible_provinces(counts_by_register[register], t)]
+    ]
+
+
 def caption(counts: Mapping[str, int], threshold: int = PROVINCE_MIN_N) -> str:
     """The exact wording every province-level figure caption must include:
     'n = {k} of 77 provinces'. Centralised so it is typed once, not once per figure."""

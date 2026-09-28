@@ -13,6 +13,7 @@ from src.analyze.eligibility import (
     eligible_provinces,
     headline,
     sweep,
+    sweep_by_register,
 )
 
 COUNTS = {
@@ -65,3 +66,23 @@ def test_caption_uses_province_min_n_by_default() -> None:
 def test_an_empty_corpus_is_zero_everywhere_not_an_error() -> None:
     assert sweep({}) == {t: 0 for t in THRESHOLDS}
     assert caption({}) == "n = 0 of 77 provinces"
+
+
+def test_sweep_by_register_never_pools_registers() -> None:
+    by_register = {
+        "official": {"TH-55": 12},
+        "commercial": {"TH-55": 12},
+    }
+    rows = sweep_by_register(by_register)
+    at_20 = {register: n for register, t, n, _ in rows if t == 20}
+    # 12 + 12 would clear 20 if the registers were summed; neither clears it alone.
+    assert at_20 == {"official": 0, "commercial": 0}
+
+
+def test_sweep_by_register_covers_every_register_at_every_threshold() -> None:
+    rows = sweep_by_register({"official": COUNTS, "domestic": {}})
+    assert len(rows) == 2 * len(THRESHOLDS)
+    assert {r[0] for r in rows} == {"official", "domestic"}
+    official_10 = next(r for r in rows if r[0] == "official" and r[1] == 10)
+    assert official_10 == ("official", 10, 2, ["TH-10", "TH-50"])
+    assert all(n == 0 and codes == [] for reg, _, n, codes in rows if reg == "domestic")
