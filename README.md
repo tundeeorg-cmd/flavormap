@@ -80,8 +80,9 @@ make backup TO=/Volumes/YourDrive
 ```
 
 This encrypts the fieldwork interview files and the newest database dump into one file
-on an external drive or a cloud-synced folder. It refuses any folder on this laptop's
-own disk. gpg asks for a passphrase; **lose it and the backup cannot be opened**, so keep
+on an external drive or a cloud-synced folder: iCloud Drive, or a Google Drive, OneDrive
+or Dropbox folder inside `~/Library/CloudStorage/`. It refuses any other folder on this
+laptop's own disk. A synced copy is safe only once it has finished uploading. gpg asks for a passphrase; **lose it and the backup cannot be opened**, so keep
 it somewhere safe. The backup is checked before it reports success. To restore:
 `gpg --decrypt <file>.tar.gz.gpg | tar -xz`, then `scripts/restore_db.sh --force` on the
 dump inside, and copy the interview files back into `data/interviews/`.

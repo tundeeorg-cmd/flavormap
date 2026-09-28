@@ -5,7 +5,9 @@
 #
 # What it does:
 #   1. Refuses a destination on the same disk as the repo. A backup on the laptop it is
-#      meant to protect is not a backup.
+#      meant to protect is not a backup. The exception is a recognised cloud-sync folder
+#      (iCloud Drive, or ~/Library/CloudStorage/<provider>/…), whose contents are
+#      uploaded off the laptop (src/backup_paths.py; HD-31 amended 2026-09-29).
 #   2. Bundles data/interviews/*.toml (gitignored, HD-30), the newest
 #      data/exports/flavormap_*.sql.gz, and a MANIFEST of SHA-256 checksums.
 #   3. Encrypts the bundle with gpg, symmetric AES-256. gpg asks for the passphrase
@@ -39,9 +41,13 @@ if [ ! -d "$dest" ] || [ ! -w "$dest" ]; then
 fi
 
 same_disk="$(uv run python -c 'import os, sys; print(int(os.stat(sys.argv[1]).st_dev == os.stat(sys.argv[2]).st_dev))' "$dest" "$repo")"
-if [ "$same_disk" = "1" ] && [ "${FLAVORMAP_BACKUP_TEST_ALLOW_SAME_DISK:-}" != "1" ]; then
-  echo "refused: '$dest' is on the same disk as this repo. Back up to an external drive" >&2
-  echo "or a cloud-synced folder, so the copy survives losing this laptop (HD-31)." >&2
+sync_kind="$(PYTHONPATH=. uv run python -m src.backup_paths "$dest" "$HOME")"
+if [ "$same_disk" = "1" ] && [ -z "$sync_kind" ] \
+    && [ "${FLAVORMAP_BACKUP_TEST_ALLOW_SAME_DISK:-}" != "1" ]; then
+  echo "refused: '$dest' is on the same disk as this repo and is not a recognised" >&2
+  echo "cloud-sync folder. Use an external drive, iCloud Drive, or a folder inside" >&2
+  echo "~/Library/CloudStorage/ (Google Drive, OneDrive, Dropbox), so the copy survives" >&2
+  echo "losing this laptop (HD-31)." >&2
   exit 1
 fi
 
@@ -115,3 +121,7 @@ then
 fi
 
 echo "Backed up -> $out ($(du -h "$out" | cut -f1)). Verified: decrypts and matches."
+if [ -n "$sync_kind" ]; then
+  echo "This is a $sync_kind folder: the copy is off the laptop only once it has finished"
+  echo "uploading. Check the sync status before relying on it."
+fi

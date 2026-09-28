@@ -1105,6 +1105,18 @@ transcription is the agent's.
 **Reasoning:**            ← researcher
 **Date decided:** 2026-09-29
 
+
+**Amendment, 2026-09-29 (researcher's decision, in session).** As first built, the
+same-disk refusal also refused cloud-sync folders, which live on this disk. That
+contradicted option 1A, which the agent had described as working with "any drive or
+synced folder". The agent flagged the mismatch after telling the researcher a synced
+folder would work. Options: (a) accept recognised cloud-sync folders; (b) external
+drives only, correcting this entry. **Decision: (a).** Recognised locations are iCloud
+Drive (`~/Library/Mobile Documents/com~apple~CloudDocs`) and folders inside
+`~/Library/CloudStorage/<provider>/` (current Google Drive, OneDrive, Dropbox). Paths
+are resolved first, so a symlink cannot disguise a local folder, and every other
+same-disk folder is still refused (`src/backup_paths.py`). A backup written to a synced
+folder reminds the researcher that it is off the laptop only once uploaded.
 ---
 
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds

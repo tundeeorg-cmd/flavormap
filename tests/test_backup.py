@@ -124,8 +124,26 @@ def test_the_laptops_own_disk_is_refused(tmp_path: Path, gpg_env: dict[str, str]
     dest.mkdir()
     result = _run(dest, gpg_env)  # no same-disk hook
     assert result.returncode != 0
-    assert "same disk as this repo" in result.stderr
+    assert "same disk as this repo and is not a recognised" in result.stderr
     assert list(dest.iterdir()) == []
+
+
+def test_a_cloud_sync_folder_is_accepted_without_the_same_disk_hook(
+    tmp_path: Path, gpg_env: dict[str, str]
+) -> None:
+    """HD-31 as amended: a folder inside ~/Library/CloudStorage/<provider>/ counts as
+    off-laptop even though it sits on this disk. HOME is a fake home; uv keeps its real
+    cache so nothing is reinstalled."""
+    fake_home = tmp_path / "home"
+    synced = fake_home / "Library" / "CloudStorage" / "GoogleDrive-test" / "My Drive"
+    synced.mkdir(parents=True)
+    uv_cache = subprocess.run(["uv", "cache", "dir"], capture_output=True, text=True,
+                              check=True).stdout.strip()
+    result = _run(synced, {**gpg_env, "HOME": str(fake_home), "UV_CACHE_DIR": uv_cache})
+    assert result.returncode == 0, result.stderr
+    assert "GoogleDrive-test folder" in result.stdout
+    assert "Check the sync status before relying on it" in result.stdout
+    assert len(list(synced.glob("*.gpg"))) == 1
 
 
 @pytest.mark.parametrize("dest", ["", "/nonexistent/drive"])
