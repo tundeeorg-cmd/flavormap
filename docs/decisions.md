@@ -530,6 +530,11 @@ question and the worse schedule risk, and the decision between them is a calenda
 judgment rather than a methods one. C stays available and loses least if the trips slip —
 and per §7 it was always the pre-registered fallback.
 
+**Update, 2026-09-28 (machine-written, factual only).** HD-29 replaced Surin with Buri
+Ram. The fieldwork sample's official axis is now three levels with **two** distinct
+values (`transmitted` ×2, `near_lost` ×1), so a matrix is possible. The Decision field
+below is still open.
+
 **Note on scope.** This measurement makes no claim that the four recovered fieldwork values
 are *correct*. They are what the extractor reads from a ticked box. Confirming four values
 against four PDFs by eye is a ten-minute job and should happen before any of the options
@@ -930,6 +935,67 @@ keeps that without publishing a DCP-derived coverage table while HD-3 is open.
 exception text, and `render(public=True)`, the snapshot form, omits the name lists.
 `tests/test_status.py` asserts each of these, and asserts that no personal data and no
 connection string or password can reach the output.
+
+---
+
+## HD-29 — Second fieldwork province: Buri Ram replaces Surin
+**Date presented:** 2026-09-28
+**Supersedes:** Bible v4 §10 ("Nan and Surin … If only one trip happens, do Surin") and
+every place CLAUDE.md repeated it. The Bible is the researcher's document; its §10 needs
+the same amendment, which this entry does not make.
+
+**The finding that prompted it.** RQ5 compares the official endangerment level against
+what cooks say about the same dishes, and the state selected three dishes per province.
+With Nan + Surin the official axis had **one** distinct value (four levels, all
+`transmitted`), so Figure 5's agreement matrix could not exist. That is the open RQ5 gate
+above. Measured 2026-09-28 from `recipes.endangerment` (extractor readings, see caveat):
+
+| Paired with Nan | Official levels in sample | Distinct values |
+|---|---|---|
+| Surin | 4: transmitted ×4 | 1 |
+| **Buri Ram** | 3: transmitted ×2 (incl. Nan), near_lost ×1 | **2** |
+| Si Sa Ket | 4: transmitted ×1 (Nan), near_lost ×3 | 2 |
+
+Buri Ram's three dishes: จรั๊วะโดง (น้ำพริกกะทิ) `transmitted` (northeast_6_1.pdf),
+ต้มไก่ดำยอดใบหม่อน no level (northeast_6_2.pdf), ยำลูกผึ้ง `near_lost` (northeast_6_3.pdf).
+Nan's: แกงส้มเมืองปลาคังใส่ตูน `transmitted` (north_6_1.pdf), two with no level.
+
+**Options presented:**
+  A. **Keep Surin.** (consequence: RQ5 stays blocked on one official value.)
+  B. **Buri Ram.** (consequence: two distinct values, three levels. Buri Ram's own dishes
+     carry both values, so a single trip still yields a two-row matrix. Lower Isaan,
+     peripheral, Cambodian border, so the Bible's reason for the pairing ("one Northern,
+     one lower-Isaan; both peripheral") still holds geographically.)
+  C. **Si Sa Ket.** (consequence: two distinct values, four levels, but all three of its
+     own dishes are `near_lost`, so the second value depends on the Nan trip happening.)
+
+**Corrections made in session before the decision.** The agent first presented only
+Surin and Buri Ram, omitting Si Sa Ket although it had queried it. It also said that
+HD-1 places Buri Ram and Surin in the same dialect group; HD-1 is open, its column holds
+an unreviewed proposal that must not be cited, and it names "Surin / Si Sa Ket / Buri Ram"
+among the most contested calls. Both were corrected and the researcher re-confirmed.
+
+**Recommendation given:** none between B and C. Both fix RQ5's official axis. B is
+robust to losing the Nan trip, and C has one more official level.
+
+**Decision:** **B — Buri Ram replaces Surin as the second fieldwork province.** If only
+one trip happens, it is Buri Ram. Decided by the researcher in session, 2026-09-28, and
+re-confirmed after the corrections above; the transcription is the agent's.
+**Reasoning:**            ← researcher
+**Date decided:** 2026-09-28
+
+**What this does and does not settle.**
+- **The RQ5 gate above stays open.** This decision is that gate's option B in its
+  "replaces one of the two already planned" form, but the gate's Decision field is the
+  researcher's to fill, not inferred from this one.
+- **The levels are unverified.** As the RQ5 gate's own scope note says, these are what the
+  extractor read from ticked boxes. Checking northeast_6_1, northeast_6_3 and north_6_1
+  by eye against the PDFs is a ten-minute job, and should happen before booking.
+- **HD-1 (dialect groups) is unaffected and still open.** Buri Ram's Northern Khmer/Kui
+  presence is one of the calls it has to make.
+- **Informant IDs.** Migration 008's comment example `INT_SRN_001` assumed Surin. Applied
+  migrations are append-only, so the comment stays. The Buri Ram ID prefix is settled
+  when the fieldwork loader is built.
 
 ---
 
