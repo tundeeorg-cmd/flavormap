@@ -66,7 +66,7 @@ make test    # pytest + ruff + mypy
 | `make setup` | Start the database, install dependencies, apply migrations |
 | `make test` | Run the test suite, linter, and type checker |
 | `scripts/dump_db.sh` | Dump the local database to `data/exports/` |
-| `scripts/restore_db.sh <dump.sql.gz>` | Restore the database from a dump |
+| `scripts/restore_db.sh <dump.sql.gz>` | Restore the database from a dump. Refuses a database that already has tables unless given `--force`. Restores into a staging copy first, stops at the first error, and replaces the target only on success. `--db NAME` restores into a different database, e.g. to check a dump without touching the live one |
 
 The rest of the pipeline (`scrape`, `ingest`, `clean`, `analyze`, `vision`, `figures`, `api`,
 `web`, `export`) is scaffolded in the `Makefile` and built out phase by phase — see
