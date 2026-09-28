@@ -50,8 +50,11 @@ ingest: scrape
 clean:
 	@echo "make clean: not yet implemented" && exit 1
 
+# §7.5 — eligible-province counts at every threshold 5-30, per register, from
+# v_recipes_clean. Writes data/processed/eligibility_sweep.csv. The only analysis step
+# built so far; the rest of `analyze` does not exist yet.
 analyze:
-	@echo "make analyze: not yet implemented" && exit 1
+	uv run python -m scripts.eligibility_sweep
 
 vision:
 	@echo "make vision: not yet implemented" && exit 1
