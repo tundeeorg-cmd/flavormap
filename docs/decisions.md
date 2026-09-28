@@ -826,6 +826,60 @@ agent's.
 
 ---
 
+## HD-27 — Ingredient category taxonomy for the lexicon
+**Date presented:** 2026-09-28
+**Relation to other gates:** part of HD-6/HD-10 (the lexicon). Distinct from HD-9, which
+is the *dish*-category taxonomy RQ5 uses; this one categorises *ingredients* and feeds
+Figure 6.
+
+**The taxonomy (15 categories):**
+`aromatic`, `chilli`, `herb`, `spice`, `vegetable`, `fruit`, `protein_meat`,
+`protein_fish`, `protein_other`, `coconut`, `acid`, `fat`, `starch`, `sweetener`, `other`.
+
+**Assignment rule.** One category per canonical ingredient, assigned by **culinary role,
+not botany**. Kaffir lime leaf (ใบมะกรูด) is `aromatic`, not `fruit`.
+
+**Fermentation is an axis, not a category.** A separate boolean `is_fermented` on each
+entry, required, with no default. ปลาร้า is `protein_fish` + fermented; ผักดอง is
+`vegetable` + fermented; น้ำปลา is `protein_fish` + fermented.
+
+**The `other` ceiling.** `other` stays under 5% of the lexicon. Past that, the taxonomy
+needs revisiting, and that goes in `docs/limitations.md`.
+
+**Alternatives rejected:**
+  A. **`fermented` as a category.** Rejected: it would force a choice between the base
+     ingredient and the process. ปลาร้า filed as `fermented` disappears from
+     `protein_fish`, and fish-as-protein and fermentation stop being measurable
+     separately. A boolean keeps both axes.
+  B. **Coconut under `fat`.** Rejected: coconut cream is a primary North/Isaan vs.
+     Central/South divider, and it would be invisible inside a category shared with
+     vegetable oil and lard.
+  C. **A generic `seasoning` bin.** Rejected: it absorbs everything ambiguous and tells
+     Figure 6 nothing. `acid` is split out instead, because sour is a primary Thai
+     flavour axis and tamarind vs. lime vs. som khaek separates regions.
+
+**Decision:** **The 15-category taxonomy above, the culinary-role assignment rule,
+`is_fermented` as a separate required boolean, and the 5% ceiling on `other`.**
+Specified by the researcher in session, 2026-09-28; the taxonomy, rule and reasons are
+theirs, the transcription is the agent's.
+**Reasoning:** (researcher's, transcribed.) Fermentation as a boolean keeps the base
+ingredient and the fermentation axis independently measurable. Coconut is its own
+category because coconut cream is a primary North/Isaan vs. Central/South divider and
+would be invisible inside a category shared with vegetable oil and lard. There is
+deliberately no generic `seasoning` category: it absorbs everything ambiguous and tells
+you nothing in Figure 6. `acid` is separate because sour is a primary Thai flavour axis
+and tamarind vs. lime vs. som khaek separates regions.
+**Date decided:** 2026-09-28
+
+**How it is enforced.** Migration 023 adds `is_fermented BOOLEAN NOT NULL` (no default)
+and a CHECK constraint on `category` listing exactly these 15 values.
+`src/clean/lexicon.py` refuses an unlisted category, a missing or non-boolean
+`is_fermented`, and a lexicon where `other` exceeds 5% of entries, which stops the load
+and points at `docs/limitations.md`. Changing the list means a new migration and an
+amendment here, never an edit to 023.
+
+---
+
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
 **Date:** 2026-09-12
 **This is not a gate.** It is a documentation discrepancy found while building
