@@ -94,8 +94,18 @@ _TABLE_END = (
     "ด้านโภชนาการ",
     "ภาพถ่าย หรือคลิป",
 )
-# These end the table only once rows have started.
-_TABLE_END_AFTER_ROWS = ("ไม่มีส่วนผสม", "อื่นๆ (ระบุ)")
+# These end the table only once rows have started. They are the §4 checkbox options
+# that follow the table: "(ไม่)มีส่วนผสมของวัตถุดิบ…", "เป็นอาหารที่ช่วยส่งเสริม…" and
+# "อื่นๆ (ระบุ)". Matching only "ไม่มีส่วนผสม" let the ticked "มีส่วนผสม…" option through
+# (south_7_1). Bare "มีส่วนผสม" is too short: south_1_1's สรรพคุณ cell reads
+# "มีส่วนผสม คาร์โบไฮเดรท" and it cut the table after row 1. "ไม่มีส่วนผสม" stays for
+# the truncated "/ไม่มีส่วนผสม…" some layouts print (central_6_3, north_3_3).
+_TABLE_END_AFTER_ROWS = (
+    "ไม่มีส่วนผสม",
+    "มีส่วนผสมของวัตถุดิบ",
+    "เป็นอาหารที่ช่วยส่งเสริม",
+    "อื่นๆ (ระบุ)",
+)
 _ROW_INDEX = re.compile(r"[0-9๐-๙]{1,2}[.)]?")
 _MAX_INDEX_GAP = 3      # north_8_3 skips 44; a larger jump is a different list
 _MAX_ROW_GAP = 150.0    # points between consecutive rows on one page
@@ -224,10 +234,16 @@ def _table_runs(doc: Document) -> list[TextRun]:
     expected = 1
 
     for line in lines[header + 1 :]:
-        text = "".join(r.text for r in line)
+        # Markers are matched on repaired text. The runs are raw, and in many documents
+        # carry private-use tone marks — "ไมมีสวนผสม" never matches
+        # "ไม่มีส่วนผสม" — so the checkbox options after the table were read as a
+        # continuation of its last row and absorbed into that ingredient's name.
+        text = normalize_thai("".join(r.text for r in line))[0]
         if any(m in text for m in _TABLE_END):
             break
-        if last_row is not None and any(m in text for m in _TABLE_END_AFTER_ROWS):
+        if last_row is not None and (
+            any(m in text for m in _TABLE_END_AFTER_ROWS) or _opens_with_box(line)
+        ):
             break
         body = [r for r in line if r.y > _PAGE_ARTEFACT_Y]
         if not body:
@@ -246,6 +262,16 @@ def _table_runs(doc: Document) -> list[TextRun]:
         # it; breaking there lost three quarters of the table.
 
     return [r for line in collected for r in line]
+
+
+def _opens_with_box(line: list[TextRun]) -> bool:
+    """True when the line's leftmost run is a checkbox glyph.
+
+    A table row opens with its index number and a continuation line with wrapped cell
+    text; neither opens with a box. A line that does is a checkbox option, whatever its
+    wording — the structural stop that does not depend on the option text matching.
+    """
+    return min(line, key=lambda r: r.x).is_box
 
 
 def _index_column_x(lines: list[list[TextRun]], fallback: float) -> float:

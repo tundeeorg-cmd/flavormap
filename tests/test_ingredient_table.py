@@ -13,11 +13,13 @@ x≈93, so header-derived boundaries put the ingredient name in the index column
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from src.config import RAW_DIR
-from src.ingest.dcp_form import parse_pdf
-from src.ingest.pdf_layout import TextRun, extract_table
+from src.ingest.dcp_form import _parse_ingredients, parse_pdf
+from src.ingest.pdf_layout import Document, TextRun, extract_table
 
 RAW = RAW_DIR / "dcp_food"
 
@@ -92,3 +94,65 @@ def test_scanned_documents_yield_no_ingredients_rather_than_junk() -> None:
     record = parse_pdf(RAW / "east_5_1.pdf")
     assert record.ingredients == []
     assert any("no ingredient rows" in n for n in record.notes)
+
+
+# ── The §4 table stops at the checkbox section that follows it ────────────────────────
+#
+# Synthetic, not transcribed: generic ingredients and the form's own printed option text.
+# In the real forms the options arrive with private-use tone marks (U+F70A for ่), so the
+# end markers never matched and the options were read as the last row's wrapped
+# remainder — "มะพร้าวห้าว ไม่มีส่วนผสมของวัตถุดิบ…" as one ingredient name.
+
+_EMPTY_BOX = "\uf0a8"
+_TICKED_BOX = "\uf052"
+
+
+def _synthetic_table(*after: tuple[str, float, float]) -> Document:
+    runs = [
+        _run("ที่", 72, 500), _run("ชื่อวัตถุดิบ/ เครื่องปรุง", 101, 500),
+        _run("สรรพคุณ", 288, 500), _run("ที่มา", 459, 500),
+        _run("1", 72, 480), _run("กระเทียม", 102, 480),
+        _run("ลดไขมัน", 212, 480), _run("ตลาดในชุมชน", 416, 480),
+        _run("2", 72, 460), _run("พริกแห้ง", 102, 460),
+        _run("ช่วยเจริญอาหาร", 212, 460), _run("ร้านค้า", 416, 460),
+        *(_run(text, x, y) for text, x, y in after),
+    ]
+    return Document(path=Path("synthetic.pdf"), runs=runs)
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        pytest.param(
+            [(_EMPTY_BOX, 107, 435),
+             ("ไม\uf70aมีส\uf70aวนผสมของวัตถุดิบและเครื่องปรุงในท\uf70bองถิ่น", 121, 435),
+             (_EMPTY_BOX, 107, 417),
+             ("เป\uf712นอาหารที่ช\uf70aวยส\uf70aงเสริม ดูแลรักษาระบบนิเวศ", 125, 417)],
+            id="private-use-tone-marks",
+        ),
+        pytest.param(
+            [(_TICKED_BOX, 107, 435),
+             ("มีส่วนผสมของวัตถุดิบและเครื่องปรุงในท้องถิ่น", 125, 435)],
+            id="ticked-has-local-ingredients",
+        ),
+        pytest.param(
+            [(_EMPTY_BOX, 107, 435), ("ข้อความตัวเลือกใดก็ได้", 125, 435)],
+            id="any-option-opened-by-a-box",
+        ),
+    ],
+)
+def test_table_stops_at_the_checkbox_options_below_it(
+    options: list[tuple[str, float, float]],
+) -> None:
+    ingredients = _parse_ingredients(_synthetic_table(*options))
+    assert [i.name_th for i in ingredients] == ["กระเทียม", "พริกแห้ง"]
+    assert ingredients[-1].acquisition_raw == "ร้านค้า"
+
+
+def test_marker_words_inside_a_cell_do_not_end_the_table() -> None:
+    """A สรรพคุณ cell may say "มีส่วนผสม…" in passing; only the option phrase stops."""
+    doc = _synthetic_table(
+        ("มีส่วนผสม คาร์โบไฮเดรท", 212, 442),
+        ("3", 72, 424), ("เกลือ", 102, 424), ("ปรุงรส", 212, 424), ("ร้านค้า", 416, 424),
+    )
+    assert [i.name_th for i in _parse_ingredients(doc)] == ["กระเทียม", "พริกแห้ง", "เกลือ"]
