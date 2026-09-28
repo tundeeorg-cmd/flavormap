@@ -540,9 +540,16 @@ are *correct*. They are what the extractor reads from a ticked box. Confirming f
 against four PDFs by eye is a ten-minute job and should happen before any of the options
 above is acted on.
 
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** **B — widen the fieldwork provinces**, in the form HD-29 already enacted:
+Buri Ram replaces Surin, not a third trip. The fieldwork sample's official axis now has
+two distinct values (`transmitted` ×2, `near_lost` ×1), so Figure 5's matrix can exist.
+Recorded from the researcher's instruction in session, 2026-09-29; the choice is theirs,
+the transcription is the agent's.
+**Reasoning:**            ← researcher
+**Date decided:** 2026-09-29
+
+**Still to do before acting on it**, per this gate's own scope note: confirm the three
+fieldwork levels by eye against northeast_6_1, northeast_6_3 and north_6_1.
 
 ---
 

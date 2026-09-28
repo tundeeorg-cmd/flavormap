@@ -265,14 +265,13 @@ the first thing to cut; here it is the validation layer, and cutting it removes 
 - **Needs fieldwork** — entirely.
 - **A NO looks like** — full agreement, validating the state's assessment process.
 
-> **⚠️ OPEN GATE — do not build against this question yet.** The checkbox extraction it
-> depends on works: endangerment recovers on 157 of 231 documents, within 1.3 points of
-> the corpus ceiling. With the original Nan + Surin sample, four documents carried a level
-> and **all four carried the same level**, so Figure 5's matrix could not be built.
-> **HD-29 (2026-09-28) replaced Surin with Buri Ram**: the sample now has three levels
-> with **two** distinct values (`transmitted` ×2, `near_lost` ×1), still unverified by eye.
-> That removes the blocker the gate describes, but the gate's Decision field in
-> `docs/decisions.md` is still empty, and no work proceeds past it until it is filled.
+> **RQ5 gate: decided 2026-09-29, option B.** The checkbox extraction works: endangerment
+> recovers on 157 of 231 documents, within 1.3 points of the corpus ceiling. With the
+> original Nan + Surin sample, all four levels were the same, so Figure 5's matrix could
+> not be built. **HD-29 replaced Surin with Buri Ram**, which is option B ("widen the
+> fieldwork provinces") without a third trip. The sample now has three levels with **two**
+> distinct values (`transmitted` ×2, `near_lost` ×1). **Before building on it:** confirm
+> those three levels by eye against the PDFs, as the gate's scope note requires.
 ---
 
 ## 5. Statistical corrections — Bible §4, verbatim
@@ -319,7 +318,7 @@ Seven figures, specified before implementation, axes named. All 2D. All regenera
 | 2 | **Distinctiveness decomposition** (RQ2) | presence-driven | absence-driven | One point per province, diagonal = balanced. Above the line = defines itself by refusal. A chart type reviewers have not seen |
 | 3 | **Official-record overlap** (RQ3) | province | count | Stacked bars: dishes named by cooks that are in the official three / in the commercial register / in neither. **The "neither" segment is the finding** |
 | 4 | **Pipeline fidelity** (RQ4) | dish | information class | Matrix, 8 dishes × {quantities, order, technique, specificity, completeness}. Cell = survived / degraded / lost. Reads as a table, functions as a figure. Built: `src/viz/fidelity_matrix.py` → `figures/fidelity_matrix.png` (not `figure4.*`, which v3's prevalence view still holds); dish order by information lost, HD-25 |
-| 5 | **Endangerment agreement** (RQ5) | official level | cook-reported status | Confusion-matrix style; off-diagonal cells are the interesting ones. **Blocked — see the RQ5 gate in §4.** One distinct official value across the fieldwork sample means there is no matrix to draw |
+| 5 | **Endangerment agreement** (RQ5) | official level | cook-reported status | Confusion-matrix style; off-diagonal cells are the interesting ones. RQ5 gate decided (option B, via HD-29): the Nan + Buri Ram sample has two official values (`transmitted`, `near_lost`), so a two-row matrix exists. Needs the interviews |
 | 6 | **Province × ingredient heatmap** | ingredients (top ~60 by variance) | provinces | Fill = TF-IDF, **faceted by register**. Both axes seriated by clustering, never alphabetical. Good first Results figure because no modelling sits between data and image |
 | 7 | **Acquisition mode by province** | province, ordered by distance from Bangkok | share of ingredients | Stacked bars: grown / foraged / market / packaged. Uses a government field directly. Supporting figure, and the most immediately legible in the set |
 
