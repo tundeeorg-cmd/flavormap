@@ -117,6 +117,10 @@ class KapookRecord:
     url: str
     title_th: str | None = None
     published_at: date | None = None
+    # The site's own category path from its JSON-LD BreadcrumbList, verbatim, e.g.
+    # "สูตรขนม > เบเกอรี่". Source-stated, never mapped: mapping onto the project's
+    # dish-category taxonomy is HD-9's job. Stored as recipes.dish_category_source.
+    category_source: str | None = None
     sections: list[IngredientSection] = field(default_factory=list)
     redaction: RedactionReport = field(default_factory=RedactionReport)
     notes: list[str] = field(default_factory=list)
@@ -214,6 +218,40 @@ def article_metadata(html: str) -> dict[str, object]:
     return {}
 
 
+CATEGORY_SEPARATOR = " > "
+
+
+def site_category(html: str) -> str | None:
+    """The page's category path from its JSON-LD ``BreadcrumbList``, verbatim.
+
+    Measured 2026-09-28: all 2,702 cached pages carry one, in 33 distinct paths. The
+    trail runs site root → category → subcategory → the page itself; the root and the
+    page are dropped, leaving the category path. The page element is recognised by its
+    ``view<digits>.html`` URL rather than by position, so a trail missing it loses
+    nothing. None when no breadcrumb yields a category, never a guessed one.
+    """
+    for block in _LD_JSON.findall(html):
+        try:
+            payload = json.loads(block)
+        except json.JSONDecodeError:
+            continue
+        for node in payload if isinstance(payload, list) else [payload]:
+            if not (isinstance(node, dict) and node.get("@type") == "BreadcrumbList"):
+                continue
+            elements = sorted(
+                (e for e in node.get("itemListElement", []) if isinstance(e, dict)),
+                key=lambda e: e.get("position", 0),
+            )
+            names = [
+                _clean_line(e["name"]) for e in elements[1:]  # [0] is the site root
+                if isinstance(e.get("name"), str)
+                and not _PAGE_ID.search(str(e.get("item", "")))
+            ]
+            names = [n for n in names if n]
+            return CATEGORY_SEPARATOR.join(names) if names else None
+    return None
+
+
 def _published_date(value: object) -> date | None:
     """The date part of an ISO-8601 timestamp. Never a guess: unparseable is None."""
     if not isinstance(value, str) or not value:
@@ -262,6 +300,10 @@ def parse_html(html: str, url: str, page_id: str | None = None) -> KapookRecord:
         return cleaned
 
     record.title_th = scrub(_clean_line(headline)) if headline else None
+    category = site_category(html)
+    record.category_source = scrub(category) if category else None
+    if record.category_source is None:
+        record.notes.append("no breadcrumb category")
     record.sections = [
         IngredientSection(
             heading=scrub(section.heading),

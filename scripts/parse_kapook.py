@@ -22,6 +22,11 @@ honestly support. These recipes load with `register='commercial'` and simply hav
 province_attribution row, which is why `v_recipes_clean`'s inner join excludes them —
 correctly: they are not yet attributed, not attributed to nothing.
 
+**Dish category.** Every loaded recipe carries the site's own category path (its JSON-LD
+breadcrumb, e.g. "สูตรขนม > เบเกอรี่") verbatim in `recipes.dish_category_source`, as the
+DCP recipes carry theirs. Mapping it onto the project's taxonomy (`dish_category`) is
+HD-9's, and is not done here.
+
 PDPA: `src.ingest.kapook_page.parse_file` redacts before returning a record — see its
 own docstring. Nothing here reads raw HTML text directly.
 """
@@ -144,13 +149,14 @@ def load(records: list[tuple[Path, KapookRecord]], dry_run: bool) -> dict[str, i
 
             conn.execute(
                 """
-                INSERT INTO recipes (raw_id, name_th, register)
-                VALUES (%s,%s,%s)
+                INSERT INTO recipes (raw_id, name_th, register, dish_category_source)
+                VALUES (%s,%s,%s,%s)
                 ON CONFLICT (raw_id) DO UPDATE
                     SET name_th = EXCLUDED.name_th,
-                        register = EXCLUDED.register
+                        register = EXCLUDED.register,
+                        dish_category_source = EXCLUDED.dish_category_source
                 """,
-                (raw_id, name, REGISTER),
+                (raw_id, name, REGISTER, rec.category_source),
             )
             stats["single_section_loaded"] += 1
 

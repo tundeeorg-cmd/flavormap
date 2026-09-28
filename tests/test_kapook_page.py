@@ -24,6 +24,7 @@ from src.ingest.kapook_page import (
     ingredient_sections,
     parse_file,
     parse_html,
+    site_category,
 )
 
 RAW = RAW_DIR / "kapook_cooking"
@@ -134,6 +135,42 @@ def test_publication_date_is_taken_but_never_guessed() -> None:
     assert "no usable datePublished" in unstamped.notes
 
 
+def _breadcrumb(*names: str, page_last: bool = True) -> str:
+    items = [{"@type": "ListItem", "position": 1, "name": "cooking",
+              "item": "https://cooking.kapook.com"}]
+    items += [{"@type": "ListItem", "position": i + 2, "name": n,
+               "item": f"https://cooking.kapook.com/c{i}"} for i, n in enumerate(names)]
+    if page_last:
+        items.append({"@type": "ListItem", "position": len(items) + 1,
+                      "name": "ชื่อเมนูของหน้านี้", "item": "https://cooking.kapook.com/view1.html"})
+    ld = {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": items}
+    return f'<script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>'
+
+
+def test_the_site_category_path_is_taken_verbatim() -> None:
+    assert site_category(_breadcrumb("สูตรขนม", "เบเกอรี่")) == "สูตรขนม > เบเกอรี่"
+    assert site_category(_breadcrumb("เคล็ดลับทำอาหาร")) == "เคล็ดลับทำอาหาร"
+
+
+def test_the_page_itself_and_the_site_root_are_never_the_category() -> None:
+    # Without the trailing page element, nothing is dropped from the category path.
+    assert site_category(_breadcrumb("เมนูอาหาร", "เมนูไข่", page_last=False)) == (
+        "เมนูอาหาร > เมนูไข่"
+    )
+    assert site_category(_breadcrumb()) is None  # only root and page: no category
+
+
+def test_a_missing_category_is_none_and_noted_never_guessed() -> None:
+    record = parse_html(page(""), "x/view1.html")
+    assert record.category_source is None
+    assert "no breadcrumb category" in record.notes
+
+
+def test_parse_html_carries_the_category_onto_the_record() -> None:
+    html = page("").replace("<html><body>", "<html><body>" + _breadcrumb("สูตรขนม", "ขนมไทย"))
+    assert parse_html(html, "x/view1.html").category_source == "สูตรขนม > ขนมไทย"
+
+
 def test_a_page_without_an_article_container_is_noted_not_raised() -> None:
     record = parse_html("<html><body><p>ไข่ไก่</p></body></html>", url="x/view1.html")
     assert record.sections == [] and not record.is_usable
@@ -183,3 +220,18 @@ def test_no_zero_byte_page_is_cached() -> None:
     """40 sitemap URLs answer 200 with an empty body. The fetcher records them as
     `empty`, so they neither reach the corpus nor count toward its coverage."""
     assert [p.name for p in RAW.glob("view*.html") if p.stat().st_size == 0] == []
+
+
+@pytest.mark.skipif(not RAW.exists(), reason="raw corpus not present")
+def test_a_page_has_no_category_only_when_the_site_gives_it_none() -> None:
+    """Measured 2026-09-28: 2,677 of 2,702 pages carry a category. The other 25 have a
+    breadcrumb of just site root + the page itself; None is the true value for those,
+    and must never hide a category the parser failed to read."""
+    uncategorised = [p for p in sorted(RAW.glob("view*.html"))
+                     if parse_file(p).category_source is None]
+    wrongly_empty = [
+        p.name for p in uncategorised
+        if p.read_text(encoding="utf-8", errors="replace").count('"@type":"ListItem"') != 2
+    ]
+    assert not wrongly_empty, f"category missed on {wrongly_empty[:5]}"
+    assert len(uncategorised) == 25
