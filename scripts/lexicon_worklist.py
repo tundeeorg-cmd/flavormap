@@ -32,13 +32,12 @@ from __future__ import annotations
 
 import argparse
 import csv
-import re
-import unicodedata
 from collections import Counter, defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
+from src.clean.lexicon import key
 from src.config import INTERIM_DIR
 from src.db import get_connection
 
@@ -55,14 +54,6 @@ SELECT alias FROM ingredient_aliases
 UNION
 SELECT name_th FROM canonical_ingredients
 """
-
-_WS = re.compile(r"\s+")
-
-
-def key(text: str) -> str:
-    """NFC plus whitespace collapsing. Deliberately nothing more (see module docstring)."""
-    return _WS.sub(" ", unicodedata.normalize("NFC", text)).strip()
-
 
 @dataclass(frozen=True)
 class WorklistRow:

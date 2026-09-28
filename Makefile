@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest cook-along clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest cook-along lexicon clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -46,6 +46,12 @@ scrape: scrape-dcp scrape-kapook
 ingest: scrape
 	uv run python -m scripts.parse_dcp
 	uv run python -m scripts.parse_kapook
+
+# HD-6/HD-10 — the hand-authored lexicon (data/reference/lexicon/*.csv) into
+# canonical_ingredients, ingredient_aliases and ingredient_conflations. All-or-nothing;
+# nothing is ever deleted.
+lexicon:
+	uv run python -m scripts.load_lexicon
 
 # RQ4 — hand-written cook-along logs (data/cook_along/*.toml) into cook_along_log.
 # All-or-nothing: one invalid file, including one carrying personal data, loads none.
