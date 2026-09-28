@@ -1068,6 +1068,45 @@ rules already in force):
 
 ---
 
+## HD-31 — Off-laptop backup of interview files and the database
+**Date presented:** 2026-09-29
+**Revisits:** the 2026-09-19 note ("Backups stay on this Mac only … Revisit before
+fieldwork data arrives"). Interview files (HD-30) are gitignored, and once loaded the
+database holds them too, so neither has any copy off this laptop.
+
+**Found in session:** no off-laptop destination exists yet (no external drive mounted,
+no iCloud Drive or Google Drive folder). `gpg` is installed via Homebrew.
+
+**1. Destination.**
+  A. **A path given each run** (`make backup TO=…`), refused if it is on the same disk
+     as the repo. (consequence: works with any drive or synced folder; a "backup" can
+     never silently sit on the laptop it protects.)
+  B. **A fixed drive** configured once. (consequence: simpler; fails whenever that drive
+     is absent.)
+  **Decision: A.**
+
+**2. Encryption.**
+  A. **gpg symmetric AES-256**, passphrase typed by the researcher at the prompt, never
+     passed through the agent or stored in a file. (consequence: a lost drive exposes
+     nothing; a lost passphrase makes the backup unrecoverable.)
+  B. **None.** (consequence: anyone finding the drive reads the interview notes, which the
+     consent form is unlikely to cover.)
+  **Decision: A.**
+
+**3. Scope.**
+  A. **Interview files plus the newest database dump**, in one archive.
+  B. **Interview files only.** (consequence: the database stays on this laptop only.)
+  **Decision: A.**
+
+**Recommendation given:** A for all three.
+
+**Decision:** **1A, 2A, 3A.** Decided by the researcher in session, 2026-09-29; the
+transcription is the agent's.
+**Reasoning:**            ← researcher
+**Date decided:** 2026-09-29
+
+---
+
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
 **Date:** 2026-09-12
 **This is not a gate.** It is a documentation discrepancy found while building
