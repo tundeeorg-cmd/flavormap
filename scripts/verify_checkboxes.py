@@ -67,7 +67,7 @@ def _safe(label: str) -> str:
 
 def report(provinces_th: list[str]) -> str:
     conn = get_connection()
-    conn.execute("SET default_transaction_read_only = on")
+    conn.read_only = True  # from the first statement, not just later transactions
     try:
         attributed = conn.execute(
             """SELECT p.name_th, split_part(rr.raw_path, '/', -1)
