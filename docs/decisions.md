@@ -295,9 +295,14 @@ is the parser's output contract, and `redaction_log`'s per-class counts depend o
 which classes are stripped. It also fixes the wording of `ETHICS.md` l.102–108, which stays
 self-contradictory until then.
 
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** **B — province + อำเภอ (district); ตำบล (subdistrict) on neither stream.**
+Chosen by the researcher in session, 2026-09-29, in answer to a request that interviews
+require subdistrict. The agent flagged that requiring it would decide this gate, and the
+researcher chose B. This is the rule already implemented for the DCP stream (the PDPA
+parser drops ตำบล) and for interviews (`informants.district` only). `ETHICS.md` l.108,
+which says ตำบล is retained, is now wrong and needs its two-word edit.
+**Reasoning:**            ← researcher
+**Date decided:** 2026-09-29
 
 ---
 
@@ -1117,6 +1122,48 @@ Drive (`~/Library/Mobile Documents/com~apple~CloudDocs`) and folders inside
 are resolved first, so a symlink cannot disguise a local folder, and every other
 same-disk folder is still refused (`src/backup_paths.py`). A backup written to a synced
 folder reminds the researcher that it is off the laptop only once uploaded.
+---
+
+## HD-32 — Fieldwork provinces: Nakhon Ratchasima and Buri Ram
+**Date decided:** 2026-09-29
+**Supersedes:** Bible v4 §10 (Nan + Surin) and HD-29 (Nan + Buri Ram, 2026-09-28). Buri
+Ram stays; Nakhon Ratchasima replaces Nan. The Bible's §10 needs the researcher's own
+amendment.
+
+**Decision:** **Nakhon Ratchasima and Buri Ram.** Specified by the researcher, 2026-09-29.
+**Reasoning (researcher's):** centre versus periphery within one region, across a dialect
+boundary (Khorat Thai in Nakhon Ratchasima, Northern Khmer in Buri Ram), plus access.
+**Alternative rejected (researcher's):** Nan + Surin, the Bible's pairing, which gave a
+North/Isaan contrast but far worse access. (HD-29's Nan + Buri Ram, the plan in force on
+2026-09-28, is superseded by this entry.)
+
+**Citation note (agent, agreed in session).** The request cited "migration 013" for the
+dialect boundary. Migration 013 only defines the six dialect labels and names neither
+Khorat Thai nor Northern Khmer. The only per-province labels are HD-1's unreviewed
+proposal (Nakhon Ratchasima `Transitional`, Buri Ram `Isaan_Lao`), which HD-1 says must
+not be cited until decided. The rationale is therefore recorded in the researcher's words,
+with no citation, to be tied to HD-1 once HD-1 is decided.
+
+**Consequences, measured 2026-09-29** (`scripts/verify_checkboxes.py`, extractor
+readings, **not yet checked by eye**):
+- **RQ5's official sample** is six documents, but only five are in the corpus.
+  `northeast_5_3.pdf` (ตำส่มโคราช, Nakhon Ratchasima) parsed with an empty province
+  field, so the loader skipped it. Its district reads เมืองนครราชสีมา.
+- Nakhon Ratchasima `northeast_5_1` and `northeast_5_2`: every box glyph is empty
+  (U+F0A8), so the endangerment level is unknown from the text layer.
+- `northeast_5_3` draws its boxes with a different glyph (U+F052), and **two mutually
+  exclusive endangerment options** (`near_lost` and `transmitted`) both read as ticked.
+  The parser returned the first, `near_lost`.
+- Buri Ram: `northeast_6_1` `transmitted`, `northeast_6_3` `near_lost` (U+F0FE glyphs),
+  `northeast_6_2` none. `northeast_6_2`'s stored occasion `อื่นๆ` comes from a ticked
+  box in the §3 endangerment list (page 3), not from the occasion question on page 1.
+- So the official axis still has two distinct values, **both from Buri Ram**. The RQ5
+  gate's option B still holds on these readings; none has been confirmed by eye.
+- **The domestic register is now two adjacent Isaan provinces:** limitation L19.
+- **Informant IDs:** `INT_NMA_nnn` for Nakhon Ratchasima (NMA is the province's common
+  abbreviation) and `INT_BRM_nnn` for Buri Ram.
+- **HD-1 remains open**, and both provinces are among its contested calls.
+
 ---
 
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds

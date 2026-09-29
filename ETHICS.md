@@ -155,7 +155,7 @@ any write**, and a `redaction_log` row records how many fields of each class wer
 per document. A document yielding zero redactions is treated as a parser failure, not as a
 clean document.
 
-Retained from such forms: administrative geography (ตำบล / อำเภอ / จังหวัด) and business
+Retained from such forms: administrative geography (อำเภอ / จังหวัด; ตำบล is discarded, HD-21 B, 2026-09-29) and business
 name with the address stripped. Administrative geography is not contact detail.
 
 Raw source documents on disk retain everything they came with. They are gitignored, they

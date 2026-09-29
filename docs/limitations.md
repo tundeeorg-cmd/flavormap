@@ -51,3 +51,10 @@ after review reads as damage control.
 ---
 
 *First entry: 2026-08-16, seeded from Bible §14 plus the three institutional-corpus entries.*
+
+## Added 2026-09-29 — consequence of HD-32
+
+| # | Limitation | Severity | Statement |
+|---|---|---|---|
+| L19 | The domestic register is two adjacent Isaan provinces | **HIGH** | Fieldwork is in Nakhon Ratchasima and Buri Ram (HD-32), neighbouring provinces in one region. The domestic register can support within-Isaan contrasts (centre versus periphery, across a dialect boundary) and existence claims about those two provinces. **No North/South, cross-regional or national claim can be made from it.** The official and commercial registers cover more of the country, but any three-register comparison (RQ1) exists only for these two provinces |
+
