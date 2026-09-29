@@ -1166,6 +1166,33 @@ readings, **not yet checked by eye**):
 
 ---
 
+## HD-33 — Which raw ingredient strings the worklist shows side by side
+**Date decided:** 2026-09-29
+**Scope.** Display only. The lexicon worklist lists, for each unmapped raw string, other
+raw strings similar enough that obvious variants of one ingredient are seen together.
+This never maps, merges or suggests anything. Under the researcher's hard boundary of
+2026-09-29, no canonical form, gloss or category is ever generated.
+
+**Options presented:**
+  A. **difflib ratio ≥ 0.8, adjustable** with `--threshold`. The metric already in
+     `src/clean/dedupe.py`, at the 0.8 figure §7.2 already names.
+  B. **Ratio ≥ 0.7, adjustable.** (consequence: more neighbours per string, more noise.)
+  C. **Substring containment.** (consequence: simple; misses spelling variants.)
+
+**Recommendation given:** A.
+**Decision:** **A.** Chosen by the researcher in session, 2026-09-29.
+**Reasoning:**            ← researcher
+**Date decided:** 2026-09-29
+
+**Known effect, measured 2026-09-29.** Commercial (kapook) lines carry quantities and
+preparation words ("หอมแดง 3 หัว", "กุ้งสด ปอกเปลือก…"); official (DCP) strings are bare
+names. The ratio of a bare name to its longer line often falls below 0.8
+("หอมแดง" vs "หอมแดง 3 หัว" is 0.67), so those pairs will not be shown together at the
+chosen setting. Stripping quantities and preparation verbs is the §7.2 cleaning step,
+which is not built and involves its own judgement calls.
+
+---
+
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
 **Date:** 2026-09-12
 **This is not a gate.** It is a documentation discrepancy found while building
