@@ -223,8 +223,8 @@ or merely polite.
 ### RQ3 — What does the official record leave out?
 *Plain: whose cooking didn't make the government's list?*
 
-- **Method** — the state selected 3 dishes per province. Ask cooks in Nan and Buri Ram
-  (HD-29; was Surin) what they actually cook. Measure overlap at dish level and ingredient level.
+- **Method** — the state selected 3 dishes per province. Ask cooks in Nakhon
+  Ratchasima and Buri Ram (HD-32; the Bible says Nan and Surin) what they actually cook. Measure overlap at dish level and ingredient level.
 - **Output** — table of dishes and ingredients named by cooks that appear in no register;
   overlap bar chart. **Figure 3** (was Figure 1 under v3).
 - **Needs fieldwork** — entirely.
@@ -260,7 +260,7 @@ the first thing to cut; here it is the validation layer, and cutting it removes 
 *Plain: the government says these dishes are at risk. Do the people who cook them agree?*
 
 - **Method** — compare the **endangerment level** field in the government PDFs against
-  what cooks in Nan and Buri Ram say about the same dishes.
+  what cooks in Nakhon Ratchasima and Buri Ram (HD-32) say about the same dishes.
 - **Output** — agreement matrix, official level vs. cook-reported status. **Figure 5**.
 - **Needs fieldwork** — entirely.
 - **A NO looks like** — full agreement, validating the state's assessment process.
@@ -268,10 +268,13 @@ the first thing to cut; here it is the validation layer, and cutting it removes 
 > **RQ5 gate: decided 2026-09-29, option B.** The checkbox extraction works: endangerment
 > recovers on 157 of 231 documents, within 1.3 points of the corpus ceiling. With the
 > original Nan + Surin sample, all four levels were the same, so Figure 5's matrix could
-> not be built. **HD-29 replaced Surin with Buri Ram**, which is option B ("widen the
-> fieldwork provinces") without a third trip. The sample now has three levels with **two**
-> distinct values (`transmitted` ×2, `near_lost` ×1). **Before building on it:** confirm
-> those three levels by eye against the PDFs, as the gate's scope note requires.
+> not be built. Option B ("widen the fieldwork provinces") was taken through HD-29 and
+> then HD-32: the sample is now **Nakhon Ratchasima + Buri Ram**. On the extractor's
+> readings the official axis has **two** distinct values, `transmitted` and `near_lost`,
+> **both from Buri Ram**. Nakhon Ratchasima's two corpus documents have no ticked level,
+> and its third (`northeast_5_3`) is not in the corpus and reads two exclusive options as
+> ticked. **Before building on it:** confirm every reading by eye with
+> `scripts/verify_checkboxes.py`, as the gate's scope note requires.
 ---
 
 ## 5. Statistical corrections — Bible §4, verbatim
@@ -318,7 +321,7 @@ Seven figures, specified before implementation, axes named. All 2D. All regenera
 | 2 | **Distinctiveness decomposition** (RQ2) | presence-driven | absence-driven | One point per province, diagonal = balanced. Above the line = defines itself by refusal. A chart type reviewers have not seen |
 | 3 | **Official-record overlap** (RQ3) | province | count | Stacked bars: dishes named by cooks that are in the official three / in the commercial register / in neither. **The "neither" segment is the finding** |
 | 4 | **Pipeline fidelity** (RQ4) | dish | information class | Matrix, 8 dishes × {quantities, order, technique, specificity, completeness}. Cell = survived / degraded / lost. Reads as a table, functions as a figure. Built: `src/viz/fidelity_matrix.py` → `figures/fidelity_matrix.png` (not `figure4.*`, which v3's prevalence view still holds); dish order by information lost, HD-25 |
-| 5 | **Endangerment agreement** (RQ5) | official level | cook-reported status | Confusion-matrix style; off-diagonal cells are the interesting ones. RQ5 gate decided (option B, via HD-29): the Nan + Buri Ram sample has two official values (`transmitted`, `near_lost`), so a two-row matrix exists. Needs the interviews |
+| 5 | **Endangerment agreement** (RQ5) | official level | cook-reported status | Confusion-matrix style; off-diagonal cells are the interesting ones. RQ5 gate decided (option B, via HD-29/HD-32): the Nakhon Ratchasima + Buri Ram sample has two official values (`transmitted`, `near_lost`), both from Buri Ram and unverified by eye, so a two-row matrix exists. Needs the interviews |
 | 6 | **Province × ingredient heatmap** | ingredients (top ~60 by variance) | provinces | Fill = TF-IDF, **faceted by register**. Both axes seriated by clustering, never alphabetical. Good first Results figure because no modelling sits between data and image |
 | 7 | **Acquisition mode by province** | province, ordered by distance from Bangkok | share of ingredients | Stacked bars: grown / foraged / market / packaged. Uses a government field directly. Supporting figure, and the most immediately legible in the set |
 
@@ -388,16 +391,19 @@ and cannot be scraped into existence. **~130 hours, cannot be delegated.**
 
 ### 7.3 Fieldwork — rescoped
 
-**12–15 interviews across 2 provinces: Nan and Buri Ram** (HD-29, 2026-09-28; Bible v4
-§10 says Surin and needs the researcher's amendment). 60–90 minutes each, 2 trips.
+**12–15 interviews across 2 provinces: Nakhon Ratchasima and Buri Ram** (HD-32,
+2026-09-29; Bible v4 §10 says Nan and Surin and needs the researcher's amendment). Two
+adjacent Isaan provinces, so the domestic register supports no North/South or national
+claim (L19). 60–90 minutes each, 2 trips.
 No research question depends on this. Its job is (1) ground-truthing the RQ3 coverage gap
 as an *existence claim*, (2) validating the RQ2 measure against stated absences, (3)
 authorship evidence.
 
-If only one trip happens, **do Buri Ram** — six interviews beats zero by an enormous
-margin. Buri Ram is the lower-Isaan, Cambodian-border half of the pairing. Its own three
-official dishes also carry both RQ5 values (`transmitted`, `near_lost`), so RQ5 survives
-losing the Nan trip. Its dialect assignment is part of HD-1, which is still open.
+If only one trip happens, **do Buri Ram** (from HD-29; HD-32 did not revisit it) — six
+interviews beats zero by an enormous margin. On the extractor's readings, both RQ5
+official values (`transmitted`, `near_lost`) come from Buri Ram's own dishes, so RQ5
+survives losing the Nakhon Ratchasima trip. Both provinces' dialect assignments are part
+of HD-1, which is still open.
 
 Eight-question protocol retained verbatim from v2, **plus Q9**:
 
@@ -434,8 +440,8 @@ province-level figure caption auto-includes `n = {k} of 77 provinces`.
 helper, not as a gate — set to 10, the lowest headline threshold (HD-24).
 
 **The threshold applies to the commercial register only (HD-23, 2026-09-28).** Official
-(at most 3 dishes per province, by state selection) and domestic (the Nan and Buri Ram
-interviews) are complete-by-design samples and enter analyses wherever they exist.
+(at most 3 dishes per province, by state selection) and domestic (the Nakhon Ratchasima and
+Buri Ram interviews, HD-32) are complete-by-design samples and enter analyses wherever they exist.
 
 ---
 
@@ -492,7 +498,7 @@ and the ISB calendar, which puts intensive work in the June–August break rathe
 |---|---|---|---|
 | **Aug–Sep 2026** | Three blocking items (§11). Labelled-fraction measurement. Figure 4 signal check. Postgres/PostGIS running. Scrapers 1–3 | Cook the origin dish with family. Book both trips | Repo public. `hypotheses.md` committed. Post 1. **Go/no-go on province-level analysis** |
 | **Oct–Dec 2026** | Corpus to ~1,400. Tokenisation and normalisation. Lexicon v0.5. Dish-category taxonomy defined | Trip 1 — Buri Ram, 6 interviews. Cook 2 dishes | Post 2. Lexicon first release. `ETHICS.md` complete |
-| **Jan–Mar 2027** | Corpus to ~2,200. Normalisation complete. Category labelling. Second-annotator κ on 100 recipes | Trip 2 — Nan, 6 interviews. Transcription. Cook 3 dishes | Post 3 (failure post). **FREEZE 31 MARCH** |
+| **Jan–Mar 2027** | Corpus to ~2,200. Normalisation complete. Category labelling. Second-annotator κ on 100 recipes | Trip 2 — Nakhon Ratchasima, 6 interviews. Transcription. Cook 3 dishes | Post 3 (failure post). **FREEZE 31 MARCH** |
 | **Apr–May 2027** | RQ3 coverage cartography. RQ1 distance-decay + change points. Network, Louvain, backbone | Cook 3 dishes, including ones the classifier gets wrong | Post 4. Figures 1, 2, 7 |
 | **Jun–Aug 2027** | RQ2 decomposition. RQ4 fragility. RQ5 classifier + baseline. Full analysis complete | Send results back to participants | Post 5. Figures 3–6. Paper drafted. Dataset packaged |
 | **Sep–Oct 2027** | Advisor review. Revisions. Site and quiz built with sister | — | Post 6 (limitations). Journal submission. arXiv + Zenodo DOI. Both HuggingFace repos live |
@@ -597,6 +603,10 @@ scope and no work proceeds on it.
 
 ## Changelog
 
+- **2026-09-29** — **HD-32: Nakhon Ratchasima and Buri Ram** are the fieldwork provinces,
+  superseding HD-29's Nan. Updated §4 (RQ3, RQ5 and the gate block), §6 Figure 5, §7.3,
+  §7.5 and §10. Limitation L19 added. **HD-21 decided: B** (district only). Also
+  HD-30/HD-31 (interview loader, encrypted backup) and `scripts/verify_checkboxes.py`.
 - **2026-09-28** — **HD-29: Buri Ram replaces Surin** as the second fieldwork province.
   Updated §4 (RQ3, RQ5 and the RQ5 gate text, which stays open), §7.3, §7.5 and §10.
   Bible v4 §10 still says Surin and needs the researcher's amendment. Also this session:

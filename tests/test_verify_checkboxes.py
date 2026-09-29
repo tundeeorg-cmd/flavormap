@@ -8,10 +8,30 @@ import pytest
 
 from scripts.verify_checkboxes import report
 from src.config import RAW_DIR
+from src.db import get_connection
 from src.ingest.pdpa import find_leaks
 
+
+def _dcp_loaded() -> bool:
+    try:
+        conn = get_connection()
+        try:
+            row = conn.execute(
+                "SELECT count(*) FROM recipes r JOIN raw_recipes rr USING (raw_id) "
+                "WHERE rr.source_id = 'dcp_food'"
+            ).fetchone()
+        finally:
+            conn.close()
+    except Exception:
+        return False
+    return bool(row and row[0])
+
+
+# The report selects documents through the database's province attributions, so it needs
+# the DCP corpus both on disk and loaded (not the case on make verify's fresh database).
 pytestmark = pytest.mark.skipif(
-    not (RAW_DIR / "dcp_food").exists(), reason="raw DCP corpus not present"
+    not (RAW_DIR / "dcp_food").exists() or not _dcp_loaded(),
+    reason="DCP corpus not present on disk or not loaded into the database",
 )
 
 

@@ -24,8 +24,8 @@ HEADLINE_THRESHOLDS: tuple[int, ...] = (10, 15, 25)
 
 # HD-23 (docs/decisions.md, 2026-09-28): the threshold applies to the commercial
 # register only. Official (at most 3 dishes per province, by state selection) and
-# domestic (the Nan and Buri Ram interviews, HD-29) are complete-by-design samples and enter
-# analyses wherever they exist, without a count threshold.
+# domestic (the Nakhon Ratchasima and Buri Ram interviews, HD-32) are complete-by-design
+# samples and enter analyses wherever they exist, without a count threshold.
 THRESHOLD_REGISTERS: tuple[str, ...] = ("commercial",)
 
 # Thailand's province count. Not configurable — it is not a modelling choice.
