@@ -33,6 +33,7 @@ from src.ingest.interview import (
     read_interview,
 )
 from src.ingest.pdpa import find_leaks
+from tests.test_pdpa import test_no_personal_data_in_any_table as scan_every_table
 
 D = datetime.date
 
@@ -86,8 +87,9 @@ def test_consent_after_the_interview_is_refused() -> None:
     ("over", "message", "stem"),
     [
         ({"informant_id": "BRM1"}, "must look like INT_BRM_001", "BRM1"),
-        ({"informant_id": "INT_NAN_001"}, "ID prefix NAN does not match TH-31", "INT_NAN_001"),
-        ({"province_code": "TH-32"}, "HD-29 fieldwork provinces", "INT_BRM_001"),
+        ({"informant_id": "INT_NMA_001"}, "ID prefix NMA does not match TH-31", "INT_NMA_001"),
+        ({"province_code": "TH-55"}, "HD-32 fieldwork provinces", "INT_BRM_001"),  # Nan: no longer
+        ({"province_code": "TH-32"}, "HD-32 fieldwork provinces", "INT_BRM_001"),
         ({}, "file name must match", "INT_BRM_002"),
     ],
 )
@@ -98,6 +100,30 @@ def test_ids_and_provinces(over: dict[str, object], message: str, stem: str) -> 
 @pytest.mark.parametrize("bad_key", ["name", "phone", "line_id", "address", "gps_lat"])
 def test_personal_data_keys_are_refused_by_name(bad_key: str) -> None:
     _refused(_valid(**{bad_key: "x"}), f"key '{bad_key}' looks like personal data")
+
+
+@pytest.mark.parametrize("district", [None, "", "   "])
+def test_district_is_required(district: object) -> None:
+    data = _valid(district=district)
+    if district is None:
+        data.pop("district")
+    _refused(data, "district .อำเภอ. is required")
+
+
+@pytest.mark.parametrize("key", ["subdistrict", "tambon", "ตำบล", "village", "moo"])
+def test_nothing_finer_than_district_is_accepted(key: str) -> None:
+    """HD-21 (decided B): subdistrict never enters the database, on either stream."""
+    _refused(_valid(**{key: "x"}), "finer than district; HD-21")
+
+
+@pytest.mark.parametrize("mode", ["grown", "foraged", "market", "packaged"])
+def test_the_four_acquisition_modes_are_accepted(mode: str) -> None:
+    assert parse_interview("INT_BRM_001", _valid(acquisition_mode=mode)).acquisition_mode == mode
+
+
+@pytest.mark.parametrize("mode", ["shop", "Market", "bought", ""])
+def test_any_other_acquisition_mode_is_refused(mode: str) -> None:
+    _refused(_valid(acquisition_mode=mode), "acquisition_mode must be one of")
 
 
 def test_unknown_keys_are_refused() -> None:
@@ -328,6 +354,65 @@ def test_nothing_personal_lands(db_refs: dict[str, int], tmp_path: Path) -> None
     rows += _q("SELECT d::text FROM interview_dishes d WHERE informant_id = %s", IID)
     for (text,) in rows:
         assert not find_leaks(str(text))
+
+
+def test_register_is_explicit_domestic_and_never_a_default(
+    db_refs: dict[str, int], tmp_path: Path
+) -> None:
+    """recipes.register has no default (migration 015), and the loader writes
+    'domestic' itself, so an interview dish can never inherit a register."""
+    assert _q("SELECT column_default, is_nullable FROM information_schema.columns "
+              "WHERE table_name = 'recipes' AND column_name = 'register'") == [(None, "NO")]
+    load(_interview(db_refs["brm"]), tmp_path)
+    assert _q("SELECT r.register FROM interview_dishes d JOIN recipes r USING (recipe_id) "
+              "WHERE d.dish_key = %s", f"{IID}/1") == [("domestic",)]
+
+
+@pytest.mark.parametrize(
+    "pii", ["นางสมหญิง ทดสอบ", "โทร 08 1234 5678", "เลขที่ ๙๙/๙ หมู่ ๖", "ถนน ทดสอบ",
+            "ทดสอบ@example.com"],
+)
+@pytest.mark.parametrize("field", ["role", "district", "name_th", "ingredient",
+                                   "cook_status_verbatim", "stated_absence",
+                                   "validation_notes"])
+def test_no_informant_name_address_or_phone_can_reach_any_table(
+    db_refs: dict[str, int], tmp_path: Path, pii: str, field: str
+) -> None:
+    """The dcp_food standard (tests/test_pdpa.py): after any interview load, attempted or
+    real, a scan of every text and JSON column of every table finds no personal data."""
+    data = _valid(informant_id=IID)
+    dish = {"dish_no": 1, "name_th": "ยำลูกผึ้ง", "ingredients": ["ลูกผึ้ง"]}
+    if field in ("role", "district"):
+        data[field] = pii
+    elif field == "ingredient":
+        dish["ingredients"] = ["ลูกผึ้ง", pii]
+    else:
+        dish[field] = pii
+    data["dishes"] = [dish]
+    path = tmp_path / f"{IID}.toml"
+    path.write_text(_to_toml(data), encoding="utf-8")
+    with pytest.raises(InterviewError):
+        load(read_all(tmp_path), tmp_path)
+    assert _q("SELECT count(*) FROM informants WHERE informant_id = %s", IID) == [(0,)]
+    load(_interview(db_refs["brm"]), tmp_path / "unused")  # a clean load alongside
+    scan_every_table()
+
+
+def _to_toml(data: dict[str, object]) -> str:
+    """Just enough TOML for these fixtures: strings, ints, bools, dates, one dish list."""
+    def value(v: object) -> str:
+        if isinstance(v, bool):
+            return "true" if v else "false"
+        if isinstance(v, (int, datetime.date)):
+            return str(v)
+        if isinstance(v, list):
+            return "[" + ", ".join(value(x) for x in v) + "]"
+        return json.dumps(v, ensure_ascii=False)
+    lines = [f"{k} = {value(v)}" for k, v in data.items() if k != "dishes"]
+    for dish in data.get("dishes", []):  # type: ignore[attr-defined]
+        lines.append("[[dishes]]")
+        lines += [f"{k} = {value(v)}" for k, v in dish.items()]
+    return "\n".join(lines) + "\n"
 
 
 def test_the_committed_directory_holds_only_the_template() -> None:

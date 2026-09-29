@@ -1,4 +1,4 @@
-# Fieldwork interview template (HD-29, HD-30). Copy to INT_BRM_001.toml (or INT_NAN_001.toml),
+# Fieldwork interview template (HD-30, HD-32). Copy to INT_BRM_001.toml (or INT_NMA_001.toml),
 # fill in during or right after the interview, then run: make interviews
 #
 # This directory is gitignored: only this template is tracked. Nothing here is published
@@ -12,9 +12,9 @@
 #
 # Leave a field out if it wasn't recorded. Absent = NULL = "not recorded".
 
-informant_id   = "INT_BRM_001"   # INT_BRM_nnn for Buri Ram, INT_NAN_nnn for Nan. Must match the file name
-province_code  = "TH-31"         # TH-31 Buri Ram, TH-55 Nan
-district       = ""              # อำเภอ only
+informant_id   = "INT_BRM_001"   # INT_BRM_nnn for Buri Ram, INT_NMA_nnn for Nakhon Ratchasima. Must match the file name
+province_code  = "TH-31"         # TH-31 Buri Ram, TH-30 Nakhon Ratchasima
+district       = ""              # อำเภอ only. Required. Never ตำบล (HD-21 B)
 age_bracket    = "40_60"         # lt40 | 40_60 | gt60
 role           = ""              # how they'll be described in the paper, e.g. "home cook, rice farmer"
 # acquisition_mode = "grown"     # the cook's main sourcing: grown | foraged | market | packaged

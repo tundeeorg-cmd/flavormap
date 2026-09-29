@@ -1,4 +1,4 @@
-"""Read and validate one fieldwork interview file (HD-29, HD-30).
+"""Read and validate one fieldwork interview file (HD-30, HD-32).
 
 One TOML file per informant in ``data/interviews/``, named for the informant
 (``INT_BRM_001.toml``). The directory is gitignored (HD-30): only the blank
@@ -18,8 +18,11 @@ One TOML file per informant in ``data/interviews/``, named for the informant
   on the list: typos fail loudly instead of becoming NULL.
 - **Free text over 500 characters** (the archived v2 limit): long answers are where
   identifying detail accumulates. Summarise instead.
+- **No district, or any subdistrict.** ``district`` (อำเภอ) is required. A
+  subdistrict (ตำบล), village or หมู่ key is refused by name: HD-21 (decided B) keeps
+  ตำบล out of the database on both streams.
 - **An ID that disagrees with its province.** IDs are ``INT_{PROVINCE}_{NNN}``, with one
-  prefix per HD-29 fieldwork province.
+  prefix per HD-32 fieldwork province (NMA, BRM).
 - **An unknown or duplicate dish number.** Dishes carry an explicit ``dish_no``, so
   reordering the file never re-keys a dish.
 
@@ -40,14 +43,17 @@ from pathlib import Path
 from src.clean.lexicon import key
 from src.ingest.pdpa import personal_data_classes
 
-# HD-29: the two fieldwork provinces, and each one's informant-ID prefix.
-FIELDWORK_PROVINCES: dict[str, str] = {"TH-55": "NAN", "TH-31": "BRM"}
+# HD-32: the two fieldwork provinces, and each one's informant-ID prefix.
+FIELDWORK_PROVINCES: dict[str, str] = {"TH-30": "NMA", "TH-31": "BRM"}
 
 INFORMANT_ID = re.compile(r"INT_([A-Z]{3})_(\d{3})")
 MAX_TEXT = 500
 AGE_BRACKETS = ("lt40", "40_60", "gt60")
 ACQUISITION_MODES = ("grown", "foraged", "market", "packaged")
 STATUS_LEVELS = ("lost", "near_lost", "transmitted")
+
+# HD-21 (decided B, 2026-09-29): no geography finer than district, on either stream.
+FINER_THAN_DISTRICT = re.compile(r"(subdistrict|tambo|ตำบล|village|หมู่บ้าน|^moo$|หมู่)")
 
 # Keys that would carry a person's identity or contact details. Refused by name as well
 # as by being off the allowed list, so the error says why.
@@ -112,7 +118,10 @@ def _is_date(v: object) -> bool:
 def _check_keys(where: str, data: dict[str, object], allowed: frozenset[str],
                 errors: list[str]) -> None:
     for k in sorted(data):
-        if FORBIDDEN_KEY.search(k.lower()) and k not in allowed:
+        if FINER_THAN_DISTRICT.search(k.lower()):
+            errors.append(f"{where}: key '{k}' is finer than district; HD-21 keeps "
+                          "subdistrict (ตำบล) out of the database")
+        elif FORBIDDEN_KEY.search(k.lower()) and k not in allowed:
             errors.append(f"{where}: key '{k}' looks like personal data; not allowed")
         elif k not in allowed:
             errors.append(f"{where}: unknown key '{k}'")
@@ -148,7 +157,7 @@ def parse_interview(stem: str, data: dict[str, object]) -> Interview:
     elif informant_id != stem:
         errors.append(f"{stem}: file name must match informant_id {informant_id}")
     if province not in FIELDWORK_PROVINCES:
-        errors.append(f"{stem}: province_code must be one of the HD-29 fieldwork provinces "
+        errors.append(f"{stem}: province_code must be one of the HD-32 fieldwork provinces "
                       f"{sorted(FIELDWORK_PROVINCES)}")
     elif m is not None and m.group(1) != FIELDWORK_PROVINCES[str(province)]:
         errors.append(f"{stem}: ID prefix {m.group(1)} does not match {province} "
@@ -170,6 +179,8 @@ def parse_interview(stem: str, data: dict[str, object]) -> Interview:
     if data.get("acquisition_mode") not in (None, *ACQUISITION_MODES):
         errors.append(f"{stem}: acquisition_mode must be one of {ACQUISITION_MODES}")
     district = _check_text(f"{stem}: district", data.get("district"), errors)
+    if not district:
+        errors.append(f"{stem}: district (อำเภอ) is required")
     role = _check_text(f"{stem}: role", data.get("role"), errors)
 
     dishes: list[Dish] = []
