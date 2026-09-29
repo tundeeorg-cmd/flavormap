@@ -7,25 +7,29 @@ from __future__ import annotations
 
 import unicodedata
 
+import pytest
+
 from scripts.lexicon_worklist import (
     CONFLICT,
+    SIMILARITY_THRESHOLD,
     build_worklist,
     category_check,
     key,
     mapping_index,
     rank_reaching,
+    similar_strings,
 )
 
 ROWS = [
-    ("dcp_food", 1, "หอมแดง"),
-    ("dcp_food", 2, "หอมแดง"),
-    ("dcp_food", 3, "หอมแดง"),
-    ("dcp_food", 1, "หอมแดง"),     # same recipe twice: counts once
-    ("kapook_cooking", 9, "หอมแดง"),
-    ("dcp_food", 1, "เกลือ"),
-    ("dcp_food", 2, "เกลือป่น"),    # a variant: stays its own row (rule 4)
-    ("dcp_food", 3, None),
-    ("dcp_food", 3, "   "),
+    ("dcp_food", "official", 1, "หอมแดง"),
+    ("dcp_food", "official", 2, "หอมแดง"),
+    ("dcp_food", "official", 3, "หอมแดง"),
+    ("dcp_food", "official", 1, "หอมแดง"),     # same recipe twice: counts once
+    ("kapook_cooking", "commercial", 9, "หอมแดง"),
+    ("dcp_food", "official", 1, "เกลือ"),
+    ("dcp_food", "official", 2, "เกลือป่น"),    # a variant: stays its own row (rule 4)
+    ("dcp_food", "official", 3, None),
+    ("dcp_food", "official", 3, "   "),
 ]
 
 
@@ -34,6 +38,7 @@ def test_ranked_by_distinct_recipes_with_per_source_counts() -> None:
     top = wl[0]
     assert (top.rank, top.name_th, top.n_recipes) == (1, "หอมแดง", 4)
     assert top.by_source == {"dcp_food": 3, "kapook_cooking": 1}
+    assert top.by_register == {"official": 3, "commercial": 1}
 
 
 def test_variants_are_never_merged() -> None:
@@ -127,3 +132,114 @@ def test_category_check_reports_corpus_coverage_by_category() -> None:
     # 6 (recipe, string) pairs: หอมแดง 4, เกลือ 1, เกลือป่น 1 (unmapped).
     assert "mapped strings cover 83.3%" in coverage
     assert "aromatic 66.7%, other 16.7%" in coverage
+
+
+# ── HD-33: similar strings, display only ──────────────────────────────────────
+
+def test_the_threshold_is_hd33s() -> None:
+    assert SIMILARITY_THRESHOLD == 0.8
+
+
+def test_similar_strings_are_exactly_title_similarity_at_the_threshold() -> None:
+    """The cheap bounds must never change the result: compare against a brute force."""
+    from src.clean.dedupe import title_similarity
+
+    names = ["หอมแดง", "หอมหัวแดง", "หอมแดงซอย", "หอมแดง 3 หัว", "กระเทียม", "กระทียม",
+             "เกลือ", "เกลือป่น", "น้ำปลา", "น้ำเปล่า"]
+    got = similar_strings(names, 0.8, only=set(names))
+    for a in names:
+        expected = sorted(((b, title_similarity(a, b)) for b in names
+                           if b != a and title_similarity(a, b) >= 0.8),
+                          key=lambda p: (-p[1], p[0]))
+        assert got[a] == expected, a
+
+
+def test_neighbours_are_listed_for_unmapped_strings_only_and_never_map() -> None:
+    rows = [("dcp_food", "official", 1, "หอมแดง"), ("dcp_food", "official", 2, "หอมหัวแดง"),
+            ("dcp_food", "official", 3, "กระเทียม"), ("dcp_food", "official", 4, "กระทียม")]
+    wl = build_worklist(rows, mapped=mapping_index([("กระเทียม", "ING_0001", "aromatic")]))
+    by = {r.name_th: r for r in wl}
+    assert [n for n, _ in by["หอมแดง"].similar] == ["หอมหัวแดง"]
+    assert by["กระเทียม"].similar == ()            # mapped: no neighbours listed
+    assert [n for n, _ in by["กระทียม"].similar] == ["กระเทียม"]
+    # Neighbours never become mappings, glosses or categories.
+    assert by["กระทียม"].canonical_id is None and by["กระทียม"].category is None
+    assert not by["หอมแดง"].mapped and not by["หอมหัวแดง"].mapped
+
+
+def test_a_higher_threshold_shows_fewer_neighbours() -> None:
+    names = ["หอมแดง", "หอมหัวแดง", "หอมแดงซอย"]
+    assert len(similar_strings(names, 0.8, set(names))["หอมแดง"]) == 2
+    assert similar_strings(names, 0.95, set(names))["หอมแดง"] == []
+
+
+def test_rows_are_ordered_by_frequency_descending() -> None:
+    wl = build_worklist(ROWS, mapped={})
+    counts = [r.n_recipes for r in wl]
+    assert counts == sorted(counts, reverse=True)
+
+
+# ── the worklist never writes to the lexicon ──────────────────────────────────
+
+def test_the_worklist_source_contains_no_write_statement() -> None:
+    import re
+    from pathlib import Path
+
+    import scripts.lexicon_worklist as wl
+
+    source = Path(wl.__file__).read_text(encoding="utf-8")
+    assert not re.search(r"\b(INSERT|UPDATE|DELETE|TRUNCATE|MERGE|COPY)\b", source)
+
+
+def test_running_the_worklist_leaves_the_lexicon_untouched(tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """Runs main() against the real database on a small slice (monkeypatched query) and
+    checks that canonical_ingredients and ingredient_aliases are byte-for-byte unchanged,
+    and that the session it used was read-only."""
+    import sys
+
+    import psycopg
+
+    import scripts.lexicon_worklist as wl
+    from src.db import get_connection
+
+    def fingerprint() -> tuple[object, ...]:
+        conn = get_connection()
+        try:
+            return tuple(conn.execute(q).fetchone()[0] for q in (  # type: ignore[index]
+                "SELECT md5(coalesce(string_agg(t::text, '|' ORDER BY canonical_id), '')) "
+                "FROM canonical_ingredients t",
+                "SELECT md5(coalesce(string_agg(t::text, '|' ORDER BY alias), '')) "
+                "FROM ingredient_aliases t",
+            ))
+        finally:
+            conn.close()
+
+    seen: list[psycopg.Connection] = []  # type: ignore[type-arg]
+
+    def spying_connection() -> psycopg.Connection:  # type: ignore[type-arg]
+        conn = get_connection()
+        seen.append(conn)
+        return conn
+
+    before = fingerprint()
+    monkeypatch.setattr(wl, "get_connection", spying_connection)
+    monkeypatch.setattr(wl, "QUERY", wl.QUERY.replace("FROM recipes r",
+                                                      "FROM (SELECT * FROM recipes LIMIT 20) r"))
+    monkeypatch.setattr(sys, "argv", ["worklist", "--out", str(tmp_path / "w.csv")])
+    assert wl.main() == 0
+    assert fingerprint() == before
+    assert (tmp_path / "w.csv").exists()
+
+    # The connection main() used was read-only from its first statement, and that
+    # setting makes Postgres refuse a write to the lexicon.
+    [conn] = seen
+    assert conn.read_only is True
+    probe = get_connection()
+    probe.read_only = True
+    try:
+        with pytest.raises(psycopg.errors.ReadOnlySqlTransaction):
+            probe.execute("INSERT INTO canonical_ingredients (canonical_id, name_th, "
+                          "name_en, category, is_fermented) VALUES ('_X','x','x','other',false)")
+    finally:
+        probe.rollback()
+        probe.close()
