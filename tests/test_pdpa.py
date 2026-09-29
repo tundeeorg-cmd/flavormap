@@ -53,6 +53,17 @@ def test_each_class_is_stripped(text: str) -> None:
     assert not find_leaks(clean), f"leak survived: {find_leaks(clean)}"
 
 
+@pytest.mark.parametrize("text", ["ทดสอบ@example.com", "ติดต่อ สมหญิง.ทดสอบ@example.co.th"])
+def test_an_email_with_a_thai_local_part_is_detected(text: str) -> None:
+    """Regression, 2026-09-29: the leak pattern accepted only ASCII before the @, so an
+    internationalised address passed every refusal and database scan."""
+    assert "email" in find_leaks(text)
+
+
+def test_an_at_sign_in_ordinary_text_is_not_an_email() -> None:
+    assert "email" not in find_leaks("ราคา 50 บาท @ ร้านข้างตลาด")
+
+
 def test_administrative_geography_is_retained() -> None:
     """District and province are not contact detail and must survive."""
     clean, _ = redact("อำเภอ/เขต เมืองกำแพงเพชร จังหวัด กำแพงเพชร")

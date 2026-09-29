@@ -283,7 +283,9 @@ LEAK_PATTERNS: dict[str, re.Pattern[str]] = {
     "phone": re.compile(
         rf"(?<![{_D}])0{_DIGIT}[{_WS}\-]?{_DIGIT}{{3,4}}[{_WS}\-]?{_DIGIT}{{4}}(?![{_D}])"
     ),
-    "email": re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}"),
+    # Any non-space local part, not just ASCII: an address like ทดสอบ@example.com (an
+    # internationalised email) slipped past the ASCII-only form (found 2026-09-29).
+    "email": re.compile(r"[^\s@<>()\[\],;:\"]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}"),
     "honorific_name": re.compile(rf"{_H_ANCHORED}{_H}*[ก-๎]{{2,}}"),
     "house_number": re.compile(rf"เลขที่{_H}*{_DIGIT}"),
     "postcode": re.compile(rf"รหัสไปรษณีย์{_H}*{_DIGIT}{{5}}"),
