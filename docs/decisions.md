@@ -1300,6 +1300,57 @@ dump was taken (`flavormap_20261006_203939`).
 
 ---
 
+## HD-register-EN — Are English-language recipe sites part of the commercial register?
+**Date presented:** 2026-10-06 · **Status:** OPEN
+**Arises from:** the researcher's request to audit `hotthaikitchen`, `shesimmers` and
+`thaifoodmaster`, with the instruction not to assign a register. No row from these
+sources reaches `recipes` until this is decided (`docs/scraping_rules.md` rule 6).
+
+**Why it matters.** The register is RQ1's analytical axis (official / commercial /
+domestic), and `recipes.register` has a CHECK allowing exactly those three values
+(migration 015). These three sites are English-language, written largely for readers
+outside Thailand, by authors (two of them chefs with Thai cookbooks) addressing a
+different audience from Thai-language sites such as kapook.
+
+**Evidence from the stage-A audits (2026-10-06,** `data/coverage/<source>_audit.md`**,
+local):**
+- `hotthaikitchen`: robots.txt allows the root. No terms page located; the footer has
+  only a copyright line. Sitemap probe: 42 category pages, including
+  `/category/all-recipes/northern-thai/`, so one regional category exists.
+- `shesimmers`: robots.txt allows the root. No terms page located; the site states that
+  no part of the content, recipes included, may be reproduced without written
+  permission. Part of the site is now premium newsletter content. Region-like
+  categories: Bangkok only.
+- `thaifoodmaster`: robots.txt allows the root, but **every other request returned
+  HTTP 403** to our identified User-Agent (terms, copyright policy, sitemaps). Parts of
+  the site are behind a login. Under rule 1, a block is not worked around.
+
+**Options:**
+  A. **Part of the commercial register.** (consequence: no schema change. Mixes
+     Thai-language and English-language publishing in one register; any figure would
+     need a language indicator, as §3.2 already requires for source type.)
+  B. **A separate `international` register.** (consequence: a new migration widens the
+     CHECK; RQ1 becomes a four-register comparison, or English sites are reported
+     alongside it. Keeps "who publishes for whom" visible as its own axis.)
+  C. **Commercial, with a language/audience indicator carried everywhere** (a
+     `source_language` or `audience` field, never pooled without it). (consequence:
+     the three-register design stays; the distinction is analysable when wanted.)
+  D. **Out of scope:** English-language sources are not collected. (consequence: no
+     schema work and no English-to-lexicon mapping; the commercial register stays
+     Thai-language only.)
+
+**What any option except D costs.** English ingredient lines ("2 tbsp fish sauce") have
+to map onto a Thai-headword lexicon. That means English variants for every canonical
+entry, part of HD-6's authoring load, and the English glosses already required for
+release.
+
+**Recommendation:** none. The register definition is a methods decision the paper defends.
+**Decision:**
+**Reasoning:**
+**Date decided:**
+
+---
+
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
 **Date:** 2026-09-12
 **This is not a gate.** It is a documentation discrepancy found while building
