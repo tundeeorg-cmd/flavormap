@@ -154,3 +154,62 @@ openssl s_client confirms server does not send its intermediate cert
 Plain HTTP status check: 200 OK, server: nginx.
 ```
 </details>
+
+## DCP documents not in the corpus (T0.3, 2026-10-06)
+
+203 of the 231 `food.culture.go.th` documents are in `recipes`. The other 28 are listed
+here, with the reason each one is out. "Group" names the province the document's file
+group belongs to, taken from the group's other documents or, for whole missing groups,
+the researcher's identification. It is a label for reading this table, **not** an
+attribution: no province is ever written from it (rule 2; the URL index is "a discovery
+convenience and nothing more", `scripts/fetch_dcp_food.py`).
+
+**Pending a decision: §1.1 carries no province (11).** The dish-name line has no
+จังหวัด field, or it is blank. The only province written is §1.3, the submitter's own
+address. Whether that may stand in for the dish's province is an open attribution
+decision (`docs/decisions.md`, HD-34). Evidence: in the 201 loaded documents the address
+agrees with §1.1 in 192 of 192 cases where both exist, but Suphan Buri's blank forms carry
+a Chiang Rai address.
+
+| Document | Group | Note |
+|---|---|---|
+| `central_11_3.pdf` | Lop Buri | address: ลพบุรี |
+| `central_6_3.pdf` | Pathum Thani | address: ปทุมธานี |
+| `east_8_1.pdf` | Samut Prakan | §1.1 จังหวัด present but blank; address: สมุทรปราการ |
+| `north_10_3.pdf` | Phetchabun | **no province anywhere**: address จังหวัด blank; only a narrative mention of Loei |
+| `north_16_2.pdf` | Uttaradit | address: อุตรดิตถ์ |
+| `northeast_18_2.pdf` | Amnat Charoen | address: อำนาจเจริญ |
+| `northeast_4_1.pdf` | Nakhon Phanom | address: นครพนม. Whole province group |
+| `northeast_4_2.pdf` | Nakhon Phanom | address: นครพนม |
+| `northeast_4_3.pdf` | Nakhon Phanom | address: นครพนม |
+| `northeast_5_3.pdf` | Nakhon Ratchasima | address: นครราชสีมา. A fieldwork-province dish (ตำส่มโคราช) |
+| `south_3_2.pdf` | Trang | address: ตรัง |
+
+**Excluded: §1.1 blank or unreadable in the text layer (8).** Pattern-B work was timeboxed
+to one hour on 2026-10-06. It recovered Krabi's `south_1_2` and `south_1_3` (§1.1 split
+across lines, `2a45efa`); these remain out:
+
+| Document | Group | Reason |
+|---|---|---|
+| `central_1_1.pdf` | Bangkok | §1.1 fields are dot leaders only (blank in the text layer) |
+| `central_15_1.pdf` | **Suphan Buri** | §1.1 blank; §1.3 address is Chiang Rai. **Excluded** by the researcher's timebox rule. Whole province group |
+| `central_15_2.pdf` | **Suphan Buri** | as above |
+| `central_15_3.pdf` | **Suphan Buri** | as above |
+| `central_8_2.pdf` | Phra Nakhon Si Ayutthaya | §1.1 blank |
+| `south_1_1.pdf` | **Krabi** | partial text layer (3,094 characters), no §1.1 label. **Excluded** by the timebox rule; Krabi stays covered by `south_1_2` and `south_1_3` |
+| `south_9_2.pdf` | Phuket | Latin-1 mojibake (139 corrupted characters); see `docs/checkbox_extraction.md` |
+| `south_9_3.pdf` | Phuket | Latin-1 mojibake (172 corrupted characters) |
+
+**Excluded: no text layer, image scans (9).** No OCR (researcher, 2026-10-06).
+
+| Document | Group | Plan |
+|---|---|---|
+| `east_5_1.pdf` | **Nakhon Nayok** | Hand transcription (`data/dcp_manual/`, HD-35). Whole province group |
+| `east_5_2.pdf` | **Nakhon Nayok** | Hand transcription |
+| `east_5_3.pdf` | **Nakhon Nayok** | Hand transcription |
+| `central_1_3.pdf` | Bangkok | Excluded |
+| `central_3_2.pdf` | Chai Nat | Excluded |
+| `central_3_3.pdf` | Chai Nat | Excluded |
+| `south_10_1.pdf` | Yala | Excluded |
+| `south_2_1.pdf` | Chumphon | Excluded |
+| `south_8_1.pdf` | Phatthalung | Excluded |
