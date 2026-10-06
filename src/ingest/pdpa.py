@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from typing import Any
 
 # HD-21, option B (open — see docs/decisions.md). Flip to True and re-parse to retain.
 RETAIN_SUBDISTRICT = False
@@ -92,6 +93,12 @@ _DIGIT = rf"[{_D}]"
 _WS = " \t\xa0\u1680\u2000-\u200a\u202f\u205f\u3000"
 _H = rf"[{_WS}]"
 
+# A Thai phone number: 0, a one- or two-digit prefix, then 3-4 and 4 digits, each group
+# optionally separated. Shared by redaction and the leak scan so the two cannot drift.
+_PHONE = (
+    rf"(?<![{_D}])0{_DIGIT}{{1,2}}[{_WS}\-]?{_DIGIT}{{3,4}}[{_WS}\-]?{_DIGIT}{{4}}(?![{_D}])"
+)
+
 # Honorifics that anchor a personal name. Deliberately excludes พระ and คุณ: Thai is
 # unspaced, so พระ matches inside นครพระชุม and คุณ inside สรรพคุณ (the ingredient
 # table's own column header). Both produced false positives on real documents.
@@ -115,8 +122,11 @@ PATTERNS: list[tuple[str, str, re.Pattern[str]]] = [
     ),
     (
         "phone",
+        # 0X-XXX-XXXX (landline) and 0XX-XXX-XXXX (mobile). The prefix was one digit
+        # until 2026-10-06, which matched 08 1234 5678 but not 081-234-5678 — the
+        # commonest way a Thai mobile number is written — in redaction and leak scan alike.
         "bare 9-10 digit number",
-        re.compile(rf"(?<![{_D}])0{_DIGIT}[{_WS}\-]?{_DIGIT}{{3,4}}[{_WS}\-]?{_DIGIT}{{4}}(?![{_D}])"),
+        re.compile(_PHONE),
     ),
     (
         "email",
@@ -280,9 +290,7 @@ def redact(text: str) -> tuple[str, RedactionReport]:
 # table. Deliberately BROADER than the redaction patterns above: a leak that the
 # stripper missed should still be caught here.
 LEAK_PATTERNS: dict[str, re.Pattern[str]] = {
-    "phone": re.compile(
-        rf"(?<![{_D}])0{_DIGIT}[{_WS}\-]?{_DIGIT}{{3,4}}[{_WS}\-]?{_DIGIT}{{4}}(?![{_D}])"
-    ),
+    "phone": re.compile(_PHONE),
     # Any non-space local part, not just ASCII: an address like ทดสอบ@example.com (an
     # internationalised email) slipped past the ASCII-only form (found 2026-09-29).
     "email": re.compile(r"[^\s@<>()\[\],;:\"]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}"),
@@ -319,3 +327,51 @@ def personal_data_classes(text: str) -> list[str]:
     _, report = redact(text)
     stripped = {cls for cls, column in report.COLUMNS.items() if getattr(report, column)}
     return sorted(stripped | set(find_leaks(text)))
+
+
+#: PostGIS ships these and owns their contents. spatial_ref_sys.proj4text holds
+#: projection strings such as "+towgs84=0,0.001016,0.0016" whose digit runs match the
+#: bare-phone-number shape. Excluding them is about which tables the project writes,
+#: not about narrowing what counts as personal data.
+POSTGIS_OWNED = frozenset({"spatial_ref_sys", "geometry_columns", "geography_columns"})
+
+#: A hex digest cannot carry personal data in recoverable form, but a sha256 reliably
+#: contains digit runs that match the bare-phone-number shape — four of the 231
+#: content_hash values did. Skipping digest-shaped values is narrower and more honest
+#: than whitelisting the column, which would also exempt anything else stored there.
+_DIGEST = re.compile(r"^[0-9a-f]{32,}$")
+
+
+def scan_database(conn: Any) -> list[str]:
+    """Every ``table.column: {class: [...]}`` leak in the database's text and JSON columns.
+
+    Empty means clean. Shared by ``tests/test_pdpa.py`` and the post-load check in
+    ``src/scrape/base.py``, so "the whole-database scan passes" means one thing. JSONB is
+    included deliberately: ``raw_recipes.parsed_json`` holds parser output, and "not in a
+    table, not in a JSONB blob" is the rule as ETHICS.md states it. Raises if the schema
+    has no text columns at all — an empty scan of an unmigrated database is not a pass.
+    """
+    columns = conn.execute(
+        """
+        SELECT table_name, column_name
+          FROM information_schema.columns
+         WHERE table_schema = 'public'
+           AND data_type IN ('text','character varying','character','jsonb','json')
+         ORDER BY table_name, column_name
+        """
+    ).fetchall()
+    columns = [(t, c) for t, c in columns if t not in POSTGIS_OWNED]
+    if not columns:
+        raise RuntimeError("no project text columns found — schema not migrated?")
+    offenders: list[str] = []
+    for table, column in columns:
+        rows = conn.execute(
+            f'SELECT "{column}" FROM "{table}" WHERE "{column}" IS NOT NULL'
+        ).fetchall()
+        for (value,) in rows:
+            text = str(value)
+            if _DIGEST.match(text):
+                continue
+            if leaks := find_leaks(text):
+                offenders.append(f"{table}.{column}: {leaks}")
+    return offenders
