@@ -215,3 +215,4 @@ stay runnable under the gate. They are not new decisions.
 |---|---|---|---|---|---|
 | dcp_food | https://food.culture.go.th | 2026-08-16 | allowed (User-agent: * Allow: /); content signals ai-train=no, see above | see "food.culture.go.th content signals" above | go (fetched 2026-08-16); redistribution still open under HD-3 |
 | kapook_cooking | https://cooking.kapook.com | 2026-08-22 | allowed, no crawl-delay | see "cooking.kapook.com re-audit" above | go (HD-3 option A, 2026-08-23: coverage corpus) |
+| wongnai | https://www.wongnai.com | 2026-10-06 | allowed at root for our User-Agent | HTTP 200; 27 clause(s) flagged for review, see data/coverage/wongnai_audit.md | pending (researcher) |
