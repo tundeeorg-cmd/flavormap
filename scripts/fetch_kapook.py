@@ -29,7 +29,8 @@ from datetime import UTC, datetime
 import httpx
 
 from src.config import RAW_DIR
-from src.scrape.conduct import PoliteFetcher, load_robots, user_agent
+from src.scrape.conduct import PoliteFetcher, load_robots, make_client, user_agent
+from src.scrape.ethics import require_go
 
 BASE = "https://cooking.kapook.com"
 ROBOTS = f"{BASE}/robots.txt"
@@ -81,9 +82,10 @@ def main() -> int:
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     ua = user_agent()
-    headers = {"User-Agent": ua, "Accept-Language": "th,en;q=0.8"}
 
-    with httpx.Client(headers=headers, timeout=TIMEOUT_SEC, follow_redirects=True) as client:
+    require_go("kapook_cooking")  # docs/scraping_rules.md §1: no crawl without a recorded go
+    with make_client(ua, extra_headers={"Accept-Language": "th,en;q=0.8"},
+                     timeout=TIMEOUT_SEC) as client:
         robots = load_robots(client, BASE, ua)
         print(f"robots.txt: fetched, root allowed for {ua}")
         fetcher = PoliteFetcher(client, robots, ua)

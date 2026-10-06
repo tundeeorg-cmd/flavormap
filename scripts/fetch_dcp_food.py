@@ -35,7 +35,8 @@ from dataclasses import dataclass, field
 import httpx
 
 from src.config import RAW_DIR
-from src.scrape.conduct import PoliteFetcher, load_robots, user_agent
+from src.scrape.conduct import PoliteFetcher, load_robots, make_client, user_agent
+from src.scrape.ethics import require_go
 
 BASE = "https://food.culture.go.th"
 ROBOTS = f"{BASE}/robots.txt"
@@ -198,8 +199,8 @@ def main() -> int:
     args = ap.parse_args()
 
     ua = user_agent()
-    headers = {"User-Agent": ua}
-    with httpx.Client(headers=headers, timeout=TIMEOUT_SEC, follow_redirects=True) as client:
+    require_go("dcp_food")  # docs/scraping_rules.md §1: no crawl without a recorded go
+    with make_client(ua, timeout=TIMEOUT_SEC) as client:
         robots = load_robots(client, BASE, ua)
         print(f"robots.txt re-checked at run time: {ROBOTS}")
         f = PoliteFetcher(client, robots, ua)
