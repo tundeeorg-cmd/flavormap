@@ -149,8 +149,9 @@ def load(records: list[tuple[Path, KapookRecord]], dry_run: bool) -> dict[str, i
 
             conn.execute(
                 """
-                INSERT INTO recipes (raw_id, name_th, register, dish_category_source)
-                VALUES (%s,%s,%s,%s)
+                INSERT INTO recipes (raw_id, name_th, register, dish_category_source,
+                                     extraction_method)
+                VALUES (%s,%s,%s,%s,'parsed')
                 ON CONFLICT (raw_id) DO UPDATE
                     SET name_th = EXCLUDED.name_th,
                         register = EXCLUDED.register,

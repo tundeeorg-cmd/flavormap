@@ -49,8 +49,8 @@ def one_high_and_one_low_confidence_recipe() -> Iterator[tuple[int, int]]:
                 (_SOURCE_ID, f"https://example.com/{confidence}", f"deadbeef{confidence}"),
             ).fetchone()[0]
             recipe_id = conn.execute(
-                """INSERT INTO recipes (raw_id, name_th, register)
-                   VALUES (%s, 'ทดสอบ', 'commercial') RETURNING recipe_id""",
+                """INSERT INTO recipes (raw_id, name_th, register, extraction_method)
+                   VALUES (%s, 'ทดสอบ', 'commercial', 'parsed') RETURNING recipe_id""",
                 (raw_id,),
             ).fetchone()[0]
             conn.execute(

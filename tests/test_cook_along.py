@@ -178,8 +178,8 @@ def recipe_id() -> Iterator[int]:
             (_SOURCE_ID,),
         ).fetchone()[0]
         rid = conn.execute(
-            """INSERT INTO recipes (raw_id, name_th, register)
-               VALUES (%s, 'ทดสอบ', 'commercial') RETURNING recipe_id""",
+            """INSERT INTO recipes (raw_id, name_th, register, extraction_method)
+               VALUES (%s, 'ทดสอบ', 'commercial', 'parsed') RETURNING recipe_id""",
             (raw_id,),
         ).fetchone()[0]
         conn.commit()

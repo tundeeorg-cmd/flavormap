@@ -206,8 +206,8 @@ def one_more_cook_along() -> Iterator[None]:
             (_SOURCE_ID,),
         ).fetchone()[0]
         recipe_id = conn.execute(
-            """INSERT INTO recipes (raw_id, name_th, register)
-               VALUES (%s, 'ทดสอบ', 'commercial') RETURNING recipe_id""",
+            """INSERT INTO recipes (raw_id, name_th, register, extraction_method)
+               VALUES (%s, 'ทดสอบ', 'commercial', 'parsed') RETURNING recipe_id""",
             (raw_id,),
         ).fetchone()[0]
         conn.execute(

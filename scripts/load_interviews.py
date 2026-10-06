@@ -122,8 +122,9 @@ def load(interviews: list[Interview], directory: Path) -> dict[str, list[str]]:
                          hashlib.sha256(identity.encode()).hexdigest()),
                     ).fetchone()[0]  # type: ignore[index]
                     recipe_id = conn.execute(
-                        """INSERT INTO recipes (raw_id, name_th, register)
-                           VALUES (%s,%s,'domestic')
+                        """INSERT INTO recipes (raw_id, name_th, register,
+                                                extraction_method)
+                           VALUES (%s,%s,'domestic','manual')
                            ON CONFLICT (raw_id) DO UPDATE SET name_th = EXCLUDED.name_th
                            RETURNING recipe_id""",
                         (raw_id, dish.name_th),

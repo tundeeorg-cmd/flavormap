@@ -118,8 +118,8 @@ def load(records: list[tuple[Path, DCPRecord]], dry_run: bool) -> dict[str, int]
             recipe_id = conn.execute(
                 """
                 INSERT INTO recipes (raw_id, name_th, dish_category_source, occasion,
-                                     endangerment, register)
-                VALUES (%s,%s,%s,%s,%s,%s)
+                                     endangerment, register, extraction_method)
+                VALUES (%s,%s,%s,%s,%s,%s,'parsed')
                 ON CONFLICT (raw_id) DO UPDATE
                     SET name_th = EXCLUDED.name_th,
                         dish_category_source = EXCLUDED.dish_category_source,

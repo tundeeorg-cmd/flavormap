@@ -72,8 +72,8 @@ def fixture_recipes() -> Iterator[None]:
                 (_SOURCE_ID, f"https://example.com/{n}", f"deadbeef{n}"),
             ).fetchone()[0]
             recipe_id = conn.execute(
-                """INSERT INTO recipes (raw_id, name_th, register)
-                   VALUES (%s, 'ทดสอบ', %s) RETURNING recipe_id""",
+                """INSERT INTO recipes (raw_id, name_th, register, extraction_method)
+                   VALUES (%s, 'ทดสอบ', %s, 'parsed') RETURNING recipe_id""",
                 (raw_id, register),
             ).fetchone()[0]
             conn.execute(

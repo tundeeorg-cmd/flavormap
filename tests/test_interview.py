@@ -245,7 +245,8 @@ def db_refs() -> Iterator[dict[str, int]]:
             (_OFFICIAL_SRC, f"x/{label}", f"h-{label}"),
         ).fetchone()[0]  # type: ignore[index]
         rid = conn.execute(
-            "INSERT INTO recipes (raw_id, name_th, register) VALUES (%s, 'ทดสอบ', %s) "
+            "INSERT INTO recipes (raw_id, name_th, register, extraction_method) "
+            "VALUES (%s, 'ทดสอบ', %s, 'parsed') "
             "RETURNING recipe_id", (raw, register),
         ).fetchone()[0]  # type: ignore[index]
         if province:
@@ -366,6 +367,8 @@ def test_register_is_explicit_domestic_and_never_a_default(
     load(_interview(db_refs["brm"]), tmp_path)
     assert _q("SELECT r.register FROM interview_dishes d JOIN recipes r USING (recipe_id) "
               "WHERE d.dish_key = %s", f"{IID}/1") == [("domestic",)]
+    assert _q("SELECT r.extraction_method FROM interview_dishes d JOIN recipes r "
+              "USING (recipe_id) WHERE d.dish_key = %s", f"{IID}/1") == [("manual",)]
 
 
 @pytest.mark.parametrize(
