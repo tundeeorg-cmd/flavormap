@@ -1193,6 +1193,113 @@ which is not built and involves its own judgement calls.
 
 ---
 
+## HD-34 — May the §1.3 address province stand in for a blank §1.1 province?
+**Date presented:** 2026-10-06 · **Status:** OPEN
+**Arises from:** T0.3 (docs/timeline.md). 11 DCP documents have no province in §1.1, the
+dish's own field. Their only written province is §1.3, the **submitter's address**.
+Listed in `docs/source_audit.md` ("Pending a decision").
+
+**Correction recorded.** On 2026-10-06 the agent first described these 11 as having
+"the right province written in the text", fixable by "reading what's actually written,
+no inference". That was wrong: what is written is the submitter's address, so using it
+is an attribution choice (rule 2, HD-7), not a parsing fix.
+
+**Evidence (measured 2026-10-06):**
+- Across the 201 documents loaded through §1.1, the §1.3 address province **agrees with
+  §1.1 in 192 of 192** cases where both exist (9 have no address province).
+- **But Suphan Buri's three forms** (`central_15_1..3`), whose §1.1 is blank, carry a
+  **Chiang Rai** address. Where §1.1 is missing, the address is not guaranteed to be the
+  dish's province.
+- `north_10_3` has no province anywhere (its address จังหวัด is blank too).
+- The source's URL index is ruled out: `scripts/fetch_dcp_food.py` documents it as "a
+  discovery convenience and nothing more".
+
+**What depends on it:** Nakhon Phanom (its whole group: `northeast_4_1..3`), Nakhon
+Ratchasima's third dish (`northeast_5_3`, a fieldwork province), and 6 more provinces'
+third dishes. Accepting it would take official coverage from 74 to 75 provinces and
+recipes from 203 to 213 (`north_10_3` stays out either way).
+
+**Options:**
+  A. **Accept the address, at reduced confidence.** Tier 4 or a new method_note
+     "§1.3 submitter address", confidence `medium`. They enter `v_recipes_clean` (high and
+     medium) but stay distinguishable and are dropped in a sensitivity run.
+  B. **Accept the address at full confidence**, on the 192/192 agreement. (consequence:
+     indistinguishable from §1.1-attributed rows; the Suphan Buri counterexample argues
+     against it.)
+  C. **Do not use it.** The 11 stay out, listed in `docs/source_audit.md`. (consequence:
+     Nakhon Phanom stays uncovered; the Korat fieldwork dish stays out of RQ5's sample.)
+  D. **Accept only where the address is corroborated** by the dish's own text, e.g. the
+     form's description naming the same province. (consequence: more defensible than A
+     and narrower; the agent would measure how many of the 10 qualify.)
+
+**Recommendation:** none. This is an attribution rule, and it will appear in the paper.
+**Decision:**
+**Reasoning:**
+**Date decided:**
+
+---
+
+## HD-35 — Nakhon Nayok's image-scan forms: hand transcription, flagged `manual`
+**Date presented:** 2026-10-06 · **Status:** OPEN (researcher's choice recorded, to be marked DECIDED)
+**Arises from:** T0.3. `east_5_1..3.pdf` (Nakhon Nayok, the whole province) have no text
+layer.
+
+**Options considered:**
+  A. **OCR.** (consequence: a new tool and dependency, and a new error source on Thai
+     forms, which would need its own evaluation.)
+  B. **Hand transcription by the researcher**, flagged as manual.
+  C. **Exclude**, listed in `docs/source_audit.md`. (consequence: Nakhon Nayok stays
+     uncovered.)
+
+**Choice (researcher, in session, 2026-10-06):** **B. No OCR.** The researcher
+transcribes the forms by hand. The template carries the parser's fields (dish name,
+district, category, endangerment, occasion, ingredients with quantities and ที่มา) and
+**no fields for informant name, address or phone**. An `extraction_method` column
+(`parsed` / `manual`) flags manual records, with a loader and tests.
+
+**As built (2026-10-06), for confirmation:**
+- Migration 025: `recipes.extraction_method` (`parsed` | `manual`), NOT NULL, no default.
+  All existing rows were backfilled `parsed` (all are from dcp_food or kapook_cooking).
+- `data/dcp_manual/_template.toml`, `src/ingest/dcp_manual.py`,
+  `scripts/load_dcp_manual.py`, `make dcp-manual`, `tests/test_dcp_manual.py` (46 tests).
+- `data/dcp_manual/` is **gitignored** apart from the template: transcriptions are DCP
+  content, which HD-3 keeps out of the public repo.
+- `province_th` is §1.1 as written. A blank §1.1 means the form does not load: the
+  address is never used, pending HD-34.
+- `acquisition_mode` is **not** derived from ที่มา for manual records (HD-15 is open);
+  ที่มา is kept verbatim.
+- **To confirm:** interview-derived recipes are also written `extraction_method='manual'`,
+  since they are hand-entered. If "manual" should mean only hand-transcribed DCP forms,
+  interviews need a third value (a new migration).
+
+**Decision:**
+**Reasoning:**
+**Date decided:**
+
+---
+
+## HD-36 — Merge the DCP §4 table fix `b55d02b` (T0.1)
+**Date presented:** 2026-10-06 · **Status:** OPEN (researcher's choice recorded, to be marked DECIDED)
+**Arises from:** T0.1, and the October audit's finding that live data came from unmerged code.
+
+**Evidence presented:** one commit, 2 files (+96 / −6). The last ingredient row of 13
+documents had absorbed the checkbox options below the §4 table (section bleed 10 → 0
+strings); all 1,132 ingredient rows survive. It merges with no conflicts. The full suite
+on the merged tree: 418 passed, 1 skipped, 1 xfailed; ruff and mypy clean.
+
+**Options:** A. merge; B. reject, and re-ingest from `main` so the database stops
+reflecting it.
+
+**Choice (researcher, in session, 2026-10-06):** **A, merge.** Done as `597512c`; the worktree
+and branch were deleted, the DCP corpus was re-ingested from `main` (bleed 0), and a
+dump was taken (`flavormap_20261006_203939`).
+
+**Decision:**
+**Reasoning:**
+**Date decided:**
+
+---
+
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
 **Date:** 2026-09-12
 **This is not a gate.** It is a documentation discrepancy found while building
