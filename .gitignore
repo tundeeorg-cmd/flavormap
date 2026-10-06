@@ -4,6 +4,10 @@ pgdata/
 data/raw/
 data/interim/
 data/photos/
+# Hand-transcribed DCP forms (HD-35): DCP content, kept out of the public repo like the
+# rest of the DCP corpus (HD-3). Only the blank template is tracked.
+data/dcp_manual/*
+!data/dcp_manual/_template.toml
 # Fieldwork interviews (HD-30): gitignored, local only, until the HD-20 release review.
 # Only the blank template is tracked.
 data/interviews/*

@@ -1,0 +1,30 @@
+# Hand transcription of one DCP form with no text layer (HD-35).
+# Copy to <document>.toml, e.g. east_5_1.toml for data/raw/dcp_food/east_5_1.pdf,
+# fill it in from the PDF, then run: make dcp-manual
+#
+# This directory is gitignored (DCP content, HD-3): only this template is tracked.
+#
+# There are deliberately NO fields for the informant's name, address, house number,
+# road, postcode or phone, and the loader refuses any file that contains them, as a
+# key or in the text. Transcribe the dish, never the person.
+#
+# Transcribe what is written. Leave a field out if it is blank or unticked on the form.
+# Never fill one from elsewhere on the form.
+
+dish_name_th   = ""            # §1.1 ชื่อเมนูอาหาร, as written
+province_th    = ""            # §1.1 จังหวัด, as written. If blank, the form does not load.
+                               # Never the §1.3 address province (HD-34 is open).
+district_th    = ""            # อำเภอ only, never ตำบล (HD-21 B)
+# dish_category_source = "อาหารคาว"   # the ticked §1.1 box: อาหารคาว | อาหารหวาน | อาหารว่าง
+# occasion_th          = "ประจำ"      # the ticked §1.2 box: ประจำ | เทศกาล | ฤดูกาล | อื่นๆ
+# endangerment         = "near_lost"  # the ticked §3 box: lost | near_lost | transmitted
+#                                     # (leave out if unticked or if "อื่นๆ" is ticked)
+transcribed_on = 2026-10-06    # the date you transcribed it
+# notes = ""                   # anything a reader should know: illegible cells, etc.
+
+# One [[ingredients]] block per §4 row, in the form's order.
+[[ingredients]]
+name_th         = ""           # ชื่อวัตถุดิบ
+# quantity_value = ""          # as written, e.g. "2" or "๑/๒"
+# quantity_unit  = ""          # as written, e.g. "ช้อนโต๊ะ"
+# acquisition_raw = ""         # ที่มา, as written. Not mapped to grown/foraged/... (HD-15 open)

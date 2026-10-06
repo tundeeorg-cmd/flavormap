@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest cook-along lexicon interviews backup status status-snapshot clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest cook-along lexicon interviews backup dcp-manual status status-snapshot clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -61,6 +61,11 @@ ingest: scrape
 # nothing is ever deleted.
 lexicon:
 	uv run python -m scripts.load_lexicon
+
+# HD-35 — hand-transcribed DCP forms (data/dcp_manual/*.toml, gitignored) for documents
+# with no text layer. Flagged extraction_method='manual'. All-or-nothing.
+dcp-manual:
+	uv run python -m scripts.load_dcp_manual
 
 # HD-29/HD-30 — fieldwork interview files (data/interviews/*.toml, gitignored) into
 # informants, interview_dishes and the domestic register. All-or-nothing; refuses any
