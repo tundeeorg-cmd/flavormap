@@ -311,3 +311,120 @@ def test_full_needs_a_limit() -> None:
         base.main(FixtureSite(), ["--full"])
     with pytest.raises(SystemExit):
         base.main(FixtureSite(), ["--audit", "--pilot"])
+
+
+# ── stage A reconnaissance: policy pages and the sitemap probe ────────────────
+
+SITEMAP_INDEX = """<?xml version="1.0"?><sitemapindex>
+<sitemap><loc>https://recipes.test/post-sitemap.xml</loc></sitemap>
+<sitemap><loc>https://recipes.test/category-sitemap.xml</loc></sitemap>
+<sitemap><loc>https://recipes.test/post_tag-sitemap.xml</loc></sitemap>
+</sitemapindex>"""
+CATEGORY_SITEMAP = """<urlset>
+<url><loc>https://recipes.test/category/isan-recipes/</loc></url>
+<url><loc>https://recipes.test/category/desserts/</loc></url>
+<url><loc>https://recipes.test/category/thai-recipes/</loc></url></urlset>"""
+TAG_SITEMAP = """<urlset><url><loc>https://recipes.test/tag/northern-thai/</loc></url></urlset>"""
+COPYRIGHT = """<html><body><script>window.x = {"copy": "robots scrape automated"}</script>
+<style>.copy{}</style><footer>No part of the content may be reproduced without written
+permission.</footer></body></html>"""
+
+
+class ReconSite(Site):
+    def __call__(self, request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        self.calls.append(path)
+        body = {
+            "/robots.txt": ("User-agent: *\nAllow: /\nContent-Signal: ai-train=no\n"
+                            "Sitemap: https://recipes.test/sitemap_index.xml\n"),
+            "/sitemap_index.xml": SITEMAP_INDEX,
+            "/category-sitemap.xml": CATEGORY_SITEMAP,
+            "/post_tag-sitemap.xml": TAG_SITEMAP,
+            "/copyright": COPYRIGHT,
+        }.get(path)
+        if body is not None:
+            return httpx.Response(200, text=body)
+        return super().__call__(request)
+
+
+class ReconFixtureSite(FixtureSite):
+    tos_url = None
+    policy_urls = (f"{SITE}/copyright",)
+
+
+def test_audit_reads_policy_pages_and_probes_only_sitemaps(tmp_path: Path) -> None:
+    ethics = tmp_path / "ETHICS.md"
+    shutil.copy(REPO_ROOT / "ETHICS.md", ethics)
+    site = ReconSite()
+    scraper = ReconFixtureSite(raw_root=tmp_path / "raw", coverage_dir=tmp_path / "cov",
+                               ethics_path=ethics, transport=httpx.MockTransport(site))
+    row = scraper.audit()
+    report = scraper.audit_report.read_text(encoding="utf-8")
+
+    assert "no terms-of-service page located" in row.tos
+    assert "may be reproduced without written" in report      # the footer clause
+    assert "window.x" not in report and ".copy{}" not in report  # scripts never quoted
+    assert "Content-Signal: ai-train=no" in report
+    assert "category/isan-recipes/" in report and "tag/northern-thai/" in report
+    region = report.split("### Region-like terms")[1]
+    assert "desserts" not in region
+    assert "category/thai-recipes/" in report.split("### Recipe index pages")[1]
+    assert "/post-sitemap.xml" not in site.calls                 # posts never listed
+    assert not any(c.startswith("/r/") for c in site.calls)      # no recipe page
+    probe_calls = [c for c in site.calls if c.endswith(".xml")]
+    assert len(probe_calls) <= 6
+    assert f"| {SOURCE} |" in ethics.read_text(encoding="utf-8")
+
+
+def test_policy_text_drops_scripts_and_styles() -> None:
+    from src.scrape.recon import policy_text
+
+    text = policy_text(COPYRIGHT)
+    assert "reproduced" in text and "window.x" not in text and ".copy{}" not in text
+
+
+def test_the_probe_respects_its_request_cap(monkeypatch: pytest.MonkeyPatch) -> None:
+    import urllib.robotparser
+
+    from src.scrape import recon
+    from src.scrape.conduct import PoliteFetcher
+
+    many = "<sitemapindex>" + "".join(
+        f"<sitemap><loc>https://recipes.test/category-{n}-sitemap.xml</loc></sitemap>"
+        for n in range(20)) + "</sitemapindex>"
+    calls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request.url.path)
+        return httpx.Response(200, text=many if request.url.path == "/sitemap_index.xml"
+                              else "<urlset></urlset>")
+
+    robots = urllib.robotparser.RobotFileParser()
+    robots.parse(["User-agent: *", "Allow: /"])
+    fetcher = PoliteFetcher(httpx.Client(transport=httpx.MockTransport(handler)), robots, "t")
+    probe = recon.probe_sitemaps(fetcher, SITE, robots)
+    assert probe.requests_used == recon.MAX_PROBE_REQUESTS == len(calls)
+    assert any("request cap" in n for n in probe.notes)
+
+
+def test_the_probe_tells_a_robots_refusal_from_a_connection_error() -> None:
+    import urllib.robotparser
+
+    from src.scrape import recon
+    from src.scrape.conduct import PoliteFetcher
+
+    index = ("<sitemapindex><sitemap><loc>https://recipes.test/category-sitemap.xml</loc>"
+             "</sitemap><sitemap><loc>https://recipes.test/private/tag-sitemap.xml</loc>"
+             "</sitemap></sitemapindex>")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/sitemap_index.xml":
+            return httpx.Response(200, text=index)
+        raise httpx.RemoteProtocolError("server dropped the connection", request=request)
+
+    robots = urllib.robotparser.RobotFileParser()
+    robots.parse(["User-agent: *", "Disallow: /private/", "Allow: /"])
+    fetcher = PoliteFetcher(httpx.Client(transport=httpx.MockTransport(handler)), robots, "t")
+    notes = recon.probe_sitemaps(fetcher, SITE, robots).notes
+    assert "request failed (connection error): https://recipes.test/category-sitemap.xml" in notes
+    assert "disallowed by robots.txt: https://recipes.test/private/tag-sitemap.xml" in notes

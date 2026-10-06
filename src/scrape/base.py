@@ -42,7 +42,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import httpx
-from selectolax.parser import HTMLParser
 
 from src.config import DATA_DIR, RAW_DIR
 from src.db import get_connection
@@ -57,6 +56,7 @@ from src.scrape.ethics import (
     require_go,
     today,
 )
+from src.scrape.recon import MAX_PROBE_REQUESTS, SitemapProbe, policy_text, probe_sitemaps
 from src.scrape.record import RecordRejected, ScrapedRecipe, to_parsed_json
 
 COVERAGE_DIR = DATA_DIR / "coverage"
@@ -84,6 +84,8 @@ class SiteScraper(ABC):
     slug: str
     base_url: str
     tos_url: str | None = None
+    # Further pages to read for clauses: a copyright notice, a footer, a privacy policy.
+    policy_urls: tuple[str, ...] = ()
 
     def __init__(
         self,
@@ -126,46 +128,56 @@ class SiteScraper(ABC):
     # ── stage 1: audit ───────────────────────────────────────────────────────
 
     def audit(self) -> AuditRow:
+        """Stage A. robots.txt, then every policy page (`tos_url` and `policy_urls`),
+        then the sitemap probe. All through the PoliteFetcher; never a recipe page."""
         ua = user_agent()
+        quotes: list[tuple[str, str]] = []          # (page, quoted clause)
+        policies: list[str] = []
+        probe = SitemapProbe()
         with self._client(ua) as client:
             try:
-                load_robots(client, self.base_url, ua)
+                parser = load_robots(client, self.base_url, ua)
                 robots = "allowed at root for our User-Agent"
             except SystemExit as e:
-                robots = f"DISALLOWED: {e}"
+                parser, robots = None, f"DISALLOWED: {e}"
             except httpx.HTTPError as e:
-                robots = f"robots.txt not readable ({type(e).__name__})"
-            quotes: list[str] = []
-            if self.tos_url is None:
-                tos = "no ToS URL known: the researcher must locate it"
-            else:
-                try:
-                    r = client.get(self.tos_url)
-                    body = HTMLParser(r.text).body
-                    page_text = body.text(separator="\n") if body else r.text
-                    quotes = flag_tos_clauses(page_text)
-                    tos = (f"HTTP {r.status_code}; {len(quotes)} clause(s) flagged for "
-                           f"review, see data/coverage/{self.slug}_audit.md")
-                except httpx.HTTPError as e:
-                    tos = f"ToS not readable ({type(e).__name__})"
+                parser, robots = None, f"robots.txt not readable ({type(e).__name__})"
+            signals = self._robots_signals(client)
+            if parser is not None:
+                fetcher = PoliteFetcher(client, parser, ua)
+                for url in [u for u in (self.tos_url, *self.policy_urls) if u]:
+                    r = fetcher.get(url)
+                    if r is None:
+                        policies.append(f"{url}: disallowed by robots.txt")
+                        continue
+                    found = flag_tos_clauses(policy_text(r.text)) if r.status_code == 200 else []
+                    quotes.extend((url, q) for q in found)
+                    policies.append(f"{url}: HTTP {r.status_code}, {len(found)} flagged")
+                probe = probe_sitemaps(fetcher, self.base_url, parser)
+        if self.tos_url is None:
+            policies.insert(0, "no terms-of-service page located: the researcher must check")
+        tos = "; ".join(policies) + f"; see data/coverage/{self.slug}_audit.md"
         row = AuditRow(self.source_id, self.base_url, today(), robots, tos,
                        "pending (researcher)")
         self.coverage_dir.mkdir(parents=True, exist_ok=True)
         self.audit_report.write_text(
-            f"# {self.source_id}: audit, {row.date}\n\n"
-            f"- Site: {self.base_url}\n- robots.txt: {robots}\n"
-            f"- Terms of service: {self.tos_url or '(not located)'}: {tos}\n\n"
-            "## Flagged clauses (quoted, for the researcher to read in full on the site)\n\n"
-            + ("\n".join(f"> {q}\n" for q in quotes) or "_none flagged_\n")
-            + "\nThe keyword flag is not a verdict. Read the full terms before deciding.\n",
-            encoding="utf-8",
-        )
+            audit_report(self, row, robots, signals, policies, quotes, probe), encoding="utf-8")
         append_row(row, self.ethics_path)
         print(f"audit row appended to {self.ethics_path.name} (decision: pending)")
         print(f"evidence: {self.audit_report}")
-        if "DISALLOWED" in robots or quotes:
-            print("STOP: robots.txt or the terms need the researcher's review before any crawl.")
+        print("STOP: the researcher reviews robots.txt, the terms and the probe before any crawl.")
         return row
+
+    def _robots_signals(self, client: httpx.Client) -> list[str]:
+        """robots.txt lines about AI use or content signals, quoted for the researcher."""
+        try:
+            text = client.get(f"{self.base_url}/robots.txt").text
+        except httpx.HTTPError:
+            return []
+        keys = ("content-signal", "ai-train", "ai-input", "gptbot", "ccbot", "google-extended",
+                "claudebot", "crawl-delay")
+        return [ln.strip() for ln in text.splitlines()
+                if any(k in ln.lower() for k in keys)][:20]
 
     # ── stages 2 and 3: pilot, full ──────────────────────────────────────────
 
@@ -262,6 +274,46 @@ class SiteScraper(ABC):
               f"  4. commit: \"data({self.source_id}): {n} recipes scraped "
               f"{datetime.date.today().isoformat()}\"")
         return result
+
+
+class AuditOnlyScraper(SiteScraper):
+    """A site at stage A only. Discovery and parsing refuse until the researcher approves
+    stage B; the ETHICS go-gate refuses `--pilot` and `--full` in any case."""
+
+    def discover(self, fetcher: PoliteFetcher, limit: int) -> Iterator[str]:
+        raise NotImplementedError(f"{self.source_id}: discovery is not built; "
+                                  "stage B awaits the researcher's approval")
+
+    def parse(self, html: str, url: str) -> ScrapedRecipe | None:
+        raise NotImplementedError(f"{self.source_id}: the parser is not built; "
+                                  "stage B awaits the researcher's approval")
+
+
+def audit_report(scraper: SiteScraper, row: AuditRow, robots: str, signals: list[str],
+                 policies: list[str], quotes: list[tuple[str, str]],
+                 probe: SitemapProbe) -> str:
+    """The stage-A evidence, as Markdown, for the researcher."""
+    out = [f"# {scraper.source_id}: audit, {row.date}", "",
+           f"- Site: {scraper.base_url}", f"- robots.txt: {robots}", ""]
+    out += ["## robots.txt lines about AI use, content signals or crawl delay", ""]
+    out += [f"    {s}" for s in signals] or ["_none_"]
+    out += ["", "## Policy pages read", ""] + [f"- {p}" for p in policies]
+    out += ["", "## Flagged clauses (quoted; read them in full on the site)", ""]
+    out += [f"> {q}  \n> — {url}\n" for url, q in quotes] or ["_none flagged_"]
+    out += ["", "The keyword flag is not a verdict. Read the full terms before deciding.", "",
+            f"## Sitemap probe ({probe.requests_used} of {MAX_PROBE_REQUESTS} requests; "
+            "sitemaps only, no recipe page fetched)", "",
+            f"- Sitemap index: {probe.index_url or 'none found'}",
+            f"- Child sitemaps: {len(probe.child_sitemaps)}",
+            f"- Taxonomy sitemaps read: {len(probe.taxonomy_sitemaps)}",
+            f"- Category/tag/course/cuisine pages: {len(probe.terms)}", "",
+            "### Recipe index pages", ""]
+    out += [f"- {t}" for t in probe.recipe_index_pages[:40]] or ["_none found by name_"]
+    out += ["", "### Region-like terms (a hint, not a claim)", ""]
+    out += [f"- {t}" for t in probe.region_terms[:60]] or ["_none found_"]
+    if probe.notes:
+        out += ["", "### Probe notes", ""] + [f"- {n}" for n in probe.notes]
+    return "\n".join(out) + "\n"
 
 
 def _filled(payload: dict[str, object], key: str) -> bool:
