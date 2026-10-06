@@ -57,3 +57,6 @@ __pycache__/
 .pytest_cache/
 
 .DS_Store
+
+# Private planning documents (contact lists, outreach plans): local only, never pushed.
+private/
