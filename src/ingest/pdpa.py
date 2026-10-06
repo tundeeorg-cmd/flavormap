@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from typing import Any
 
 # HD-21, option B (open — see docs/decisions.md). Flip to True and re-parse to retain.
 RETAIN_SUBDISTRICT = False
@@ -319,3 +320,43 @@ def personal_data_classes(text: str) -> list[str]:
     _, report = redact(text)
     stripped = {cls for cls, column in report.COLUMNS.items() if getattr(report, column)}
     return sorted(stripped | set(find_leaks(text)))
+
+
+# PostGIS ships these and owns their contents. spatial_ref_sys.proj4text holds
+# projection strings such as "+towgs84=0,0.001016,0.0016" whose digit runs match the
+# bare-phone-number shape. Excluding them is about which tables the project writes,
+# not about narrowing what counts as personal data.
+POSTGIS_OWNED = frozenset({"spatial_ref_sys", "geometry_columns", "geography_columns"})
+# A hex digest cannot carry personal data in recoverable form, but a sha256 reliably
+# contains digit runs that match the bare-phone-number shape (four of the 231
+# content_hash values did). Skipping digest-shaped values is narrower and more honest
+# than whitelisting the column, which would also exempt anything else stored there.
+_DIGEST = re.compile(r"^[0-9a-f]{32,}$")
+
+
+def scan_database(conn: Any) -> list[str]:
+    """Every personal-data-shaped value in any text or JSON column of any project table,
+    as ``"table.column: {class: [hits]}"`` lines. Empty means clean.
+
+    The one scan behind both ``tests/test_pdpa.py`` and every scraper load
+    (docs/scraping_rules.md §5): it does not trust the parser, it inspects what landed.
+    """
+    columns = conn.execute(
+        """SELECT table_name, column_name FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND data_type IN ('text','character varying','character','jsonb','json')
+            ORDER BY table_name, column_name"""
+    ).fetchall()
+    offenders: list[str] = []
+    for table, column in columns:
+        if table in POSTGIS_OWNED:
+            continue
+        for (value,) in conn.execute(
+            f'SELECT "{column}" FROM "{table}" WHERE "{column}" IS NOT NULL'
+        ).fetchall():
+            text = str(value)
+            if _DIGEST.match(text):
+                continue
+            if leaks := find_leaks(text):
+                offenders.append(f"{table}.{column}: {leaks}")
+    return offenders
