@@ -83,6 +83,13 @@ def _strip_leaders(value: str | None) -> str | None:
 _DISH_NAME = re.compile(r"ชื่อเมนูอาหาร\s*(.+?)(?:\s*จังหวัด|\n)")
 _PROVINCE = re.compile(r"ชื่อเมนูอาหาร[^\n]*?จังหวัด\s*([^\s\n]+)")
 _DISTRICT = re.compile(r"อำเภอ\s*/?\s*(?:เขต)?\s*([^\s\n]+)")
+# Fallback for layouts that break §1.1 across lines (south_1_2, south_1_3: the dish name
+# and the จังหวัด value each sit on their own line between dot leaders). Used only when
+# the single-line patterns above find nothing, and it reads strictly inside §1.1, from
+# its label to the next field (ประเภท or 1.2), so it can never reach the §1.3 contact
+# block, whose จังหวัด is the submitter's address, not the dish's province.
+_SECTION_1_1 = re.compile(r"ชื่อเมนูอาหาร(.*?)(?=ประเภท|[1๑]\s*\.\s*[2๒])", re.DOTALL)
+_BLOCK_PROVINCE = re.compile(r"จังหวัด[\s.…·]*([^\s.…·]+)")
 # §4 table boundaries. The header names the columns; the end markers are the checkbox
 # options and the §5 heading that follow the table.
 _TABLE_HEADER = ("ชื่อวัตถุดิบ", "ชื่อวัตถดิบ", "วัตถุดิบ/")
@@ -409,6 +416,13 @@ def parse_document(doc: Document) -> DCPRecord:
         record.dish_name_th = _strip_leaders(m.group(1))
     if m := _PROVINCE.search(text):
         record.province_th = _strip_leaders(m.group(1))
+    if (block := _SECTION_1_1.search(text)) and not (record.dish_name_th and record.province_th):
+        body = block.group(1)
+        name_part, _, after = body.partition("จังหวัด")
+        if not record.dish_name_th:
+            record.dish_name_th = _strip_leaders(" ".join(name_part.split()))
+        if not record.province_th and (m := _BLOCK_PROVINCE.search("จังหวัด" + after)):
+            record.province_th = _strip_leaders(m.group(1))
     if m := _DISTRICT.search(text):
         record.district_th = _strip_leaders(m.group(1))
 
