@@ -14,7 +14,6 @@ what actually landed.
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 import pytest
@@ -22,7 +21,7 @@ import pytest
 from src.config import RAW_DIR
 from src.db import get_connection
 from src.ingest.pdf_layout import read_document
-from src.ingest.pdpa import find_leaks, redact
+from src.ingest.pdpa import find_leaks, redact, scan_database
 
 RAW = RAW_DIR / "dcp_food"
 
@@ -51,6 +50,15 @@ def test_each_class_is_stripped(text: str) -> None:
     clean, report = redact(text)
     assert report.total > 0, f"nothing redacted from {text!r}"
     assert not find_leaks(clean), f"leak survived: {find_leaks(clean)}"
+
+
+@pytest.mark.parametrize("text", ["081-234-5678", "081 234 5678", "โทร 089-999-0000"])
+def test_a_mobile_number_written_three_three_four_is_stripped_and_detected(text: str) -> None:
+    """Regression, 2026-10-06: the phone pattern took a one-digit prefix, so the commonest
+    way a Thai mobile is written (0XX-XXX-XXXX) passed both redaction and the scan."""
+    assert "phone" in find_leaks(text)
+    clean, report = redact(text)
+    assert report.n_phone_numbers == 1 and not find_leaks(clean)
 
 
 @pytest.mark.parametrize("text", ["ทดสอบ@example.com", "ติดต่อ สมหญิง.ทดสอบ@example.co.th"])
@@ -114,51 +122,15 @@ def test_no_document_leaks_after_redaction() -> None:
 
 # ── 3. database ───────────────────────────────────────────────────────────────
 
-#: PostGIS ships these and owns their contents. spatial_ref_sys.proj4text holds
-#: projection strings such as "+towgs84=0,0.001016,0.0016" whose digit runs match the
-#: bare-phone-number shape. Excluding them is about which tables the project writes,
-#: not about narrowing what counts as personal data.
-POSTGIS_OWNED = {"spatial_ref_sys", "geometry_columns", "geography_columns"}
-
-#: A hex digest cannot carry personal data in recoverable form, but a sha256 reliably
-#: contains digit runs that match the bare-phone-number shape — four of the 231
-#: content_hash values did. Skipping digest-shaped values is narrower and more honest
-#: than whitelisting the column, which would also exempt anything else stored there.
-_DIGEST = re.compile(r"^[0-9a-f]{32,}$")
-
-
 def test_no_personal_data_in_any_table() -> None:
-    """Scan every text and JSON column of every project table.
+    """Scan every text and JSON column of every project table (`pdpa.scan_database`).
 
-    JSONB is included deliberately: `raw_recipes.parsed_json` holds the parser's own
-    output, and "not in a table, not in a JSONB blob" is the rule as ETHICS.md states
-    it. Trusts nothing upstream — it inspects what actually landed.
+    Trusts nothing upstream — it inspects what actually landed. The scan itself lives in
+    `src/ingest/pdpa.py` so the scrapers' post-load check runs exactly this test.
     """
     conn = get_connection()
     try:
-        columns = conn.execute(
-            """
-            SELECT table_name, column_name
-              FROM information_schema.columns
-             WHERE table_schema = 'public'
-               AND data_type IN ('text','character varying','character','jsonb','json')
-             ORDER BY table_name, column_name
-            """
-        ).fetchall()
-        columns = [(t, c) for t, c in columns if t not in POSTGIS_OWNED]
-        assert columns, "no project text columns found — schema not migrated?"
-
-        offenders: list[str] = []
-        for table, column in columns:
-            rows = conn.execute(
-                f'SELECT "{column}" FROM "{table}" WHERE "{column}" IS NOT NULL'
-            ).fetchall()
-            for (value,) in rows:
-                text = str(value)
-                if _DIGEST.match(text):
-                    continue
-                if leaks := find_leaks(text):
-                    offenders.append(f"{table}.{column}: {leaks}")
+        offenders = scan_database(conn)
         assert not offenders, "personal data found in the database: " + "; ".join(offenders[:20])
     finally:
         conn.close()

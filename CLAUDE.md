@@ -48,9 +48,10 @@ decision. That only holds if the gates are respected.
 5. **`make figures` regenerates every number and figure** from the database. No
    hand-edited plots, no numbers typed into prose by hand.
 6. **Every stochastic operation takes `RANDOM_SEED`** from `src/config.py`.
-7. **Respect robots.txt.** 1 req/sec, identifying User-Agent carrying
-   `SCRAPER_CONTACT_EMAIL`. Disallowed → source dropped, never worked around. Every
-   source audited into `ETHICS.md` **with a date** before a scraper is written.
+7. **Respect robots.txt.** 1–2 s randomised between requests, identifying User-Agent
+   carrying `SCRAPER_CONTACT_EMAIL`. Disallowed → source dropped, never worked around. Every
+   source audited into `ETHICS.md` **with a date** before a scraper is written. Full rules,
+   enforced in `src/scrape/`: `docs/scraping_rules.md` (2026-10-06).
 8. **No personally identifying data enters the database, ever.** No names, contacts,
    addresses, faces, or GPS-tagged photos. Enforced by tests. Filtering at export is too
    late — by then it is in the backups.

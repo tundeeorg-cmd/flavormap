@@ -8,11 +8,18 @@ dropped, never worked around.
 
 ## Scraping conduct
 
+The full rules, and where each is enforced in code, are in
+[`docs/scraping_rules.md`](docs/scraping_rules.md) (adopted 2026-10-06). The `--pilot` and
+`--full` stages of every scraper built on `src/scrape/base.py` read the table below and
+refuse to run for a source whose row is undated, lacks a robots.txt or ToS result, or has
+no `✅` decision.
+
 | Rule | Practice |
 |---|---|
-| Rate limit | 1 request / second, minimum |
-| Identification | `FlavorMapResearchBot/0.1 (+mailto:$SCRAPER_CONTACT_EMAIL; academic research, non-commercial)` |
+| Rate limit | 1–2 s between requests, randomised (mean 1.5 s); one connection per site; back-off on 429/5xx; stop after 5 consecutive errors. *Until 2026-10-06: 1 request / second* |
+| Identification | `FlavorMapResearch/1.0 (+https://github.com/tundeeorg-cmd/flavormap; $SCRAPER_CONTACT_EMAIL)`. *Until 2026-10-06: `FlavorMapResearchBot/0.1 (+mailto:…)`, the string the fetch records below carry* |
 | robots.txt | Fetched and honoured on every run, not just at audit time |
+| Walls | Logins, paywalls, CAPTCHAs and premium content are never bypassed; meeting one stops the crawl |
 | Stored | Ingredient lists, province labels, publication dates |
 | Never stored | Full recipe prose, instructions, copyrighted text |
 | Raw pages | Cached to disk for reproducibility, gitignored, **never published** |

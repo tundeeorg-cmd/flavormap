@@ -71,7 +71,7 @@ def test_hydration_heuristic_flags_rich_text_page_as_server_rendered() -> None:
 def test_build_user_agent_includes_contact_email() -> None:
     ua = build_user_agent("researcher@example.com")
     assert "researcher@example.com" in ua
-    assert "FlavorMapResearchBot" in ua
+    assert ua.startswith("FlavorMapResearch/1.0 (+https://github.com/tundeeorg-cmd/flavormap; ")
 
 
 def test_rate_limiter_spaces_calls(monkeypatch) -> None:  # type: ignore[no-untyped-def]
