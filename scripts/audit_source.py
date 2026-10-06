@@ -17,9 +17,10 @@ actually reachable, whether province is exposed anywhere, and whether it's worth
 building a scraper for. This script's output is raw material for that judgment,
 written into docs/source_audit.md.
 
-Respects CLAUDE.md rule 7: identifying User-Agent with a contact email, 1 request/
-second, and robots.txt disallow rules are honored — this tool never fetches a URL
-robots.txt disallows, it only reports that it would have been disallowed.
+Respects CLAUDE.md rule 7 and docs/scraping_rules.md rule 2: identifying User-Agent
+with a contact email, 1 request per 1.5 s, and robots.txt disallow rules are honored —
+this tool never fetches a URL robots.txt disallows, it only reports that it would have
+been disallowed.
 """
 
 from __future__ import annotations
@@ -36,7 +37,11 @@ from urllib.parse import urljoin, urlparse
 import httpx
 from selectolax.parser import HTMLParser
 
-DEFAULT_RATE_LIMIT_SEC = 1.0
+from src.scrape.conduct import REPO_URL, UA_PRODUCT
+
+# docs/scraping_rules.md rule 2: 1 request per 1.5 s on average. This tool's limiter is
+# fixed-interval, so it uses the mean; site scrapers use src.scrape.conduct's 1–2 s jitter.
+DEFAULT_RATE_LIMIT_SEC = 1.5
 REQUEST_TIMEOUT_SEC = 15.0
 
 # Heuristic markers of a client-hydrated (JS-rendered) page shell.
@@ -54,7 +59,9 @@ RECIPE_KEYWORDS_TH = ("ส่วนผสม", "วิธีทำ", "เคร�
 
 
 def build_user_agent(contact_email: str) -> str:
-    return f"FlavorMapResearchBot/0.1 (+mailto:{contact_email}; academic research, non-commercial)"
+    """Rule 2's User-Agent — same string as src.scrape.conduct.build_user_agent, without
+    its placeholder guard: this tool takes the address on the command line."""
+    return f"{UA_PRODUCT} (+{REPO_URL}; {contact_email})"
 
 
 @dataclass
