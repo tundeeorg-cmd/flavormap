@@ -1351,6 +1351,71 @@ release.
 
 ---
 
+## HD-register-MC — Are the provincial culture offices part of the official register?
+**Date presented:** 2026-10-07 · **Status:** OPEN
+**Arises from:** the retroactive stage-A audit of `m_culture` (commit `7eb9687`). Data
+from the 76 provincial culture-office sites (`<province>.m-culture.go.th`) was collected
+in a separate session outside `docs/scraping_rules.md` and now sits, unloaded, in
+`data/raw/m_culture/` (local, gitignored). No row from it reaches `recipes` until this is
+decided (rule 6), and none is collected or loaded at all until the `m_culture` row in
+`ETHICS.md` says `go`. **That ethics decision comes first**: a `no-go` makes this entry
+moot.
+
+**Why it matters.** The official register today is the DCP corpus (`dcp_food`): 203
+recipes across 74 provinces, from the Department of Cultural Promotion's selection of
+**3 dishes per province**. RQ3 is defined against exactly that ("the state selected 3
+dishes per province"), and RQ1's official vertex is built from it. The provincial culture
+offices are also the state (the Office of the Permanent Secretary, Ministry of Culture,
+the same ministry as DCP), but they publish **far more per province**, chosen by each
+office rather than by one national selection. Admitting them changes what "the official
+record" means.
+
+**What the collection contains.** These figures come from the collecting session's own
+`provincial_culture_sites.csv` and `dishes.csv`, and have **not** been verified here:
+- 74 offices with food pages found; 2 with no food pages; Bangkok has no office.
+- 2,584 dish rows, 2,318 marked usable, 240 flagged as duplicates, 30 flagged as non-food.
+- Per office: minimum 2, median 27, maximum 215 (Si Sa Ket). The spread is set by how
+  much each office chose to publish.
+- Content: 1,590 rows have page text, but only **528 have ingredient lines**. 644 are
+  image-only, and 50 are title-only.
+- 830 rows name a district.
+- **Personal data is present**: contributor names in dish names, and contact details in
+  ingredient lines and PDF text. Any loader must redact at parse time, behind a passing
+  PDPA test.
+
+**Options:**
+  A. **Official register, pooled with DCP.** (consequence: no schema change; the official
+     vertex grows from about 3 dishes per province to dozens. RQ3's "the state selected 3"
+     framing no longer describes the register, and per-province weight follows each
+     office's publishing volume.)
+  B. **Official register, carried with a source indicator and never pooled without it**
+     (`source_id` distinguishes the national DCP selection from office listings, as §3.2
+     already requires for source type). (consequence: the three-register design stays;
+     RQ1 and RQ3 can be run on DCP alone, on offices alone, or both, and the difference is
+     itself reportable.)
+  C. **A separate register** (e.g. `official_local`), with a migration widening the
+     `recipes.register` CHECK. (consequence: RQ1 becomes a four-way comparison, or the
+     offices are reported alongside the triangle. Keeps "national selection versus local
+     office" as its own axis.)
+  D. **Not a register: evidence only.** Used as a coverage corpus or as RQ3 evidence (what
+     the wider state record holds beyond the national three), like kapook under HD-3
+     option A. (consequence: RQ1's official vertex stays DCP-only; no rows enter
+     `recipes` under a register.)
+  E. **Out of scope.** Not used. (consequence: no parser, no PDPA work on this collection.)
+
+**What any option except E costs.** A parser for three content types (page text, PDF
+text, image-only), with redaction at parse time and its own PDPA test. Only about a fifth
+of rows have ingredient lines, so dish-level use (RQ3, RQ5) is far cheaper than
+ingredient-level use (RQ1, RQ2).
+
+**Recommendation:** none. What counts as "the official record" is a methods decision the
+paper defends.
+**Decision:**
+**Reasoning:**
+**Date decided:**
+
+---
+
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
 **Date:** 2026-09-12
 **This is not a gate.** It is a documentation discrepancy found while building
