@@ -86,6 +86,9 @@ class SiteScraper(ABC):
     tos_url: str | None = None
     # Further pages to read for clauses: a copyright notice, a footer, a privacy policy.
     policy_urls: tuple[str, ...] = ()
+    # Other hosts the source's data comes through (e.g. an API host). Their robots.txt
+    # is checked too, since data read from them is collection from them.
+    extra_robots_hosts: tuple[str, ...] = ()
 
     def __init__(
         self,
@@ -141,8 +144,16 @@ class SiteScraper(ABC):
             except SystemExit as e:
                 parser, robots = None, f"DISALLOWED: {e}"
             except httpx.HTTPError as e:
-                parser, robots = None, f"robots.txt not readable ({type(e).__name__})"
+                parser, robots = None, f"robots.txt not readable ({_why(e)})"
             signals = self._robots_signals(client)
+            for host in self.extra_robots_hosts:
+                try:
+                    load_robots(client, host, ua)
+                    robots += f"; {host}: allowed at root"
+                except SystemExit:
+                    robots += f"; {host}: DISALLOWED at root"
+                except httpx.HTTPError as e:
+                    robots += f"; {host}: robots.txt not readable ({_why(e)})"
             if parser is not None:
                 fetcher = PoliteFetcher(client, parser, ua)
                 for url in [u for u in (self.tos_url, *self.policy_urls) if u]:
@@ -154,6 +165,8 @@ class SiteScraper(ABC):
                     quotes.extend((url, q) for q in found)
                     policies.append(f"{url}: HTTP {r.status_code}, {len(found)} flagged")
                 probe = probe_sitemaps(fetcher, self.base_url, parser)
+        if parser is None:
+            policies.append("policy pages not fetched (robots.txt unreadable)")
         if self.tos_url is None:
             policies.insert(0, "no terms-of-service page located: the researcher must check")
         tos = "; ".join(policies) + f"; see data/coverage/{self.slug}_audit.md"
@@ -274,6 +287,14 @@ class SiteScraper(ABC):
               f"  4. commit: \"data({self.source_id}): {n} recipes scraped "
               f"{datetime.date.today().isoformat()}\"")
         return result
+
+
+def _why(e: httpx.HTTPError) -> str:
+    """The HTTP status when there is one (403 and 404 mean different things), else the
+    error type."""
+    if isinstance(e, httpx.HTTPStatusError):
+        return f"HTTP {e.response.status_code}"
+    return type(e).__name__
 
 
 class AuditOnlyScraper(SiteScraper):

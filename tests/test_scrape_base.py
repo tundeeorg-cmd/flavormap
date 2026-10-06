@@ -428,3 +428,39 @@ def test_the_probe_tells_a_robots_refusal_from_a_connection_error() -> None:
     notes = recon.probe_sitemaps(fetcher, SITE, robots).notes
     assert "request failed (connection error): https://recipes.test/category-sitemap.xml" in notes
     assert "disallowed by robots.txt: https://recipes.test/private/tag-sitemap.xml" in notes
+
+
+def test_audit_checks_robots_on_every_host_the_data_comes_through(tmp_path: Path) -> None:
+    ethics = tmp_path / "ETHICS.md"
+    shutil.copy(REPO_ROOT / "ETHICS.md", ethics)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/robots.txt":
+            body = ("User-agent: *\nDisallow: /\n" if request.url.host == "api.recipes.test"
+                    else "User-agent: *\nAllow: /\n")
+            return httpx.Response(200, text=body)
+        return httpx.Response(404)
+
+    class TwoHosts(ReconFixtureSite):
+        extra_robots_hosts = ("https://api.recipes.test",)
+
+    row = TwoHosts(raw_root=tmp_path / "raw", coverage_dir=tmp_path / "cov",
+                   ethics_path=ethics, transport=httpx.MockTransport(handler)).audit()
+    assert row.robots.startswith("allowed at root")
+    assert "https://api.recipes.test: DISALLOWED at root" in row.robots
+
+
+def test_an_unreadable_robots_txt_reports_its_status_and_stops_the_audit(tmp_path: Path) -> None:
+    ethics = tmp_path / "ETHICS.md"
+    shutil.copy(REPO_ROOT / "ETHICS.md", ethics)
+    calls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request.url.path)
+        return httpx.Response(403 if request.url.path == "/robots.txt" else 200, text="x")
+
+    row = ReconFixtureSite(raw_root=tmp_path / "raw", coverage_dir=tmp_path / "cov",
+                           ethics_path=ethics, transport=httpx.MockTransport(handler)).audit()
+    assert row.robots == "robots.txt not readable (HTTP 403)"
+    assert set(calls) == {"/robots.txt"}       # nothing else fetched without robots
+    assert "policy pages not fetched (robots.txt unreadable)" in row.tos
