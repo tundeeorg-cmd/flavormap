@@ -200,3 +200,18 @@ Non-negotiable, per Bible §8:
 ---
 
 *First entry: 2026-08-16, seeded from the 2026-08-09 technical audit.*
+
+## Scraper audit register
+
+Machine-checked by `src/scrape/ethics.py` (docs/scraping_rules.md §1). One dated row per
+audit; the **latest** row per source governs. `--audit` appends rows with decision
+`pending (researcher)`. **Only the researcher changes a decision**, to `go` or `no-go`.
+`--pilot` and `--full` refuse to run unless the latest row says `go`.
+
+The first two rows transcribe decisions already recorded above, so the existing fetchers
+stay runnable under the gate. They are not new decisions.
+
+| source_id | site | date | robots.txt | terms of service | decision |
+|---|---|---|---|---|---|
+| dcp_food | https://food.culture.go.th | 2026-08-16 | allowed (User-agent: * Allow: /); content signals ai-train=no, see above | see "food.culture.go.th content signals" above | go (fetched 2026-08-16); redistribution still open under HD-3 |
+| kapook_cooking | https://cooking.kapook.com | 2026-08-22 | allowed, no crawl-delay | see "cooking.kapook.com re-audit" above | go (HD-3 option A, 2026-08-23: coverage corpus) |
