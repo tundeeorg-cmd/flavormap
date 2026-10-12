@@ -1,32 +1,35 @@
 # FlavorMap
 
-A computational geography of Thai cuisine: an ingredient co-occurrence network built from
-recipes across Thailand's 77 provinces, analyzed for regional structure and released as an
-open dataset and interactive map.
+Thai regional cooking recorded three times, by three actors with three different motives:
+the state (231 Department of Cultural Promotion forms, 3 dishes per province), the market
+(recipe websites) and the kitchen (interviews with home cooks in Nakhon Ratchasima and
+Buri Ram). The gaps between those records are the finding. Released as two open datasets
+and an interactive map.
 
 > The data that exists about a population is not the truth about that population,
 > and the gap widens with distance from the centre.
 
 ## Research questions
 
-**RQ1 — How far do you travel before the food changes, and does it change gradually or all at once?**
-<sub>Are cultural boundaries discrete or continuous, and can they be located from compositional data alone? Distance-decay curve with change-point detection; one competing boundary set (linguistic).</sub>
+**RQ1: Does the food the government picks to represent your province match what people there actually cook?**
+<sub>Do the state, the market and the kitchen agree on what a province eats? Pairwise cosine distance between the three registers' ingredient profiles, per province.</sub>
 
-**RQ2 — Is a region's food about what it uses, or about what it refuses to use?**
-<sub>Is culinary distinctiveness constituted by inclusion or by exclusion? Distinctiveness decomposed into presence-driven and absence-driven components, validated against stated absences from interviews.</sub>
+**RQ2: Is a region's food about what it uses, or about what it refuses to use?**
+<sub>Is regional identity built from what's included or what's refused? Distinctiveness decomposed into presence-driven and absence-driven components, validated against absences cooks state in interviews.</sub>
 
-**RQ3 — Whose cooking did the internet leave out?**
-<sub>How much of Thailand's culinary map is legible at all from public online data? Coverage cartography: labelled fraction, provincial recipe counts, source-domain concentration, and how conclusions move as the inclusion threshold varies.</sub>
+**RQ3: Whose cooking didn't make the government's list?**
+<sub>What does the official record leave out? Dish- and ingredient-level overlap between the state's three dishes per province and what cooks report.</sub>
 
-**RQ4 — What happens if all the garlic in Thailand disappears?**
-<sub>Which ingredients hold the cuisine together, and which regional cuisines are most fragile? Node-removal robustness on the PMI-weighted co-occurrence network.</sub>
+**RQ4: After the computer cleans up a recipe, is it still a recipe?**
+<sub>Can you cook a dish from the normalised dataset? Eight dishes cooked from the cleaned ingredient lists, with what survived, degraded or was lost.</sub>
 
-**RQ5 — Is the food Thailand is famous for the least regional food it has?**
-<sub>Does regional signal concentrate in vernacular practice rather than in canonical, externally-facing forms? Classifier run separately per dish category, with the majority-class baseline reported.</sub>
+**RQ5: The government says these dishes are at risk. Do the people who cook them agree?**
+<sub>Do cooks agree with the state about which dishes are disappearing? The government forms' endangerment level compared with what cooks report.</sub>
 
-Every question is framed so that a null answer is reportable. Predictions are registered in
-[docs/hypotheses.md](docs/hypotheses.md) before any analysis runs, and the negative results
-carry full weight in the paper rather than sitting in a footnote.
+Four of the five depend on fieldwork and one on cooking. Every question is framed so that a
+null answer is reportable, and negative results carry full weight in the paper. The full
+statement of each question is in [docs/research_questions.md](docs/research_questions.md).
+Predictions go in [docs/hypotheses.md](docs/hypotheses.md) before any analysis runs.
 
 See [CLAUDE.md](CLAUDE.md) for the build plan, non-negotiable rules, data model, and
 execution schedule; [docs/limitations.md](docs/limitations.md) for what this data cannot
