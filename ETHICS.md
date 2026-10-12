@@ -97,6 +97,17 @@ by default.
 | robots.txt | re-checked at run time, not trusted from the audit |
 | Stored | `data/raw/dcp_food/`, gitignored, never published |
 
+**Log gap, recorded 2026-10-12 (TIMELINE T1.10).** The enumeration log written on
+2026-08-16 (`data/raw/dcp_food/_enumeration_log.csv`) records each document's region,
+province index, menu index, outcome, HTTP status, SHA-256 and size, but **no URL and no
+fetch time**. The URLs are recoverable exactly, because the site's path is a function of
+the triple, and `scripts.fetch_dcp_food --reconstruct-log` rebuilds them into
+`data/interim/` without touching the original. **The fetch times are not recoverable.**
+The collection date is 2026-08-16 (this section). The PDFs' file dates on disk
+(2026-09-19 for all 231) record a later copy, not the fetch, and are not used as fetch
+times. From 2026-10-12 the fetcher writes `url` and `fetched_at` for every newly fetched
+document and leaves `fetched_at` blank for one already on disk.
+
 **The raw PDFs contain personal data** — informant names, house numbers, postcodes and
 mobile numbers, exactly as §1.3 of the form provides for. They are retained locally, and
 only locally, so that parsing is reproducible and auditable. They are gitignored, they
@@ -142,6 +153,19 @@ lists, publication dates and derived labels only. The page's JSON-LD carries an
 | Source | Reason |
 |---|---|
 | `gdcatalog.go.th` | Disallows automated access. Its dataset listing is consulted manually only |
+
+### Not used this cycle (recorded 2026-10-12, TIMELINE T1.10)
+
+Listed so that no source the plan names is silently absent from this file.
+
+| Source | Status | Basis |
+|---|---|---|
+| Cookpad Thailand (`cookpad.com/th`) | Not collected. No crawl before the 13 Dec 2026 freeze | `docs/SCRAPER_PROMPTS.md` v2: frozen until after 13 Dec |
+| Krua.co (`krua.co`) | Not collected. No crawl before the 13 Dec 2026 freeze | as above |
+| `data/raw/gdcatalog/` (8 CSV files, dated 2026-09-19 on disk) | Held locally; referenced by no code on `main`; not loaded | TIMELINE v3 §2.1: "parked". Profiling `flavormap_food67.csv` is `SCRAPER_PROMPTS.md` prompt 10, after 1 Nov |
+
+The gdcatalog files' provenance is not recorded in this repository beyond their file
+dates. Before any of them is used, each needs its own dated row here.
 
 ## Personal data (PDPA 2562)
 
