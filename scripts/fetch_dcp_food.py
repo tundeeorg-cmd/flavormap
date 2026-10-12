@@ -16,7 +16,14 @@ disagrees with the index, both are logged and the record is flagged; neither is 
 preferred. Nothing in this module writes a province anywhere.
 
 404s are expected — not every slot is filled. The log of empty triples is itself a
-coverage artifact and is written to ``data/raw/dcp_food/_enumeration_log.csv``.
+coverage artifact and is written to ``data/raw/dcp_food/_enumeration_log.csv``, with each
+document's URL and, for a document fetched in that run, its UTC fetch time. A document
+already on disk is not re-fetched, so its fetch time is left blank, never guessed.
+
+The original 2026-08-16 log has no URL or time columns. ``--reconstruct-log`` rebuilds
+the URLs from its (region, province, menu) triples, with no network, into
+``data/interim/dcp_enumeration_log_reconstructed.csv``; ``data/raw/`` is not touched.
+The timestamp gap is recorded in ETHICS.md.
 
 Conduct (rule 7): 1 request/second minimum, identifying User-Agent carrying
 SCRAPER_CONTACT_EMAIL, robots.txt re-checked at run time rather than trusted from the
@@ -29,12 +36,14 @@ from __future__ import annotations
 
 import argparse
 import csv
+import datetime
 import hashlib
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import httpx
 
-from src.config import RAW_DIR
+from src.config import DATA_DIR, RAW_DIR
 from src.scrape.conduct import PoliteFetcher, load_robots, make_client, user_agent
 from src.scrape.ethics import require_go
 
@@ -42,6 +51,9 @@ BASE = "https://food.culture.go.th"
 ROBOTS = f"{BASE}/robots.txt"
 OUT_DIR = RAW_DIR / "dcp_food"
 LOG_PATH = OUT_DIR / "_enumeration_log.csv"
+RECONSTRUCTED_LOG = DATA_DIR / "interim" / "dcp_enumeration_log_reconstructed.csv"
+LOG_COLUMNS = ["region", "province_index", "menu_index", "url", "fetched_at", "outcome",
+               "http_status", "sha256", "bytes"]
 TIMEOUT_SEC = 60.0
 
 # Province counts per region path, established empirically on 2026-08-16 by probing
@@ -67,10 +79,21 @@ REGIONS: dict[str, int] = {
 MENUS_PER_PROVINCE = 3
 
 
+def doc_url(region: str, province_index: int, menu_index: int) -> str:
+    """The one place a document URL is built."""
+    return f"{BASE}/food68/{region}/{province_index}/{menu_index}.pdf"
+
+
+def _now() -> str:
+    return datetime.datetime.now(datetime.UTC).isoformat(timespec="seconds")
+
+
 @dataclass
 class Result:
-    fetched: list[tuple[str, int, int, str, int]] = field(default_factory=list)
-    missing: list[tuple[str, int, int, int]] = field(default_factory=list)
+    # (region, province, menu, sha256, bytes, fetched_at or None when already on disk)
+    fetched: list[tuple[str, int, int, str, int, str | None]] = field(default_factory=list)
+    # (region, province, menu, http_status, fetched_at)
+    missing: list[tuple[str, int, int, int, str]] = field(default_factory=list)
     errors: list[tuple[str, str]] = field(default_factory=list)
 
 
@@ -97,13 +120,14 @@ def enumerate_food68(f: PoliteFetcher, limit: int | None, only_region: str | Non
                     # Resumable: an existing file is never re-fetched.
                     body = dest.read_bytes()
                     result.fetched.append(
-                        (region, p, m, hashlib.sha256(body).hexdigest(), len(body))
+                        (region, p, m, hashlib.sha256(body).hexdigest(), len(body), None)
                     )
                     continue
 
-                url = f"{BASE}/food68/{region}/{p}/{m}.pdf"
+                url = doc_url(region, p, m)
                 n += 1
                 try:
+                    at = _now()
                     resp = f.get(url)
                 except httpx.HTTPError as e:
                     result.errors.append((url, type(e).__name__))
@@ -115,16 +139,16 @@ def enumerate_food68(f: PoliteFetcher, limit: int | None, only_region: str | Non
                 if resp.status_code == 200 and is_pdf(resp.content):
                     dest.write_bytes(resp.content)
                     digest = hashlib.sha256(resp.content).hexdigest()
-                    result.fetched.append((region, p, m, digest, len(resp.content)))
+                    result.fetched.append((region, p, m, digest, len(resp.content), at))
                     print(f"  ok   {region}/{p}/{m}  {len(resp.content):>8,}B  {digest[:12]}")
                 elif resp.status_code == 404:
-                    result.missing.append((region, p, m, 404))
+                    result.missing.append((region, p, m, 404, at))
                 elif resp.status_code == 200:
                     # 200 but not a PDF — usually a soft-404 HTML page.
-                    result.missing.append((region, p, m, 200))
+                    result.missing.append((region, p, m, 200, at))
                     print(f"  soft-404 (200, not PDF) {region}/{p}/{m}")
                 else:
-                    result.missing.append((region, p, m, resp.status_code))
+                    result.missing.append((region, p, m, resp.status_code, at))
                     print(f"  {resp.status_code} {region}/{p}/{m}")
 
     return result
@@ -178,17 +202,32 @@ def probe_extensions(f: PoliteFetcher) -> None:
         print(f"  {path:<32} HTTP {r.status_code}  {r.headers.get('content-type','?')}")
 
 
-def write_log(result: Result) -> None:
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    with LOG_PATH.open("w", newline="", encoding="utf-8") as fh:
+def write_log(result: Result, path: Path = LOG_PATH) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
-        w.writerow(["region", "province_index", "menu_index", "outcome",
-                    "http_status", "sha256", "bytes"])
-        for region, p, m, digest, size in result.fetched:
-            w.writerow([region, p, m, "fetched", 200, digest, size])
-        for region, p, m, status in result.missing:
-            w.writerow([region, p, m, "missing", status, "", ""])
-    print(f"\nenumeration log -> {LOG_PATH}")
+        w.writerow(LOG_COLUMNS)
+        for region, p, m, digest, size, at in result.fetched:
+            w.writerow([region, p, m, doc_url(region, p, m), at or "", "fetched", 200,
+                        digest, size])
+        for region, p, m, status, at in result.missing:
+            w.writerow([region, p, m, doc_url(region, p, m), at, "missing", status, "", ""])
+    print(f"\nenumeration log -> {path}")
+
+
+def reconstruct_log(source: Path = LOG_PATH, out: Path = RECONSTRUCTED_LOG) -> int:
+    """Copy an original (URL-less) log with each row's URL rebuilt from its triple and a
+    blank ``fetched_at``. Reads `source`, writes `out`; returns the row count."""
+    with source.open(encoding="utf-8") as fh:
+        rows = list(csv.DictReader(fh))
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=LOG_COLUMNS)
+        w.writeheader()
+        for row in rows:
+            url = doc_url(row["region"], int(row["province_index"]), int(row["menu_index"]))
+            w.writerow({**row, "url": url, "fetched_at": row.get("fetched_at", "")})
+    return len(rows)
 
 
 def main() -> int:
@@ -196,7 +235,14 @@ def main() -> int:
     ap.add_argument("--limit", type=int, help="stop after N network fetches")
     ap.add_argument("--region", choices=sorted(REGIONS), help="restrict to one region")
     ap.add_argument("--probe-only", action="store_true", help="run the extension probes only")
+    ap.add_argument("--reconstruct-log", action="store_true",
+                    help="rebuild URLs for the existing log into data/interim/; no network")
     args = ap.parse_args()
+
+    if args.reconstruct_log:
+        n = reconstruct_log()
+        print(f"{n} rows -> {RECONSTRUCTED_LOG} (fetched_at blank: not recorded in 2026-08)")
+        return 0
 
     ua = user_agent()
     require_go("dcp_food")  # docs/scraping_rules.md §1: no crawl without a recorded go
