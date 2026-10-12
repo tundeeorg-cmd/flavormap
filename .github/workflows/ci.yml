@@ -1,0 +1,71 @@
+# CI: ruff, mypy and the full pytest suite against a real PostGIS — TIMELINE.md §0 rule 5,
+# "green before commit", checked on every push and pull request rather than trusted.
+#
+# The database is started with the repo's own docker-compose.yml, not a workflow service
+# container: tests/test_restore_db.py and scripts/dump_db.sh drive `docker compose exec db`
+# directly, and tests/test_backup.py needs a dump that only that path produces. One setup,
+# the same one `make db-up` gives on the laptop.
+#
+# Every value in .env below is a throwaway for this runner. The password is deliberately
+# long: tests/test_status.py asserts it never appears in status output, and a short one
+# ("ci") matches inside ordinary words. Nothing here touches the real corpus — data/raw/
+# is gitignored, so the corpus-level tests skip, as they would on any fresh clone.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies (locked)
+        run: uv sync --locked
+
+      - name: ruff
+        run: uv run ruff check
+
+      - name: mypy
+        run: uv run mypy
+
+      - name: Write a throwaway .env
+        run: |
+          cat > .env <<'EOF'
+          POSTGRES_PASSWORD=flavormap-ci-only-password
+          DATABASE_URL=postgresql://flavormap:flavormap-ci-only-password@localhost:5432/flavormap
+          ANTHROPIC_API_KEY=not-used-in-tests
+          SCRAPER_CONTACT_EMAIL=ci@flavormap.invalid
+          EOF
+
+      - name: Start PostGIS (docker-compose.yml)
+        run: docker compose up -d --wait
+
+      - name: Apply migrations
+        run: uv run python -m scripts.migrate
+
+      - name: Dump the database (tests/test_backup.py needs one)
+        run: ./scripts/dump_db.sh
+
+      - name: pytest
+        run: uv run pytest -q
+
+      - name: Database logs on failure
+        if: failure()
+        run: docker compose logs db
