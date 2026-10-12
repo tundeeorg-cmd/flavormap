@@ -1,7 +1,8 @@
 # FlavorMap — Implementation Timeline 2026–2027
 
-**Version:** v2 · 6 October 2026 · **Supersedes:** v1 of this file and Bible v4 §21 (timeline) and §23 (next 30 days)
-**Basis:** `docs/STATUS_2026-10.md` audit (repo `main` at `0aa08a5`; overall ≈18% complete)
+**Version:** v3 · 12 October 2026 · **Supersedes:** v2 (6 Oct), v1, and Bible v4 §21 (timeline) and §23 (next 30 days)
+**Basis:** `docs/STATUS_2026-10.md` audit (repo `main` at `0aa08a5`; overall ≈18% complete) + new raw data folders collected 6–7 Oct (see §2.1)
+**What changed in v3:** four new web sources (Sanook, MThai, TAT, Ministry of Culture) and the Nakhon Nayok manual transcription are now in `data/raw/`. Added §2.1 data inventory, task block §6.3 rewritten for multi-source commercial data, new tasks T0.8 and T1.13a–T1.13e, new decision gates HD-register / HD-dedup / HD-balance, updated risks and repo fixes.
 **Repo:** `~/Desktop/G.9/flavormap` · GitHub `tundeeorg-cmd/flavormap` · DB: Docker Postgres 15 + PostGIS, host port 5433
 
 > **Goal.** Three conference submissions by **22 Jan 2027** (DH2027, ICWSM 2027, JCSSE 2027), the full research
@@ -79,7 +80,8 @@ Unverified details that change the plan. Record answers in `docs/venues.md` with
 | | DH2027 | ICWSM | JCSSE | Full paper |
 |---|---|---|---|---|
 | Official register (231 DCP PDFs) | ✓ | ✓ (if HD-3 permits) | ✓ | ✓ |
-| Commercial register (Kapook) | ✓ | ✓ | ✓ (normalisation only) | ✓ |
+| Commercial register (Kapook + Sanook + MThai, per HD-sources) | ✓ | ✓ | ✓ (normalisation only) | ✓ |
+| State promotional / heritage lists (TAT, Ministry of Culture — per HD-register) | — | ✓ if HD-register includes them | — | ✓ RQ3 context (other state lists) |
 | Domestic register (interviews) | design + status | counts only | — | ✓ |
 | Lexicon | v0.3 (~150) | v1.0 (~400) | v1.0 | v1.0 |
 | RQ1 register distance | two-register, preliminary | baseline stats | — | full, three-register for 2 provinces |
@@ -92,13 +94,34 @@ Unverified details that change the plan. Record answers in `docs/venues.md` with
 **Overlap rule:** ICWSM and JCSSE are archival. ICWSM owns *the dataset*; JCSSE owns *the extraction method and its
 evaluation*; the full paper owns *the findings*. Each cites the others. No paragraph is reused verbatim.
 
+### 2.1 Data inventory — as of 12 Oct 2026
+
+Counts marked `[TBD]` are filled by task **T1.13a** from the actual files; never estimate them.
+
+| Folder (`data/raw/`) | Collected | Source | Proposed register | Status | Records |
+|---|---|---|---|---|---|
+| `dcp_food/` | Aug 2026 | food.culture.go.th, 231 PDFs (3 × 77 provinces) | official | Parsed; 201 loaded → 212 after T0.3 pattern A | 231 PDFs |
+| `dcp_manual/` | 6 Oct | Nakhon Nayok forms, transcribed by hand (`extraction_method = manual`) | official | Transcribed; load = T0.8 | [TBD] |
+| `kapook_cooking/` | Aug–Sep | cooking.kapook.com | commercial | Loaded; 0 province labels | 2,702 pages / 1,360 recipes |
+| `sanook_food/` | **7 Oct** | sanook.com food/recipe section | commercial | **Collected, not loaded** | [TBD] |
+| `mthai_food/` | **7 Oct** | mthai.com food/recipe section | commercial | **Collected, not loaded** | [TBD] |
+| `tat_food/` | **7 Oct** | Tourism Authority of Thailand — local food by province | **undecided (HD-register)** | **Collected, not loaded** | [TBD] |
+| `m_culture/` | **7 Oct** | Ministry of Culture (provincial culture offices / heritage pages) | **undecided (HD-register)** | **Collected, not loaded** | [TBD] |
+| `gdcatalog/` | 19 Sep | 8 catalogue CSVs (data.go.th, bookfood67, OAE, GI, …) | — | Unreferenced by any code; parked | 8 files |
+| `reference/` | — | provinces, GADM geometry | — | In use | — |
+
+**Corpus target check.** Bible v4 planned ~800 recipes (231 official + ~550 web). The commercial register is already
+above target, so the constraint is now **balance and labels, not volume**. No further scraping before the 13 Dec
+freeze (see `FlavorMap_Scraper_Prompts.md`).
+
 ---
 
 ## 3. Critical path and go/no-go gates
 
 ```
 Phase 0 lock-down ─► protocol + consent + Q10 fix ─► pre-registration (24 Oct) ─► interviews (31 Oct → 6 Dec)
-                 └─► Kapook labelling decision (1 Nov) ─► lexicon 150 (8 Nov) ─► prelim RQ1 (8 Nov) ─► DH (20 Nov)
+                 └─► new-source inventory + ethics (19 Oct) ─► HD-register/sources/dedup (22 Oct) ─► load (26 Oct)
+                     ─► labelling decision (1 Nov) ─► lexicon 150 (8 Nov) ─► prelim RQ1 (8 Nov) ─► DH (20 Nov)
 lexicon 400 (13 Dec) ─► cook-alongs ─► RQ4 table ─► JCSSE (22 Jan)
 lexicon 400 + HD-3 answer + release kit ─► HF live ─► ICWSM (15 Jan)
 data freeze (13 Dec) ─► RQ1–RQ5 ─► full paper (31 Mar)
@@ -108,6 +131,7 @@ data freeze (13 Dec) ─► RQ1–RQ5 ─► full paper (31 Mar)
 |---|---|---|---|
 | **G1** | Sun 12 Oct | Phase 0 done: fix merged, backup off-laptop, 30 PDFs loaded? | Do nothing else until it is |
 | **G2** | Sun 26 Oct | Protocol final, consent fixed, Q10 stored separately, predictions committed? | First interview moves; no interview before pre-registration |
+| **G2b** | Sun 26 Oct | New sources inventoried, ethics rows written, decided sources loaded (T1.13a–e)? | DH uses Kapook only; new sources wait until after 20 Nov |
 | **G3** | Sun 8 Nov | Lexicon ≥150 entries covering ≥80% of ingredient mentions, prelim RQ1 run? | DH paper reports method + region-level descriptive results only |
 | **G4** | Sun 6 Dec | ≥10 interviews done? | Freeze anyway; full paper becomes two-register (RQ1, RQ2, RQ4) |
 | **G5** | Fri 1 Jan | DCP permission received? | Release lexicon + commercial only; official register described, not redistributed |
@@ -120,11 +144,11 @@ data freeze (13 Dec) ─► RQ1–RQ5 ─► full paper (31 Mar)
 
 | Period | Weeks | Hours/week | Total | Notes |
 |---|---|---|---|---|
-| 6 Oct – 20 Nov | 6.5 | 15 | ~100 | DH + prep + Korat interviews |
+| 6 Oct – 20 Nov | 6.5 | 15–17 | ~110 | DH + prep + Korat interviews + new-source decisions (~10 h added in v3; Claude Code does the loading) |
 | 21 Nov – 13 Dec | 3 | 15 + trip | ~45 + travel | Fieldwork, lexicon, cooking |
 | Winter break | ~3 | 35–40 | ~110 | Two papers + release |
 | Jan – Mar (term) | 10 | 10 | ~100 | Full paper |
-| **Total** | | | **~355 h** | |
+| **Total** | | | **~365 h** | |
 
 **[BO] T0.7 (by 12 Oct): enter ISB exam weeks, winter-break dates and any fixed school events into this table.**
 Exam weeks are planned as 0-hour weeks. If an exam week falls in 7–13 Dec, the data freeze moves to Sun 20 Dec
@@ -143,6 +167,7 @@ and Phase 3 compresses by one week (ICWSM is then the first thing dropped).
 | T0.5 | [CC] | Commit the fieldwork pack | `FlavorMap_Fieldwork_Pack.pdf` → `docs/fieldwork/` | Tracked; `.gitignore` unchanged |
 | T0.6 | [BO] | **Send the DCP permission request (HD-3)** | `docs/dcp_permission_request.md` → email; status line updated | Sent; date recorded in `docs/decisions.md` HD-3 |
 | T0.7 | [BO] | Fill the capacity table (§4) with ISB exam and break dates | this file | Dates entered |
+| T0.8 | [CC] | Load the Nakhon Nayok manual transcription from `data/raw/dcp_manual/` with `extraction_method = 'manual'`; loader + test; PDPA scan (no name/address/phone fields exist in the template) | migration if the column is missing, `src/ingest/`, `tests/` | Nakhon Nayok rows in `recipes` flagged manual; official coverage reported (target 74–77 provinces); suite green |
 
 ---
 
@@ -170,13 +195,24 @@ and Phase 3 compresses by one week (ICWSM is then the first thing dropped).
 | T1.11 | [BO] | Amend the Bible: v4.1 note — fieldwork provinces are Nakhon Ratchasima + Buri Ram (HD-32); limitation: two neighbouring Isaan provinces, no North contrast | `FlavorMap_Project_Bible_v4.md` | Committed |
 | T1.12 | [BO→CC] | **HD-15 acquisition mode.** Review the existing `ACQUISITION_HINTS` mapping (ที่มา text → grown/foraged/market/packaged). Bo accepts, edits or rejects each mapping; Claude Code then makes the code read the decided table instead of hard-coded hints | `docs/decisions.md` HD-15, `src/ingest/dcp_form.py`, `data/reference/acquisition_map.csv` | No acquisition mode written without a decided mapping; coverage (currently 264/1,132 rows) reported |
 
-### 6.3 Commercial register — by Sun 1 Nov
+### 6.3 New sources + commercial register — Mon 13 Oct to Sun 1 Nov
+
+Order matters: **inventory → ethics → decisions → load → labels.** Nothing from the four new folders enters
+`recipes` before its ETHICS.md row and its HD decision exist.
 
 | ID | Owner | Task | Files | Done when |
 |---|---|---|---|---|
-| T1.13 | [CC] | Measure the attainable province-label yield on the 1,360 Kapook recipes with three rule families: (a) explicit province names in title/category; (b) explicit regional claims ("อีสาน", "เหนือ", "ใต้", "ภาคกลาง"); (c) dish-name match against official dish names. Report counts per province and region. **Do not write labels yet** | `scripts/measure_kapook_labels.py`, `docs/labelled_fraction.md` | Table of yields by rule committed |
-| T1.14 | [BO] | **HD-Kapook.** Choose: province labels (rules accepted), region-level comparison, or both. Also record **HD-sources**: commercial register stays single-source for this cycle (Bible asked for ≥4); stated as a limitation | `docs/decisions.md`, `docs/limitations.md` | Decision logged with rejected alternatives |
-| T1.15 | [CC] | Apply the decided labelling into `province_attribution` (confidence + rule recorded per row); "unlabelled" stays unlabelled | migration if needed, `scripts/`, tests | Counts match T1.13 for the chosen rules |
+| T1.13a | [CC] | **Inventory the new folders** (`sanook_food`, `mthai_food`, `tat_food`, `m_culture`), read-only. Per folder: file count and type (HTML/JSON/PDF/image), manifest present? (url, fetched_at, http_status, hash), date range, distinct pages vs. recipes (one article may hold several recipes), field fill rates (title, published_at, site category/tags, region claim, province claim, ingredient lines), and whether any page holds personal data (author names, phone, LINE IDs, comments). For `tat_food` and `m_culture`: are these recipes with ingredient lists, or dish lists/descriptions only? | `scripts/inventory_sources.py` → `data/coverage/sources_20261013.md`; fill `[TBD]` in §2.1 | Report committed; §2.1 counts filled from the report |
+| T1.13b | [CC] | **Ethics backfill.** Add a dated ETHICS.md row for each of the 4 sources: robots.txt and Terms text checked *today*, quoted. Record honestly whether these checks happened **before** the 7 Oct collection; if not, say so ("retrospective audit, 13 Oct"). If any site's terms forbid collection or reuse → mark that source **excluded**, keep raw files local only, never load or publish | `ETHICS.md`, `docs/source_audit.md` | 4 rows; any excluded source listed with the clause quoted |
+| T1.13c | [BO] | **HD-register** for `tat_food` and `m_culture` (state sources that are not the DCP forms). Options: (a) merge into *official* — breaks the balanced 3 × 77 design; (b) new *state-promotional* register kept separate from DCP — usable in RQ3 ("which dishes appear on other state lists?"); (c) reference only — used for dish-name matching and province hints, never as recipes. Decide with T1.13a's evidence | `docs/decisions.md` | DECIDED entry with rejected options |
+| T1.13d | [BO] | **HD-sources (updated)**: commercial register = Kapook + Sanook + MThai (3 of the Bible's ≥4; Wongnai/Cookpad not this cycle). **HD-dedup**: cross-source duplicates (portals syndicate content) — accept the Bible rule (ingredient-set Jaccard > 0.9) or set another threshold after seeing T1.13e's numbers. **HD-balance**: keep all commercial recipes, or cap/sample per source so Kapook doesn't dominate | `docs/decisions.md`, `docs/limitations.md` | Three DECIDED entries |
+| T1.13e | [CC] | Parse + load the approved sources: Sanook and MThai as `commercial` (one record per recipe; `recipe_index_in_article` where needed); TAT / m-culture per HD-register. PDPA filter before any write; no method prose, no author names. Then measure cross-source duplicates and report before applying HD-dedup | `src/ingest/<source>.py`, `scripts/`, migration `026_*` if new columns, `tests/` (3 fixtures per source) | Rows per source in `raw_recipes` / `recipes`; duplicate report; PDPA + full suite green; `make db-dump` + backup |
+| T1.13 | [CC] | Measure the attainable **province/region-label yield per commercial source** (Kapook, Sanook, MThai) with three rule families: (a) explicit province names in title/category/tags; (b) regional claims ("อีสาน", "เหนือ", "ล้านนา", "ใต้", "ปักษ์ใต้", "ภาคกลาง"); (c) dish-name match against official DCP dish names **and** (if HD-register allows) TAT / m-culture dish lists. Report counts per province, region and source. **Do not write labels yet** | `scripts/measure_labels.py`, `docs/labelled_fraction.md` | Yield table by rule × source committed |
+| T1.14 | [BO] | **HD-labelling** (was HD-Kapook): province labels (accepted rules), region-level comparison, or both — now for all commercial sources | `docs/decisions.md`, `docs/limitations.md` | DECIDED entry with rejected alternatives |
+| T1.15 | [CC] | Apply the decided labelling into `province_attribution` (rule + confidence + source per row); "unlabelled" stays unlabelled | migration if needed, `scripts/`, tests | Counts match T1.13 for the chosen rules |
+
+**Deadline inside the block:** T1.13a–b by Sun 19 Oct · T1.13c–d by Wed 22 Oct · T1.13e by Sun 26 Oct ·
+T1.13–T1.15 by Sun 1 Nov.
 
 ### 6.4 Lexicon v0.3 — 20 Oct to Sun 8 Nov (Gate G3)
 
@@ -187,12 +223,16 @@ and Phase 3 compresses by one week (ICWSM is then the first thing dropped).
 
 Weekly quota: **50 entries/week** (Oct 20 → Dec 13 ≈ 8 weeks ≈ 400).
 
+**After T1.13e:** regenerate the worklist (`scripts/lexicon_worklist.py`) on the full multi-source corpus — Sanook
+and MThai will add new spellings. Coverage targets (≥80% by 8 Nov, ≥90% by 13 Dec) are measured on the **whole**
+corpus, reported per source.
+
 ### 6.5 Preliminary analysis — Sat 1 – Sun 8 Nov
 
 | ID | Owner | Task | Files | Done when |
 |---|---|---|---|---|
 | T1.18 | [CC] | Export analysis Parquet from the DB (no PII) | `scripts/export_parquet.py` → `data/processed/*.parquet` | Parquet regenerated by one command; PDPA scan covers Parquet |
-| T1.19 | [CC] | Preliminary RQ1: per province (or region, per HD-Kapook) normalised ingredient vectors per register; official↔commercial cosine distance; n reported beside every value | `src/analyze/rq1_registers.py`, `notebooks/01_rq1_prelim.ipynb` (keep unpolished) | Table of distances + n committed |
+| T1.19 | [CC] | Preliminary RQ1: per province (or region, per HD-labelling) normalised ingredient vectors per register; official↔commercial cosine distance; n reported beside every value. **Robustness check:** repeat the commercial side per source (Kapook-only, Sanook-only, MThai-only) to show the result is not one site's house style | `src/analyze/rq1_registers.py`, `notebooks/01_rq1_prelim.ipynb` (keep unpolished) | Table of distances + n, pooled and per source, committed |
 | T1.20 | [CC] | Figure 6: province × ingredient TF-IDF heatmap, top ~60 ingredients by variance, both axes seriated by clustering (never alphabetical), faceted by register | `src/viz/figure6.py` → `figures/fig6_heatmap.png` | Figure regenerates from Parquet with one command |
 | T1.21 | [BO] | Interpret: which provinces/regions agree most and least; is anything surprising; write 5 bullet observations | `docs/notebook.md` | Committed, dated |
 
@@ -219,7 +259,7 @@ Parallel through Phase 1: Korat interviews from Sat 31 Oct (T2.1).
 | T2.1 | [BO+FAM] | 6 Korat interviews (weekends, from 31 Oct, done by 6 Dec). Consent signed first; parent present; Q9 and Q10 asked every time; Q10 about the 3 government dishes for that province | `data/interviews/` (gitignored), loaded via `src/ingest/interview.py` | Each written up **the same day**; loaded; PDPA tests green; backup run |
 | T2.2 | [BO+FAM] | Buri Ram trip (28–29 Nov or 5–6 Dec): 6 interviews | as above | as above |
 | T2.3 | [BO] | Lexicon to ~400 entries with **English gloss on every entry** | `ingredients_lexicon.csv` | Coverage ≥90% of mentions; glosses 100% |
-| T2.4 | [BO→CC] | **HD-9 dish-category taxonomy** + mapping from DCP categories and Kapook site categories | `data/reference/dish_categories.csv`, `docs/decisions.md` | `dish_categories` table populated; every recipe mapped or explicitly "unmapped" |
+| T2.4 | [BO→CC] | **HD-9 dish-category taxonomy** + mapping from DCP categories and the site categories of Kapook, Sanook and MThai (and TAT / m-culture if HD-register includes them) | `data/reference/dish_categories.csv`, `docs/decisions.md` | `dish_categories` table populated; every recipe mapped or explicitly "unmapped" |
 | T2.5 | [BO] | Choose the 8 cook-along dishes: ≥2 official, ≥2 that the pipeline handles badly, ≥1 from an interview | `docs/decisions.md` (HD-cook) | List committed |
 | T2.6 | [BO] | Cook-alongs 1–4 from the **cleaned** ingredient lists; log missing / substituted / destroyed / recognisable + one sensory sentence; photograph mise en place | `data/cook_along/`, `src/ingest/cook_along.py` | 4 rows in `cook_along_log` |
 | T2.7 | [BO+second reader] | Second annotator labels 100 recipes (stratified by register and region); Claude Code computes Cohen's κ | `scripts/kappa.py`, `docs/limitations.md` | κ reported per field |
@@ -247,7 +287,7 @@ Gate **G4** on Sun 6 Dec (≥10 interviews).
 
 | ID | Owner | Task | Done when |
 |---|---|---|---|
-| T3.6 | [CC] | Build `OpenFlavorTH-recipes`: `recipes.parquet` (ID, register, normalised ingredients, province, district, region, dish category, endangerment, acquisition mode, source domain, published date, collection date — **no prose, no PII**); `fieldwork.csv` (anonymised, role + province + district); `cook_along_log.csv`; `endangerment_comparison.csv`; `stated_absences.csv` | Files generate from the frozen DB with one command; PDPA scan on every file |
+| T3.6 | [CC] | Build `OpenFlavorTH-recipes`: `recipes.parquet` (ID, register, normalised ingredients, province, district, region, dish category, endangerment, acquisition mode, source domain, **extraction method**, **label rule**, published date, collection date — **no prose, no PII**; sources excluded by T1.13b never appear); `fieldwork.csv` (anonymised, role + province + district); `cook_along_log.csv`; `endangerment_comparison.csv`; `stated_absences.csv` | Files generate from the frozen DB with one command; PDPA scan on every file |
 | T3.7 | [CC] | Build `OpenFlavorTH-lexicon`: `ingredients_lexicon.csv` (canonical Thai, English gloss, variants, category, judgment-call notes) | Validates against schema; 100% glossed |
 | T3.8 | [BO→CC] | Dataset cards (motivation, collection, PDPA handling, scraping ethics, register definitions, known biases, κ, licence CC-BY-4.0, citation); `loading_script` so `load_dataset` works in one line; Croissant metadata | Cards reviewed by Bo; loader tested in a clean venv |
 | T3.9 | [CC] | Zenodo DOI via GitHub release `v1.0`; `CITATION.cff`; data licence stated in README, dataset cards and `LICENSE-DATA` | DOI resolves |
@@ -310,8 +350,12 @@ Bo decides; Claude Code implements only after the entry is marked DECIDED in `do
 | HD-Q10 | Storage design for Q10 answers | 19 Oct | Interviews |
 | HD-15 | ที่มา → acquisition-mode mapping | 26 Oct | Figure 7 |
 | HD-6 | Lexicon granularity rules | 20 Oct (rules), ongoing (entries) | RQ1, RQ2, RQ4, cook-alongs |
-| HD-Kapook | Province vs. region labelling of commercial recipes | 1 Nov | RQ1, DH |
-| HD-sources | Commercial register single-source this cycle | 1 Nov | Limitations |
+| HD-register | Register for TAT and Ministry of Culture data: merge into official / separate state-promotional / reference only | 22 Oct | Loading `tat_food`, `m_culture`; RQ3 |
+| HD-sources | Commercial register = Kapook + Sanook + MThai this cycle (Bible asked ≥4) | 22 Oct | Loading; limitations |
+| HD-dedup | Cross-source duplicate rule (Bible: ingredient-set Jaccard > 0.9) | 22 Oct (confirm after T1.13e numbers) | Corpus counts |
+| HD-balance | Keep all commercial recipes or cap/sample per source | 22 Oct | RQ1 robustness |
+| HD-labelling | Province vs. region labelling, all commercial sources (was HD-Kapook) | 1 Nov | RQ1, DH |
+| HD-manual | Nakhon Nayok by manual transcription, flagged `manual` | DECIDED 6 Oct | — |
 | HD-1 | Per-province labels review (currently "Selected B" with empty Decision field) | 8 Nov | RQ1 |
 | HD-9 | Dish-category taxonomy + cross-register mapping | 6 Dec | Comparability |
 | HD-cook | The 8 cook-along dishes | 22 Nov | RQ4 |
@@ -341,7 +385,12 @@ No week ends with uncommitted work or an unmerged branch.
 | Exam week inside a phase | Calendar check T0.7 | Shift freeze to 20 Dec; compress Phase 3 |
 | Fieldwork slips | <10 interviews by 6 Dec | Freeze anyway; two-register full paper |
 | RQ5 too thin (3 Buri Ram dishes) | HD-RQ5 | Report as an existence demonstration; or replace RQ5 with a descriptive endangerment section |
-| Kapook labels too sparse | T1.13 yield < ~5 per province | Region-level comparison (HD-Kapook) |
+| Commercial labels too sparse | T1.13 yield < ~5 per province across all sources | Region-level comparison (HD-labelling) |
+| New sources collected before an ethics check | T1.13b finds no prior robots/ToS record | Record a dated retrospective audit honestly; exclude any source whose terms forbid reuse; never publish raw pages |
+| Syndicated duplicates across portals | T1.13e duplicate rate > ~10% | Apply HD-dedup before any count is reported; report pre- and post-dedup n |
+| One source dominates the commercial register | Kapook ≫ Sanook + MThai | HD-balance; per-source robustness check in T1.19 |
+| TAT / m-culture are dish lists, not recipes | T1.13a shows few ingredient lines | HD-register option (c): reference only — dish names and province hints |
+| Mixed provenance within the official register | Manual Nakhon Nayok rows | `extraction_method` flag; sensitivity check excluding manual rows |
 | DCP permission not granted | No answer by 1 Jan | Release without official records; describe them; full paper unaffected |
 | PDPA leak | Any PDPA test fails | Stop all work; fix; re-dump; delete affected dumps |
 | Data loss | — | Weekly + post-interview backups; tested restore |
@@ -367,6 +416,9 @@ No week ends with uncommitted work or an unmerged branch.
 | Fieldwork pack claims migration 013 supports a dialect axis | Correct or implement after decision | T1.2 |
 | Download log lacks URL and timestamp columns | Add reconstructed URL; note timestamp gap in `ETHICS.md` | T1.10 |
 | ETHICS.md lacks Cookpad/Krua (unused) and `gdcatalog` sources | Record "not used this cycle" | T1.10 |
+| ETHICS.md has no rows for Sanook, MThai, TAT, m-culture (collected 7 Oct) | Dated audit rows; retrospective flag if needed | T1.13b |
+| `data/raw/` folders for 4 new sources have no loader, tests or manifest check | Inventory, then loaders with fixtures | T1.13a, T1.13e |
+| `sources` table lists only 3 sources | Add one row per approved new source | T1.13e |
 | No data licence anywhere | CC-BY-4.0 | T3.9 |
 
 ---
