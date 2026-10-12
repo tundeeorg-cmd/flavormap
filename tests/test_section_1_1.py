@@ -64,3 +64,52 @@ def test_blank_section_1_1_is_none_not_the_submitters_province() -> None:
 def test_the_fallback_never_overrides_a_single_line_match() -> None:
     rec = _parse("ชื่อเมนูอาหาร แกงทดสอบ จังหวัด ลำปาง\n.....\nจังหวัด\nน่าน\n")
     assert rec.province_th == "ลำปาง"
+
+
+def test_a_dish_with_a_blank_province_field_has_no_province() -> None:
+    """The east_8_1 layout: the dish name is filled in, the จังหวัด field is dot leaders."""
+    rec = _parse("ชื่อเมนูอาหาร.......แกงทดสอบ..........จังหวัด..................\n",
+                 address_province="สมุทรปราการ")
+    assert rec.dish_name_th == "แกงทดสอบ"
+    assert rec.province_th is None
+
+
+def test_a_province_named_in_later_prose_is_not_the_dishs_province() -> None:
+    """The north_10_3 layout: §1.1 has no จังหวัด; a province is named only in the
+    narrative further down the form."""
+    text = (
+        "ชื่อเมนูอาหาร ข้าวทดสอบ\nประเภท อาหารคาว\n"
+        "๒. ประวัติ เมนูนี้นิยมทำกันในจังหวัด เลย มาแต่เดิม\n"
+    )
+    rec = parse_document(Document(path=Path("synthetic.pdf"), raw_text=text))
+    assert rec.dish_name_th == "ข้าวทดสอบ"
+    assert rec.province_th is None
+
+
+def test_no_section_1_1_label_means_no_dish_and_no_province() -> None:
+    """The south_1_1 layout: a partial text layer with no §1.1 label at all."""
+    text = "การผัด\nข้าวเหนียว\nจังหวัด กระบี่\n"
+    rec = parse_document(Document(path=Path("synthetic.pdf"), raw_text=text))
+    assert (rec.dish_name_th, rec.province_th) == (None, None)
+
+
+def test_a_corrupted_section_label_is_not_read() -> None:
+    """The south_9_2 / south_9_3 layout: Latin-1 mojibake turns ่ into É, so the label
+    reads ชืÉอเมนูอาหาร. Its province is legible, but repairing mojibake is not this
+    parser's job (CLAUDE.md §7.1: no blanket regex over Thai text), so it stays out."""
+    rec = _parse("๑.๑ ชืÉอเมนูอาหาร แกงทดสอบ  จังหวัด ภูเก็ต\n")
+    assert (rec.dish_name_th, rec.province_th) == (None, None)
+
+
+def test_a_document_with_no_text_layer_yields_nothing() -> None:
+    """The image-scan layout (east_5_*, and six others): the text layer is empty."""
+    rec = parse_document(Document(path=Path("synthetic.pdf"), raw_text="\n\n\n"))
+    assert (rec.dish_name_th, rec.province_th) == (None, None)
+    assert rec.ingredients == []
+
+
+def test_the_programme_title_is_not_a_province() -> None:
+    """Every form's title reads “๑ จังหวัด ๑ เมนู”. That จังหวัด names no province."""
+    title = "แบบเสนอรายการอาหาร\n“๑ จังหวัด ๑ เมนู เชิดชูอาหารถิ่น”\n"
+    rec = parse_document(Document(path=Path("synthetic.pdf"), raw_text=title))
+    assert rec.province_th is None

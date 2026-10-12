@@ -164,6 +164,10 @@ the researcher's identification. It is a label for reading this table, **not** a
 attribution: no province is ever written from it (rule 2; the URL index is "a discovery
 convenience and nothing more", `scripts/fetch_dcp_food.py`).
 
+**Re-checked 2026-10-12 (T0.3):** 203 documents loaded plus the 28 below make 231, with
+no document both loaded and listed and none missing from both. Each layout pattern below
+has a test in `tests/test_section_1_1.py`, all on synthetic text.
+
 **Pending a decision: §1.1 carries no province (11).** The dish-name line has no
 จังหวัด field, or it is blank. The only province written is §1.3, the submitter's own
 address. Whether that may stand in for the dish's province is an open attribution
@@ -197,8 +201,8 @@ across lines, `2a45efa`); these remain out:
 | `central_15_3.pdf` | **Suphan Buri** | as above |
 | `central_8_2.pdf` | Phra Nakhon Si Ayutthaya | §1.1 blank |
 | `south_1_1.pdf` | **Krabi** | partial text layer (3,094 characters), no §1.1 label. **Excluded** by the timebox rule; Krabi stays covered by `south_1_2` and `south_1_3` |
-| `south_9_2.pdf` | Phuket | Latin-1 mojibake (139 corrupted characters); see `docs/checkbox_extraction.md` |
-| `south_9_3.pdf` | Phuket | Latin-1 mojibake (172 corrupted characters) |
+| `south_9_2.pdf` | Phuket | Latin-1 mojibake (139 corrupted characters); see `docs/checkbox_extraction.md`. The §1.1 label is corrupted (ชืÉอ), but its จังหวัด value is legible |
+| `south_9_3.pdf` | Phuket | Latin-1 mojibake (172 corrupted characters). The §1.1 label is corrupted (ชืÉอ), but its จังหวัด value is legible |
 
 **Excluded: no text layer, image scans (9).** No OCR (researcher, 2026-10-06).
 
