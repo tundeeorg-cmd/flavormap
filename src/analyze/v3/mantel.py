@@ -8,14 +8,14 @@ should return p < 0.01.
 
 This is the general-purpose statistical primitive, **not wired to any specific
 research question**. RQ1's original application (a distance-decay curve over 77
-provinces) is retired under Bible v4 — see `src.analyze.region_signal`'s docstring for
+provinces) is retired under Bible v4 — see `src.analyze.v3.region_signal`'s docstring for
 why the labelled fraction collapses that analysis to four regions, which cannot
 support it either. The most likely future use is HD-14 ("choose the competing
 boundary set for RQ1 and build the linguistic distance matrix"), still an open,
 undecided gate. Building the test does not require that decision; applying it to a
 specific pair of matrices does.
 
-One-sided by construction, matching `src.analyze.region_signal.separation_test`: the
+One-sided by construction, matching `src.analyze.v3.region_signal.separation_test`: the
 Mantel hypothesis of interest is that two distance matrices are *more* correlated than
 chance, not merely differently correlated in either direction.
 """
@@ -93,7 +93,7 @@ def mantel_test(
 
     # +1 in both terms: the observed arrangement is itself one of the possible ones,
     # and omitting it can report p = 0, which no permutation test can support (the
-    # same correction src.analyze.region_signal.separation_test applies).
+    # same correction src.analyze.v3.region_signal.separation_test applies).
     p_value = (at_least_as_extreme + 1) / (n_permutations + 1)
     return MantelResult(
         n=n, r=observed, p_value=p_value, n_permutations=n_permutations, null=null

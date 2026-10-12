@@ -15,7 +15,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from src.analyze.region_signal import (
+from src.analyze.v3.region_signal import (
     cosine_distances,
     group_centroid_distances,
     ingredient_tokens,

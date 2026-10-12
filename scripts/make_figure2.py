@@ -1,6 +1,6 @@
 """Build Figure 2 from the database and the kapook corpus.
 
-    uv run python -m scripts.make_figure2 [--out figures/figure2.png] [--permutations N]
+    uv run python -m scripts.make_figure2 [--out figures/v3/figure2.png] [--permutations N]
 
 Geography comes from `provinces.geom`, loaded from GADM v4.1 by `scripts.load_geometry`.
 A **region** centroid is `ST_PointOnSurface` of the region's dissolved polygon, matching
@@ -25,7 +25,7 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from scripts.rq1_region_level import COHORTS, build_corpus
-from src.analyze.region_signal import holm_adjust, separation_test
+from src.analyze.v3.region_signal import holm_adjust, separation_test
 from src.config import FIGURES_DIR, RANDOM_SEED
 from src.db import get_connection
 from src.viz.figure2 import PairPoint, render
@@ -62,7 +62,7 @@ def region_distances() -> dict[frozenset[str], float]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--out", type=Path, default=FIGURES_DIR / "figure2.png")
+    ap.add_argument("--out", type=Path, default=FIGURES_DIR / "v3" / "figure2.png")
     ap.add_argument("--permutations", type=int, default=9_999)
     args = ap.parse_args()
 

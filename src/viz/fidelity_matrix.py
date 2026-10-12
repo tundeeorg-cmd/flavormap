@@ -4,7 +4,7 @@ X axis: dish cooked. Y axis: information class, in §6's order (quantities, orde
 technique, specificity, completeness). Each cell is survived / degraded / lost, read
 from ``cook_along_log``. 2D (rule 10), 300 dpi.
 
-**Named for what it is, not its number.** ``figures/figure4.html`` — v3's prevalence
+**Named for what it is, not its number.** ``figures/v3/figure4.html`` — v3's prevalence
 view — still occupies the Figure 4 filename, and its disposition is an open researcher
 decision (CLAUDE.md §6). This module does not take the slot from it.
 

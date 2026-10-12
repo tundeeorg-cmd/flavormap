@@ -1,6 +1,6 @@
 """Build Figure 4 from the database.
 
-    uv run python -m scripts.make_figure4 [--out figures/figure4.html]
+    uv run python -m scripts.make_figure4 [--out figures/v3/figure4.html]
 
 Reads province geometry and parsed ingredient lists, computes prevalence per province,
 and writes a self-contained HTML file.
@@ -104,7 +104,7 @@ def build() -> tuple[list[Panel], int, int]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--out", type=Path, default=FIGURES_DIR / "figure4.html")
+    ap.add_argument("--out", type=Path, default=FIGURES_DIR / "v3" / "figure4.html")
     args = ap.parse_args()
 
     panels, provinces, recipes = build()

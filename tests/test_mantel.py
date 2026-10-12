@@ -1,4 +1,4 @@
-"""src/analyze/mantel.py — CLAUDE.md §13's test_mantel_recovers_known and the
+"""src/analyze/v3/mantel.py — CLAUDE.md §13's test_mantel_recovers_known and the
 properties that make a permutation-based correlation test trustworthy: it finds a
 planted signal, it does not find one that is not there, and it never reports p = 0.
 
@@ -11,7 +11,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from src.analyze.mantel import mantel_test
+from src.analyze.v3.mantel import mantel_test
 
 PERMUTATIONS = 999
 

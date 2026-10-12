@@ -6,7 +6,7 @@ CLAUDE.md §4 specifies RQ1 as a distance-decay curve with change-point detectio
 boundary width in kilometres. At a 1.3% labelled fraction §4's own constraint collapses
 the unit to four regions, and four units give six pairwise distances — too few for a fit,
 a change point, or a Mantel test that is not already at its p-value floor. See
-`src.analyze.region_signal` for that argument in full.
+`src.analyze.v3.region_signal` for that argument in full.
 
 This runs the question underneath it instead: does region membership explain ingredient
 composition at all? The unit is the recipe, so n is the number of labelled recipes.
@@ -42,7 +42,7 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from scripts.measure_labelled_fraction import region_hits
-from src.analyze.region_signal import (
+from src.analyze.v3.region_signal import (
     group_centroid_distances,
     holm_adjust,
     ingredient_tokens,
