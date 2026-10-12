@@ -27,6 +27,10 @@ data/coverage/*
 # carry aggregate counts only, never the DCP-derived per-province lists this rule exists
 # to keep out, so progress is visible in git history rather than only in one database.
 !data/coverage/status_*.md
+# Same rule for the lexicon mention-coverage snapshots (TIMELINE T1.17,
+# scripts/lexicon_coverage.py): counts per register and source only, no ingredient
+# string, nothing DCP-derived.
+!data/coverage/lexicon_*.csv
 
 # Database dumps (scripts/dump_db.sh writes data/exports/flavormap_*.sql.gz).
 # The directory stays tracked via .gitkeep so the path exists on clone; its contents
