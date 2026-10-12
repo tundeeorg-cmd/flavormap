@@ -1,13 +1,13 @@
 # FlavorMap — Build Plan for Claude Code
 
-**Version:** 4.0 · **Reconciled:** 2026-08-30 · **Authority:** `FlavorMap_Project_Bible_v4.md`
+**Version:** 4.1 · **Reconciled:** 2026-10-12 (T1.10) · **Authority:** `FlavorMap_Project_Bible_v4.md`
 **Window:** Aug 2026 – Nov 2027 · **Freeze:** 31 March 2027
 
-> **Partially reconciled.** §4 (research questions) and §6 (figures) are v4. The phase
-> plan, the gate list and the schema notes still carry v3 numbering and have not been
-> re-derived — a v3 RQ number appearing outside those two sections is drift, not a
-> reference. Bible §23's "update the five research questions everywhere in the repo" is
-> done for the questions themselves; the plumbing that keys off them is not.
+> **Reconciled to Bible v4 on 2026-10-12** (TIMELINE T1.10). The research questions (§4),
+> figures (§6), corpus target (§7.1), fieldwork's role (§7.3) and the gate list (§9) are v4.
+> Dates and tasks live in `docs/TIMELINE.md`, which supersedes Bible §21 and §23. A v3
+> question appearing as current anywhere outside `docs/archive/` and dated records is drift.
+> The pre-reconciliation copy of this file is `docs/archive/CLAUDE_pre-T1.10_2026-10-12.md`.
 
 > This file is the operational plan. The Bible is the specification. Where the two
 > disagree, **the Bible wins** and this file is wrong and should be corrected.
@@ -26,7 +26,7 @@ Spec for an AI coding agent working alongside the student researcher (**the rese
   once made; it never makes one, never picks the sensible option and flags it for later,
   and never proceeds past an open gate.
 
-**Twenty gates, ~225 researcher-hours** (Bible §13). That number is what determines
+**Twenty gates, ~180 researcher-hours** (Bible v4 §15). That number is what determines
 whether the project finishes, and it is the one number that generating code faster does
 not reduce.
 
@@ -111,7 +111,7 @@ needs changing gets a new forward migration, never an edit to an applied one.
 | 006 | `provinces` | 77 rows, ISO codes, region4, dialect_group, centroids, PostGIS geometry |
 | 007 | `province_attribution` | four tiers, confidence, rationale |
 | 008 | `informants`, `interview_dishes` | fieldwork — **no names, no contacts, ever** |
-| 009 | `dish_categories` | RQ5 taxonomy + written inclusion rules. **Seeded empty pending HD-9** |
+| 009 | `dish_categories` | dish-category taxonomy + written inclusion rules. **Seeded empty pending HD-9** |
 | 010 | `coverage` | per-province recipe count, labelled fraction, source concentration |
 | 011 | `redaction_log` | per-document count of PDPA fields stripped at parse time |
 | 012 | `v_recipes_clean` | the analysis view |
@@ -139,11 +139,13 @@ to apply from an empty volume via `make db-reset`.
   Postgres inflates the database for no benefit.
 - `raw_recipes.published_at DATE` **added**. Free to capture now, impossible to backfill
   after the freeze, and it enables any temporal question later. Every scraper must attempt it.
-- `recipes.dish_category` is now **load-bearing for RQ5**, backed by a `dish_categories`
-  reference table with written inclusion rules.
+- `recipes.dish_category`, backed by a `dish_categories` reference table with written
+  inclusion rules. Under v4 it carries the dish-category mapping between registers
+  (Bible v4 §15).
 - `alias_candidates` **added explicitly** — referenced by the canonicalisation plan but
   never defined in the v2 DDL.
-- `coverage` **added**. RQ3 is built on it and it ships as a first-class release file.
+- `coverage` **added**. It ships as a first-class release file (it was built for v3's
+  coverage question, now retired).
 - `informants` gains `district` and `acquisition_mode` (grown | foraged | market |
   packaged), per Bible §8.
 
@@ -281,6 +283,12 @@ the first thing to cut; here it is the validation layer, and cutting it removes 
 
 These are the three a reviewer catches. They are not suggestions.
 
+**Scope under v4.** The Mantel test and Moran's I lost their question when Bible v4 cut
+distance-decay (§14.5). The rules below now govern the archived v3 code in
+`src/analyze/v3/`, and distance-decay if it returns as a supporting analysis on the
+commercial register alone, which v4 allows only if that register grows well past target.
+The UMAP rule applies to the public site as before.
+
 > **Mantel significance.** Permutation testing, 9,999 permutations. Distance-matrix
 > entries are not independent observations; a parametric p-value on them is meaningless
 > and a reviewer will say so immediately.
@@ -293,8 +301,7 @@ causal** — distance may proxy for shared history, climate, or trade.
 > no meaning.
 
 Report **both** queen-contiguity and k-nearest weights, or a reviewer will ask. KNN(k=5)
-is also the fallback for provinces with no queen neighbours (Phuket). Supporting analysis
-inside RQ1, not a headline.
+is also the fallback for provinces with no queen neighbours (Phuket). Never a headline.
 
 > **UMAP interpretation.** UMAP axes carry no interpretable meaning. Label them
 > "UMAP 1 / UMAP 2", caption them as uninterpretable, never quantify from the projection,
@@ -335,19 +342,20 @@ figure that says nothing.
 Two figures exist in code and do not appear above. Neither is deleted here; what happens
 to them is a researcher call, not a reconciliation one.
 
-- **`figures/figure2.png` — regional separation vs. distance.** Specified in
-  `docs/figure2_spec.md`, adopted by a decided gate on 2026-08-23, and built:
+- **`figures/v3/figure2.png` — regional separation vs. distance.** Specified in
+  `docs/archive/v3/figure2_spec.md`, adopted by a decided gate on 2026-08-23, and built:
   `src/viz/figure2.py`, `scripts/make_figure2.py`. It answers v3's RQ1, and Bible v4 §1
   and §14.5 retire that question along with the Mantel and Moran's I tests. v4 §14.5 does
   leave a door open — distance-decay "could return as a supporting analysis" if the
   commercial register grows well past target. **Disposition needed:** supporting analysis,
   appendix, or dropped.
-- **`figures/figure4.html` — the ingredient prevalence view.** Built by
+- **`figures/v3/figure4.html` — the ingredient prevalence view.** Built by
   `scripts/make_figure4.py`, and numbered for v3's Figure 4 slot, which v4 gives to
   pipeline fidelity. The v4 figure of that number does not exist yet and needs the
   cook-along log first.
 
-`make figures` still regenerates both, and should keep doing so until their disposition is
+`make figures` still regenerates both, now into `figures/v3/` with their analysis code in
+`src/analyze/v3/` (T1.10), and should keep doing so until their disposition is
 settled — Rule 5 is that every figure regenerates from the database, not that every
 regenerated figure is in the paper.
 
@@ -357,7 +365,9 @@ regenerated figure is in the paper.
 
 ### 7.1 Web scraping
 
-Target **~2,200 usable after cleaning**, never fewer than four live sources. Sources per
+Target **~800** recipes: the 231 official forms plus ~550 web recipes (Bible v4 §1;
+balance beats volume). The Bible asks for at least four live web sources; whether the
+commercial register stays single-source this cycle is HD-sources (TIMELINE T1.14), open. Sources per
 Bible §6 as corrected by `docs/source_audit.md` (9 Aug: `doa.go.th` is dead, `doae.go.th`
 is live; `recipe.wongnai.com` does not resolve; `thaifoodrecipe.com` is NXDOMAIN).
 
@@ -387,7 +397,8 @@ is what CV folds group on** — without it the classifier results are inflated.
 
 The controlled vocabulary — 400–700 normalised Thai ingredient entries with variant
 mappings — remains the project's most defensible contribution. It does not exist publicly
-and cannot be scraped into existence. **~130 hours, cannot be delegated.**
+and cannot be scraped into existence. **~50 hours** (Bible v4 §7, down from ~130 at v3's
+corpus size), **and it cannot be delegated.**
 
 ### 7.3 Fieldwork — rescoped
 
@@ -395,9 +406,10 @@ and cannot be scraped into existence. **~130 hours, cannot be delegated.**
 2026-09-29; Bible v4 §10 says Nan and Surin and needs the researcher's amendment). Two
 adjacent Isaan provinces, so the domestic register supports no North/South or national
 claim (L19). 60–90 minutes each, 2 trips.
-No research question depends on this. Its job is (1) ground-truthing the RQ3 coverage gap
-as an *existence claim*, (2) validating the RQ2 measure against stated absences, (3)
-authorship evidence.
+**Four of the five research questions depend on this** (Bible v4 §1). The interviews *are*
+the domestic register (RQ1); Q9's stated absences validate RQ2; RQ3 is built on them
+entirely, as an *existence claim*; and RQ5 compares Q10's answers with the official
+endangerment level. They are also authorship evidence.
 
 If only one trip happens, **do Buri Ram** (from HD-29; HD-32 did not revisit it) — six
 interviews beats zero by an enormous margin. On the extractor's readings, both RQ5
@@ -405,10 +417,17 @@ official values (`transmitted`, `near_lost`) come from Buri Ram's own dishes, so
 survives losing the Nakhon Ratchasima trip. Both provinces' dialect assignments are part
 of HD-1, which is still open.
 
-Eight-question protocol retained verbatim from v2, **plus Q9**:
+Eight-question protocol retained verbatim from v2, **plus Q9 and Q10** (Bible v4 §10).
+Q9:
 
 > อะไรที่คนจังหวัดอื่นใส่ในจานนี้ แต่บ้านเราไม่มีวันใส่?
 > *What do people in other provinces put in this that we would never put in?*
+
+Q10, asked about the three dishes the state listed for that province, so RQ5 is
+dish-matched:
+
+> จานนี้ยังมีคนทำอยู่ไหม? ใครทำ? คนรุ่นใหม่ทำเป็นหรือเปล่า?
+> *Does anyone still make this? Who? Do younger people know how?*
 
 Q4 captures self-reported boundary markers; Q9 captures **stated absences**, which is what
 RQ2 validates against. Inferred absence is weak evidence; stated absence is strong.
@@ -425,7 +444,9 @@ market / packaged).
 
 Cut from 15, buying back ~14 hours for lexicon work, which is the actual bottleneck. Cook
 from the *cleaned dataset's* ingredient list rather than the original web page — the point
-is to test the pipeline. Include at least two dishes the classifier gets wrong.
+is to test the pipeline. Include at least two dishes the pipeline handles badly, and at
+least two from the official register (Bible v4 §11). Where a dish came from an interview,
+cook that version.
 
 > This is not a cookbook, a food blog, or a YouTube channel. The cooking serves the data.
 > The moment it becomes the deliverable, the project has drifted.
@@ -452,15 +473,21 @@ Buri Ram interviews, HD-32) are complete-by-design samples and enter analyses wh
 | **Second annotator** | **Required**, not optional. 100 recipes independently labelled by a second Thai reader; report Cohen's κ. Cheapest credibility in the project — a few hours of someone's time disposes of the first objection a reviewer raises |
 | **Pre-registration** | `docs/hypotheses.md`, dated and committed **before any analysis runs**. Predictions are the researcher's to write. This is what makes the negative-results section read as findings rather than excuses |
 | **Negative results** | Full weight in Results, not a footnote |
-| **Bias audit** | Quantified, and promoted to a full research question (RQ3) |
+| **Bias audit** | Quantified: the official record's gaps are RQ3, and source concentration ships in `coverage.csv` |
 | **Decision log** | `docs/decisions.md` — every gate with its reasoning and alternatives |
 
 ---
 
 ## 9. Human decision gates
 
-Twenty gates, ~225 hours. **Numbering below is a proposal reconciled from the v2 plan to
-v3's decision surface — confirm it before it is cited anywhere.**
+Twenty gates, ~180 hours (Bible v4 §15). **`docs/decisions.md` is the record.** As of
+2026-10-12 it holds HD-1, HD-2, HD-3 (`dcp_food`), HD-21 to HD-36, HD-register-EN,
+HD-register-MC and the RQ5 gate ("Evidence for RQ5"). New entries take the next number
+after the highest in use.
+
+The table below is the **proposed** gate list carried from v2/v3. HD-4 to HD-20 are reserved
+for it, are **unconfirmed**, and have no entries yet; confirm a number before citing it.
+Rows marked *v3* served a question Bible v4 retired.
 
 | Gate | Decision |
 |---|---|
@@ -472,16 +499,16 @@ v3's decision surface — confirm it before it is cited anywhere.**
 | HD-6 | Author the first 100 canonical ingredients by hand — **the most important gate in the project** |
 | HD-7 | Set tier-4 attribution confidence thresholds |
 | HD-8 | Centrality / top-20 plausibility check against known Thai cooking |
-| HD-9 | The dish-category taxonomy and its written inclusion rules (RQ5 depends on it) |
+| HD-9 | The dish-category taxonomy, its written inclusion rules, and its mapping between registers |
 | HD-10 | The completed ~400-entry lexicon, advisor-reviewed before Phase 3 |
 | HD-11 | Code the interview validation responses; decide whether any source is down-weighted |
 | HD-12 | Review flagged duplicate pairs; set the source-precedence retention rule |
 | HD-13 | Define and defend the RQ2 presence/absence distinctiveness decomposition |
-| HD-14 | Choose the competing boundary set for RQ1 and build the linguistic distance matrix |
+| HD-14 | *v3.* The competing boundary set and linguistic distance matrix for v3's boundary question |
 | HD-15 | The `ที่มา` → acquisition-mode mapping (grown / foraged / market / packaged) |
 | HD-16 | Interpret community structure against known Thai culinary geography |
 | HD-17 | Decide which distinctiveness findings are real vs. artifacts of source bias |
-| HD-18 | Interpret the confusion matrix — which province confusions are meaningful |
+| HD-18 | *v3.* Interpret the classifier's confusion matrix; no v4 question uses the classifier |
 | HD-19 | The limitations section — written by the researcher, not generated |
 | HD-20 | Final release review: read the full export for anything identifying. Irreversible once public |
 
@@ -489,23 +516,19 @@ Authorship, AI disclosure, and the credit ledger are governed by `CREDITS.md`, n
 
 ---
 
-## 10. Timeline — Bible §19
+## 10. Timeline
 
-Anchored on three fixed dates: **freeze 31 March 2027**, **applications November 2027**,
-and the ISB calendar, which puts intensive work in the June–August break rather than term time.
+**`docs/TIMELINE.md` is the schedule** (v2, 2026-10-06). It supersedes Bible v4 §21 and §23
+and gives every task an owner, its dependencies and a done-when test. The fixed dates:
 
-| Window | Build | Fieldwork / cooking | Output |
-|---|---|---|---|
-| **Aug–Sep 2026** | Three blocking items (§11). Labelled-fraction measurement. Figure 4 signal check. Postgres/PostGIS running. Scrapers 1–3 | Cook the origin dish with family. Book both trips | Repo public. `hypotheses.md` committed. Post 1. **Go/no-go on province-level analysis** |
-| **Oct–Dec 2026** | Corpus to ~1,400. Tokenisation and normalisation. Lexicon v0.5. Dish-category taxonomy defined | Trip 1 — Buri Ram, 6 interviews. Cook 2 dishes | Post 2. Lexicon first release. `ETHICS.md` complete |
-| **Jan–Mar 2027** | Corpus to ~2,200. Normalisation complete. Category labelling. Second-annotator κ on 100 recipes | Trip 2 — Nakhon Ratchasima, 6 interviews. Transcription. Cook 3 dishes | Post 3 (failure post). **FREEZE 31 MARCH** |
-| **Apr–May 2027** | RQ3 coverage cartography. RQ1 distance-decay + change points. Network, Louvain, backbone | Cook 3 dishes, including ones the classifier gets wrong | Post 4. Figures 1, 2, 7 |
-| **Jun–Aug 2027** | RQ2 decomposition. RQ4 fragility. RQ5 classifier + baseline. Full analysis complete | Send results back to participants | Post 5. Figures 3–6. Paper drafted. Dataset packaged |
-| **Sep–Oct 2027** | Advisor review. Revisions. Site and quiz built with sister | — | Post 6 (limitations). Journal submission. arXiv + Zenodo DOI. Both HuggingFace repos live |
-| **Nov 2027** | Line launch | — | Applications |
+- **Submissions:** DH2027 on 20 Nov 2026, ICWSM 2027 on 15 Jan 2027, JCSSE 2027 Round 2 on
+  22 Jan 2027, and the full paper on 31 Mar 2027 (verified against the calls in
+  `docs/venues.md`).
+- **Freeze:** 31 March 2027. **Applications:** November 2027.
+- **Fieldwork:** Nakhon Ratchasima and Buri Ram (HD-32), on the weekends TIMELINE T1.5 sets.
 
-Deliberate slack sits in Oct–Dec 2026 and Sep–Oct 2027, both of which collide with
-coursework. **School always wins.**
+The v3 phase table that stood here is in `docs/archive/CLAUDE_pre-T1.10_2026-10-12.md`.
+Coursework always takes precedence: **School always wins.**
 
 ---
 
@@ -515,8 +538,8 @@ coursework. **School always wins.**
 
 | # | Action | Cost | Why it blocks everything |
 |---|---|---|---|
-| 1 | ~~Measure the labelled-recipe fraction on a consumer-site pilot corpus.~~ **DONE 2026-08-23 — 1.3%.** See `docs/labelled_fraction.md` | 2 h | Answered: **primarily a coverage paper.** RQ1's province-level form does not survive the number |
-| 2 | **Build Figure 4 from real data** — prevalence vs. distance from Bangkok on the same pilot set | 3 h | If pla ra and sticky rice separate at n≈300, the signal is real. If every panel looks like the MSG control, better to know in month 1 than month 8 |
+| 1 | ~~Measure the labelled-recipe fraction on a consumer-site pilot corpus.~~ **DONE 2026-08-23 — 1.3%.** See `docs/labelled_fraction.md` | 2 h | Answered. The v3 consequences drawn from it are superseded by Bible v4; see below |
+| 2 | **Build v3's Figure 4 from real data** — prevalence vs. distance from Bangkok on the same pilot set (now `figures/v3/figure4.html`) | 3 h | If pla ra and sticky rice separate at n≈300, the signal is real. If every panel looks like the MSG control, better to know in month 1 than month 8 |
 | 3 | **Cook the origin dish** with the family member. Photograph the mise en place. Write down what actually happened, including what contradicts the remembered version. Commit with the real date | 2 h | The one item that cannot be reconstructed later. The essay, the introduction, and every interview answer currently rest on an unfilled bracket |
 
 ✅ **Item 1's corpus was resolved and item 1 has run.** The Bible's "~300 SorKorPor
@@ -530,11 +553,10 @@ A: keep it, reframed as a coverage corpus.**
 **The answer is 1.3%**, against a 35% threshold, confirmed by a researcher-reviewed hand
 audit of all 78 candidate pages. Region-level claims reach 6.2%, also far below. So:
 
-- **RQ3 leads.** §4 already said to lead the abstract with it; it is now the spine rather
-  than one question of five.
-- **RQ1's province-level form is withdrawn.** §4's own constraint fires below 35%.
-  Whether it is rebuilt at region level (4–6 units, ~157 pages), rebuilt on fieldwork plus
-  the DCP corpus, or dropped is **an open decision** — see `docs/decisions.md`.
+- **Under v3** this made the coverage question the spine and withdrew the province-level
+  boundary question. **Bible v4 then replaced both questions** (§4). The measurement stands
+  as evidence: it is why kapook is held as a coverage corpus, and why the commercial
+  register's province labels are an open decision (HD-Kapook, TIMELINE T1.13–T1.14).
 - **Item 2 (Figure 4) was built before this ran**, on the DCP corpus rather than the web
   corpus it specifies, and before pre-registration. Both exceptions are recorded in
   `docs/decisions.md`. The real Figure 4 still needs the web corpus.
@@ -578,7 +600,7 @@ dataset is the paper's reproducibility layer, not a side deliverable.**
 | `test_conflation_guard` | no alias maps across an `ingredient_conflations` pair |
 | `test_attribution_precedence` | tier 1 always beats tier 4 |
 | `test_clean_view_excludes_low` | zero `confidence='low'` rows in `v_recipes_clean` |
-| `test_mantel_recovers_known` | planted r=0.5 on synthetic data → p < 0.01 by permutation |
+| `test_mantel_recovers_known` | planted r=0.5 on synthetic data → p < 0.01 by permutation (archived v3 code, `src/analyze/v3/`) |
 | `test_no_leakage_recipes` | no `cluster_id` spans two CV folds |
 | `test_no_pii` | no table column matches name/phone/email patterns |
 | `test_figures_regenerate` | `make figures` produces every file referenced by the manuscript |
@@ -588,7 +610,7 @@ dataset is the paper's reproducibility layer, not a side deliverable.**
 
 ## 14. Open question for the researcher
 
-**The image classifier is absent from Bible v3.** v2 scoped an EfficientNet-B0 vision
+**The image classifier is absent from Bible v3 and v4.** v2 scoped an EfficientNet-B0 vision
 component over fieldwork photos (`src/vision/`, HD-16, ~400-photo minimum). v3 does not
 mention it in the research questions, the feasibility audit, the figure specification, the
 technical architecture, or the release artifacts — while explicitly stating that the
@@ -602,6 +624,15 @@ scope and no work proceeds on it.
 ---
 
 ## Changelog
+
+- **2026-10-12** — **Reconciled to Bible v4** (TIMELINE T1.10). Corpus target ~800, not
+  ~2,200; gate hours ~180 and lexicon hours ~50, per v4. §7.3 now says four of five
+  questions depend on fieldwork, and adds Q10. §7.4 takes v4's dish-selection rule in place
+  of v3's classifier rule. §9 points to `docs/decisions.md` as the record and marks HD-4–HD-20
+  as an unconfirmed proposal, with the two v3-only gates labelled. §10 now points to
+  `docs/TIMELINE.md`. §5 is scoped to archived code. The Mantel and region-signal modules
+  moved to `src/analyze/v3/`; the v3 figures now build into `figures/v3/`. The previous
+  text of this file is archived in `docs/archive/`.
 
 - **2026-09-29** — **HD-32: Nakhon Ratchasima and Buri Ram** are the fieldwork provinces,
   superseding HD-29's Nan. Updated §4 (RQ3, RQ5 and the gate block), §6 Figure 5, §7.3,

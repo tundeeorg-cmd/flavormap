@@ -93,7 +93,8 @@ basis for ranking provinces.
   and nobody measures how much.
 
 Logged through `cook_along_log` (`make cook-along`). At least two of the eight dishes are
-ones the classifier gets wrong (CLAUDE.md §7.4).
+ones the pipeline handles badly, and at least two come from the official register (Bible
+v4 §11).
 
 ## RQ5: Do cooks agree with the state about which dishes are disappearing?
 
