@@ -96,17 +96,17 @@ evaluation*; the full paper owns *the findings*. Each cites the others. No parag
 
 ### 2.1 Data inventory — as of 12 Oct 2026
 
-Counts marked `[TBD]` are filled by task **T1.13a** from the actual files; never estimate them.
+Counts filled by task **T1.13a** from the actual files (`data/coverage/sources_20261012.md`, `scripts/inventory_sources.py`); never estimate them.
 
 | Folder (`data/raw/`) | Collected | Source | Proposed register | Status | Records |
 |---|---|---|---|---|---|
 | `dcp_food/` | Aug 2026 | food.culture.go.th, 231 PDFs (3 × 77 provinces) | official | Parsed; 201 loaded → 212 after T0.3 pattern A | 231 PDFs |
-| `dcp_manual/` | 6 Oct | Nakhon Nayok forms, transcribed by hand (`extraction_method = manual`) | official | Transcribed; load = T0.8 | [TBD] |
+| `dcp_manual/` | 6 Oct | Nakhon Nayok forms, transcribed by hand (`extraction_method = manual`) | official | Transcribed; load = T0.8 | 0 files on disk on 12 Oct (`data/dcp_manual/` holds only the template) |
 | `kapook_cooking/` | Aug–Sep | cooking.kapook.com | commercial | Loaded; 0 province labels | 2,702 pages / 1,360 recipes |
-| `sanook_food/` | **7 Oct** | sanook.com food/recipe section | commercial | **Collected, not loaded** | [TBD] |
-| `mthai_food/` | **7 Oct** | mthai.com food/recipe section | commercial | **Collected, not loaded** | [TBD] |
-| `tat_food/` | **7 Oct** | Tourism Authority of Thailand — local food by province | **undecided (HD-register)** | **Collected, not loaded** | [TBD] |
-| `m_culture/` | **7 Oct** | Ministry of Culture (provincial culture offices / heritage pages) | **undecided (HD-register)** | **Collected, not loaded** | [TBD] |
+| `sanook_food/` | **7 Oct** | sanook.com food/recipe section | commercial | **Collected, not loaded** | 80 recipes from 69 articles |
+| `mthai_food/` | **7 Oct** | mthai.com food/recipe section | commercial | **Collected, not loaded** | 200 recipe posts (278 non-recipe posts skipped) |
+| `tat_food/` | **7 Oct** | Tourism Authority of Thailand — local food by province | **undecided (HD-register)** | **Collected, not loaded** | 718 dish × venue rows from 74 articles; 471 with ingredient text |
+| `m_culture/` | **7 Oct** | Ministry of Culture (provincial culture offices / heritage pages) | **undecided (HD-register)** | **Collected, not loaded** | 2,584 dish pages; 565 with ingredient text; 240 flagged duplicates |
 | `gdcatalog/` | 19 Sep | 8 catalogue CSVs (data.go.th, bookfood67, OAE, GI, …) | — | Unreferenced by any code; parked | 8 files |
 | `reference/` | — | provinces, GADM geometry | — | In use | — |
 
@@ -202,7 +202,7 @@ Order matters: **inventory → ethics → decisions → load → labels.** Nothi
 
 | ID | Owner | Task | Files | Done when |
 |---|---|---|---|---|
-| T1.13a | [CC] | **Inventory the new folders** (`sanook_food`, `mthai_food`, `tat_food`, `m_culture`), read-only. Per folder: file count and type (HTML/JSON/PDF/image), manifest present? (url, fetched_at, http_status, hash), date range, distinct pages vs. recipes (one article may hold several recipes), field fill rates (title, published_at, site category/tags, region claim, province claim, ingredient lines), and whether any page holds personal data (author names, phone, LINE IDs, comments). For `tat_food` and `m_culture`: are these recipes with ingredient lists, or dish lists/descriptions only? | `scripts/inventory_sources.py` → `data/coverage/sources_20261013.md`; fill `[TBD]` in §2.1 | Report committed; §2.1 counts filled from the report |
+| T1.13a ✅ | [CC] | **Inventory the new folders** (`sanook_food`, `mthai_food`, `tat_food`, `m_culture`), read-only. Per folder: file count and type (HTML/JSON/PDF/image), manifest present? (url, fetched_at, http_status, hash), date range, distinct pages vs. recipes (one article may hold several recipes), field fill rates (title, published_at, site category/tags, region claim, province claim, ingredient lines), and whether any page holds personal data (author names, phone, LINE IDs, comments). For `tat_food` and `m_culture`: are these recipes with ingredient lists, or dish lists/descriptions only? | `scripts/inventory_sources.py` → `data/coverage/sources_20261013.md`; fill `[TBD]` in §2.1 | Report committed; §2.1 counts filled from the report |
 | T1.13b | [CC] | **Ethics backfill.** Add a dated ETHICS.md row for each of the 4 sources: robots.txt and Terms text checked *today*, quoted. Record honestly whether these checks happened **before** the 7 Oct collection; if not, say so ("retrospective audit, 13 Oct"). If any site's terms forbid collection or reuse → mark that source **excluded**, keep raw files local only, never load or publish | `ETHICS.md`, `docs/source_audit.md` | 4 rows; any excluded source listed with the clause quoted |
 | T1.13c | [BO] | **HD-register** for `tat_food` and `m_culture` (state sources that are not the DCP forms). Options: (a) merge into *official* — breaks the balanced 3 × 77 design; (b) new *state-promotional* register kept separate from DCP — usable in RQ3 ("which dishes appear on other state lists?"); (c) reference only — used for dish-name matching and province hints, never as recipes. Decide with T1.13a's evidence | `docs/decisions.md` | DECIDED entry with rejected options |
 | T1.13d | [BO] | **HD-sources (updated)**: commercial register = Kapook + Sanook + MThai (3 of the Bible's ≥4; Wongnai/Cookpad not this cycle). **HD-dedup**: cross-source duplicates (portals syndicate content) — accept the Bible rule (ingredient-set Jaccard > 0.9) or set another threshold after seeing T1.13e's numbers. **HD-balance**: keep all commercial recipes, or cap/sample per source so Kapook doesn't dominate | `docs/decisions.md`, `docs/limitations.md` | Three DECIDED entries |
