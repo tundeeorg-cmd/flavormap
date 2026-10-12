@@ -59,6 +59,18 @@ def test_an_email_with_a_thai_local_part_is_detected(text: str) -> None:
     assert "email" in find_leaks(text)
 
 
+@pytest.mark.parametrize(
+    "text", ["081-234-5678", "081 234 5678", "โทร 089-876-5432", "มือถือ 089 876 5432"]
+)
+def test_a_mobile_written_three_three_four_is_stripped_and_detected(text: str) -> None:
+    """Regression, 2026-10-12 (found on branch claude/scraper-ethics-conduct-0y0phe): the
+    phone pattern took a one-digit prefix, so the commonest way a Thai mobile is written
+    (0XX-XXX-XXXX) passed both redaction and the database scan."""
+    assert "phone" in find_leaks(text)
+    clean, report = redact(text)
+    assert report.n_phone_numbers == 1 and not find_leaks(clean)
+
+
 def test_an_at_sign_in_ordinary_text_is_not_an_email() -> None:
     assert "email" not in find_leaks("ราคา 50 บาท @ ร้านข้างตลาด")
 

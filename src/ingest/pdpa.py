@@ -93,6 +93,12 @@ _DIGIT = rf"[{_D}]"
 _WS = " \t\xa0\u1680\u2000-\u200a\u202f\u205f\u3000"
 _H = rf"[{_WS}]"
 
+# A Thai phone number: 0, a one- or two-digit prefix, then 3-4 and 4 digits, each group
+# optionally separated. Shared by redaction and the leak scan so the two cannot drift.
+_PHONE = (
+    rf"(?<![{_D}])0{_DIGIT}{{1,2}}[{_WS}\-]?{_DIGIT}{{3,4}}[{_WS}\-]?{_DIGIT}{{4}}(?![{_D}])"
+)
+
 # Honorifics that anchor a personal name. Deliberately excludes พระ and คุณ: Thai is
 # unspaced, so พระ matches inside นครพระชุม and คุณ inside สรรพคุณ (the ingredient
 # table's own column header). Both produced false positives on real documents.
@@ -116,8 +122,11 @@ PATTERNS: list[tuple[str, str, re.Pattern[str]]] = [
     ),
     (
         "phone",
+        # 0X-XXX-XXXX (landline) and 0XX-XXX-XXXX (mobile). The prefix was one digit
+        # until 2026-10-12, which matched 08 1234 5678 but not 081-234-5678, the
+        # commonest way a Thai mobile number is written, in redaction and leak scan alike.
         "bare 9-10 digit number",
-        re.compile(rf"(?<![{_D}])0{_DIGIT}[{_WS}\-]?{_DIGIT}{{3,4}}[{_WS}\-]?{_DIGIT}{{4}}(?![{_D}])"),
+        re.compile(_PHONE),
     ),
     (
         "email",
@@ -281,9 +290,7 @@ def redact(text: str) -> tuple[str, RedactionReport]:
 # table. Deliberately BROADER than the redaction patterns above: a leak that the
 # stripper missed should still be caught here.
 LEAK_PATTERNS: dict[str, re.Pattern[str]] = {
-    "phone": re.compile(
-        rf"(?<![{_D}])0{_DIGIT}[{_WS}\-]?{_DIGIT}{{3,4}}[{_WS}\-]?{_DIGIT}{{4}}(?![{_D}])"
-    ),
+    "phone": re.compile(_PHONE),
     # Any non-space local part, not just ASCII: an address like ทดสอบ@example.com (an
     # internationalised email) slipped past the ASCII-only form (found 2026-09-29).
     "email": re.compile(r"[^\s@<>()\[\],;:\"]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}"),
