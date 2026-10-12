@@ -241,3 +241,18 @@ committed or loaded.
 then only through a parser that strips personal data as it reads. The inventory
 (`data/coverage/sources_20261012.md`) finds personal data in every export except MThai's
 pattern scan, which still carries an author column.
+
+**Researcher's decisions, 2026-10-12** (recorded as dated rows in the `ETHICS.md` register):
+
+- `mthai_food`: **go**. The reproduction clause binds app members only. Only ingredient
+  lists load; author names, intro and method prose are dropped.
+- `tat_food`: **go**. A missing robots.txt is taken as no restriction (RFC 9309); the
+  terms are operator-only.
+- `m_culture`: **go, on the existing files**, with personal data stripped at parse time,
+  knowing that the collection broke the scraping rules (above). The missing site policy and
+  robots.txt are recorded as they are.
+- `sanook_food`: **no-go**. The files stay local, and are never loaded or published.
+
+How TAT and m-culture rows are used (official, a separate register, or reference only) is
+still **HD-39**, open. Nothing loads before that, HD-40 to HD-42, and a parser with a
+PDPA test (T1.13e).
