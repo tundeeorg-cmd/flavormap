@@ -1,0 +1,6 @@
+snapshot_date,scope,mentions,mapped,conflicting,mapped_share,strings,strings_mapped
+2026-10-12,all,13206,0,0,0.0000,8162,0
+2026-10-12,register:commercial,12143,0,0,0.0000,7692,0
+2026-10-12,register:official,1063,0,0,0.0000,604,0
+2026-10-12,source:dcp_food,1063,0,0,0.0000,604,0
+2026-10-12,source:kapook_cooking,12143,0,0,0.0000,7692,0
