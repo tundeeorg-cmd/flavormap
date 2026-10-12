@@ -217,3 +217,27 @@ across lines, `2a45efa`); these remain out:
 | `south_10_1.pdf` | Yala | Excluded |
 | `south_2_1.pdf` | Chumphon | Excluded |
 | `south_8_1.pdf` | Phatthalung | Excluded |
+
+## New sources: retrospective ethics audit (T1.13b, 2026-10-12)
+
+The four folders `sanook_food`, `mthai_food`, `tat_food` and `m_culture` were collected
+**before any robots.txt or terms check was recorded**, in a separate session, between
+2026-10-06 and 2026-10-07 (the exports' own capture dates and file dates). Every audit
+below is therefore **retrospective**. The first dated rows in `ETHICS.md` are from
+2026-10-07, after collection, and TAT and m-culture were re-checked on 2026-10-12. The
+collecting session's own conduct is recorded in each `scripts/scrape_<source>.py`
+docstring. m-culture's downloader in particular used no contact address and a 0.5 s
+interval, both against `docs/scraping_rules.md`. No raw file from these folders is
+committed or loaded.
+
+| Source | robots.txt | Terms (quoted briefly; read in full on the site) | Status |
+|---|---|---|---|
+| `sanook_food` | allows our User-Agent at the root | [termservice](https://www.sanook.com/termservice/) forbids collection "รวมถึง…การสกัดและดึงข้อมูล (Scraping)" and crawling "โดยไม่ได้รับอนุญาตเป็นลายลักษณ์อักษรล่วงหน้าจากบริษัท" (without the company's prior written permission) | **EXCLUDED** (Prompt P: terms forbid automated collection). Files stay local only; never loaded or published. The `ETHICS.md` decision column is the researcher's to set to `no-go` |
+| `mthai_food` | allows our User-Agent at the root | [app-terms-of-service](https://mthai.com/app-terms-of-service): "สมาชิกจะต้องไม่และไม่อนุญาตให้บุคคลอื่นใด เก็บ ผลิตซ้ำ ทำซ้ำ แจกจ่าย…" (members must not, nor allow others to, collect, reproduce or copy content) | **Not excluded by this audit; for the researcher.** The clause is written for *members* of the MThai app, so whether it binds a non-member's research collection is a judgement, not a reading |
+| `tat_food` | **no robots.txt**: HTTP 404 on all four TAT hosts | [operator Terms and Conditions](https://operator.tourismthailand.org/Information/Terms-and-Conditions) address businesses registering on the operator platform. No clause on copying, reuse or automated access; a copyright notice only ("สงวนลิขสิทธิ์ … Tourism Authority of Thailand") | **Not excluded by this audit; for the researcher:** whether a missing robots.txt counts as permission, and HD-register |
+| `m_culture` | ministry host allows our User-Agent; **no robots.txt** on all 76 provincial hosts (HTTP 404) | **Not located.** The ministry home page renders without readable policy links (checked 2026-10-07 and 2026-10-12) | **Not excluded by this audit; for the researcher:** read the footer policies by hand; the missing-robots question; HD-register (`HD-register-MC`) |
+
+**No source here is loaded until its latest `ETHICS.md` row says `go`** (`require_go`), and
+then only through a parser that strips personal data as it reads. The inventory
+(`data/coverage/sources_20261012.md`) finds personal data in every export except MThai's
+pattern scan, which still carries an author column.
