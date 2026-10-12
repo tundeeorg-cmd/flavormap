@@ -1491,6 +1491,127 @@ note (running both) is cheap if wanted.
 
 ---
 
+## HD-39 (HD-register) — What are the TAT and Ministry of Culture collections?
+**Date presented:** 2026-10-12 · **Status:** OPEN
+**Arises from:** TIMELINE v3 T1.13c. Due 22 Oct. Neither source is loaded until this and
+its `ETHICS.md` row are decided. This entry adds TAT and the T1.13a evidence to
+**HD-register-MC**, which asked the same question for m-culture alone; deciding here
+settles both.
+
+**Evidence** (T1.13a, `data/coverage/sources_20261012.md`; T1.13b, `docs/source_audit.md`):
+- **`tat_food`:** 718 rows, each a dish × venue × article, from 74 TAT articles dated
+  2019-10-08 to 2026-08-14. 471 rows (66%) carry some ingredient text; the rest name a dish
+  and a venue. The province is the one the article is about, assigned by the collecting
+  session. TAT has no per-province "must-eat" list (the collector's README). No
+  robots.txt on any TAT host. The terms read address operators only.
+- **`m_culture`:** 2,584 dish pages from 76 provincial culture offices. **565 (22%) carry
+  ingredient text**; the rest are a dish name, an image or a PDF. 240 rows were flagged as
+  duplicates by the collector. The province is the publishing office's. Personal data
+  appears in the export and heavily in the raw page and PDF text. The site policy was not
+  located.
+- **The official register today:** 203 DCP recipes, the national selection of 3 dishes per
+  province. RQ3 is defined against that selection.
+
+**Options** (TIMELINE v3 §6.3 and HD-register-MC):
+  A. **Merge into official.** (consequence: breaks the balanced 3 × 77 design; the
+     official vertex is weighted by how much each office or article published.)
+  B. **A separate state-promotional register**, kept apart from DCP. (consequence: a
+     migration widens the `register` CHECK. It supports an RQ3 question: which dishes
+     appear on other state lists?)
+  C. **Reference only:** dish-name matching and province hints, never recipes.
+     (consequence: no rows in `recipes`. TIMELINE §13 names this the response if these
+     turn out to be dish lists, which T1.13a found for 34% of TAT rows and 78% of
+     m-culture rows.)
+  D. **Different answers per source** (e.g. TAT C, m-culture B).
+
+**Recommendation:** none.
+**Decision:**
+**Reasoning:**
+**Date decided:**
+
+---
+
+## HD-40 (HD-sources) — Which sources make up the commercial register this cycle?
+**Date presented:** 2026-10-12 · **Status:** OPEN
+**Arises from:** TIMELINE v3 T1.13d. Due 22 Oct. The Bible asks for at least four web
+sources.
+
+**Evidence:**
+- **Kapook:** 1,360 recipes loaded, `ETHICS.md` `go`.
+- **Sanook:** 80 recipes collected; **EXCLUDED** by T1.13b (its terms forbid scraping
+  without written permission). It is usable only with Sanook's written permission.
+- **MThai:** 200 recipe posts (2021-11 to 2025-05; the section stopped posting recipes in
+  2023, per the collector's audit). A terms clause bars app *members* from collecting or
+  reproducing content; whether it binds this collection is open (`docs/source_audit.md`).
+  The raw export carries author names and method prose, which a loader must drop.
+- **Not collected:** Wongnai (audited 2026-10-06, pending), Cookpad and Krua (frozen until
+  after 13 Dec), and three English-language sites (HD-register-EN, open).
+
+**Options:**
+  A. **Kapook + MThai** this cycle; the shortfall against the Bible's four is a
+     limitation. (consequence: two sources, and MThai depends on its `ETHICS.md` go.)
+  B. **Kapook only** this cycle. (consequence: single-source; RQ1's per-source
+     robustness check, T1.19, has nothing to compare.)
+  C. **A, plus Sanook if written permission is sought and granted.** (consequence: a
+     permission request like HD-3's; nothing loads before a written yes.)
+  D. **Add a new source after the 13 Dec freeze** (Wongnai or Cookpad), for the full
+     paper only.
+
+**Recommendation:** none.
+**Decision:**
+**Reasoning:**
+**Date decided:**
+
+---
+
+## HD-41 (HD-dedup) — Cross-source duplicate rule
+**Date presented:** 2026-10-12 · **Status:** OPEN
+**Arises from:** TIMELINE v3 T1.13d. Due 22 Oct, to be confirmed once T1.13e reports
+numbers. Portals syndicate content, so one recipe can appear in two sources.
+
+**Evidence:** none measured yet. Duplicates are measured after a load (T1.13e). Note that
+an **ingredient-set** Jaccard needs canonical ingredients, and the lexicon has 0 entries,
+so before HD-6 any comparison runs on raw strings, where formatting differences hide real
+duplicates. The two thresholds CLAUDE.md §7.2 states are recorded in the Note below.
+
+**Options:**
+  A. **The Bible's rule:** ingredient-set Jaccard > 0.9 marks a duplicate.
+  B. **CLAUDE.md §7.2's two-signal rule:** Jaccard > 0.85 **and** title ratio > 0.8,
+     flagged for review rather than dropped.
+  C. **Set the threshold after seeing T1.13e's distribution.**
+  Under any option, pre- and post-dedup counts are both reported (TIMELINE §13).
+
+**Recommendation:** none.
+**Decision:**
+**Reasoning:**
+**Date decided:**
+
+---
+
+## HD-42 (HD-balance) — Keep every commercial recipe, or cap per source?
+**Date presented:** 2026-10-12 · **Status:** OPEN
+**Arises from:** TIMELINE v3 T1.13d. Due 22 Oct.
+
+**Evidence:** Kapook has 1,360 loaded recipes; MThai has 200 collected. If HD-40 admits
+both, Kapook is about 87% of the commercial register. Sanook's 80 are excluded. The
+commercial register already exceeds the Bible's ~550 web target, so volume is not the
+constraint.
+
+**Options:**
+  A. **Keep all**; report per-source results beside pooled ones (T1.19's robustness
+     check). (consequence: pooled results lean towards Kapook's house style.)
+  B. **Cap or sample per source** to a common n. (consequence: discards data; the cap is
+     itself a choice to defend.)
+  C. **Weight by source** in analyses rather than cap. (consequence: no data discarded;
+     the weighting is a methods choice.)
+
+**Recommendation:** none.
+**Decision:**
+**Reasoning:**
+**Date decided:**
+
+---
+
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
 **Date:** 2026-09-12
 **This is not a gate.** It is a documentation discrepancy found while building
