@@ -60,3 +60,9 @@ __pycache__/
 
 # Private planning documents (contact lists, outreach plans): local only, never pushed.
 private/
+
+# Analysis Parquet from `make parquet` (scripts/export_parquet.py, T1.18). Derived and
+# rebuilt by one command. Never committed: it carries DCP-derived rows (reference-only,
+# HD-3) and fieldwork rows (local-only until the HD-20 release review).
+data/processed/*.parquet
+data/processed/.staging/

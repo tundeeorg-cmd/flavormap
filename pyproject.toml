@@ -33,6 +33,7 @@ dependencies = [
     "pydantic-settings>=2.4",
     "psycopg[binary]>=3.2",
     "pythainlp>=5.3.7",
+    "pyarrow>=17",
 ]
 
 [dependency-groups]

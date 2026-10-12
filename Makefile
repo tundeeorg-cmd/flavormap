@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump scrape scrape-dcp scrape-kapook ingest cook-along lexicon interviews backup dcp-manual status status-snapshot clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon interviews backup dcp-manual status status-snapshot clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -103,6 +103,11 @@ api:
 
 web:
 	@echo "make web: not yet implemented" && exit 1
+
+# Analysis inputs as Parquet (T1.18): data/processed/*.parquet, gitignored, PDPA-scanned
+# before anything is written. Not the public release, which is `export` (HD-20).
+parquet:
+	uv run python -m scripts.export_parquet
 
 export:
 	@echo "make export: not yet implemented" && exit 1

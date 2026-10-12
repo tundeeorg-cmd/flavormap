@@ -18,12 +18,13 @@ from pathlib import Path
 
 import pytest
 
-from src.config import RAW_DIR
+from src.config import DATA_DIR, RAW_DIR
 from src.db import get_connection
 from src.ingest.pdf_layout import read_document
-from src.ingest.pdpa import find_leaks, redact, scan_database
+from src.ingest.pdpa import find_leaks, redact, scan_database, scan_parquet
 
 RAW = RAW_DIR / "dcp_food"
+PROCESSED = DATA_DIR / "processed"
 
 # Fixtures below are INVENTED, never lifted from the corpus. An earlier draft of this
 # file used a real informant's name, mobile number and house number copied out of
@@ -144,6 +145,31 @@ def test_no_personal_data_in_any_table() -> None:
     finally:
         conn.close()
     assert not offenders, "personal data found in the database: " + "; ".join(offenders[:20])
+
+
+# ── 4. Parquet exports ────────────────────────────────────────────────────────
+
+
+def test_the_parquet_scan_finds_personal_data_in_text_and_list_columns(
+    tmp_path: Path,
+) -> None:
+    import pandas as pd
+
+    path = tmp_path / "t.parquet"
+    pd.DataFrame({
+        "plain": ["แกงทดสอบ", "โทร 081-234-5678"],
+        "listed": [["ข่า"], ["ติดต่อ ทดสอบ@example.com"]],
+        "digest": ["0812345678" + "a" * 30, "b" * 64],
+    }).to_parquet(path, index=False)
+    offenders = scan_parquet(path)
+    assert {o.split(": ", 1)[0] for o in offenders} == {"t.parquet:plain", "t.parquet:listed"}
+
+
+def test_no_personal_data_in_any_exported_parquet() -> None:
+    """Every file `make parquet` wrote (TIMELINE T1.18). None present passes: the export
+    scans before writing, so this checks files that already exist."""
+    offenders = [hit for f in sorted(PROCESSED.glob("*.parquet")) for hit in scan_parquet(f)]
+    assert not offenders, "personal data in exported Parquet: " + "; ".join(offenders[:20])
 
 
 def test_khun_does_not_block_the_honorific_behind_it() -> None:

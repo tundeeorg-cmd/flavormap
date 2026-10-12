@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 # HD-21, option B (open — see docs/decisions.md). Flip to True and re-parse to retain.
@@ -366,4 +367,34 @@ def scan_database(conn: Any) -> list[str]:
                 continue
             if leaks := find_leaks(text):
                 offenders.append(f"{table}.{column}: {leaks}")
+    return offenders
+
+
+def _strings(value: object) -> list[str]:
+    """Every string inside a Parquet cell: the value itself, or the items of a list."""
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, (list, tuple)):
+        return [s for item in value for s in _strings(item)]
+    return []
+
+
+def scan_parquet(path: Path) -> list[str]:
+    """Every ``file:column: {class: [...]}`` leak in a Parquet file's text columns.
+
+    The file-level counterpart of `scan_database`, with the same patterns and the same
+    digest exemption, so an analysis export is held to the rule the tables are: personal
+    data never reaches a table, CSV, Parquet, log or dump (TIMELINE §0, rule 3).
+    """
+    import pyarrow.parquet as pq
+
+    table = pq.read_table(path)
+    offenders: list[str] = []
+    for name in table.column_names:
+        for value in table.column(name).to_pylist():
+            for text in _strings(value):
+                if _DIGEST.match(text):
+                    continue
+                if leaks := find_leaks(text):
+                    offenders.append(f"{path.name}:{name}: {leaks}")
     return offenders
