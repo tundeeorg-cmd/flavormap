@@ -1416,6 +1416,81 @@ paper defends.
 
 ---
 
+## HD-37 (HD-Kapook) — What unit, if any, can the commercial register be labelled at?
+**Date presented:** 2026-10-12 · **Status:** OPEN
+**Arises from:** TIMELINE T1.14, written up as T1.19 (preliminary RQ1) needs it. No
+commercial recipe has a province or region label today (`province_attribution` holds the
+203 official rows only), so the commercial side of RQ1 has nothing to compare.
+`src/analyze/rq1_registers.py` takes the unit as a required input and has no default.
+
+**Evidence** (T1.13, `docs/labelled_fraction.md`, "Label yield on the loaded commercial
+register"). On title and category, across the 1,360 loaded kapook recipes:
+- **Province names:** 3 genuine claims (0.2%) in 2 provinces under the strict rule. The
+  looser rule adds only homographs; the marker-only rule finds none.
+- **Official dish-name match:** 9 substring hits, none a genuine province claim (7 come
+  from one dish name that is also slang for "to eat"). No exact matches.
+- **Region claims:** 22 recipes with compound terms only (อีสาน, ภาคใต้ and so on), 24 if
+  bare เหนือ/ใต้ count. North 5, Northeast 9, South 8–10, **Central 0**.
+- **Body text** (the August measurement): 1.3% of pages with a province claim confirmed by
+  hand, and 6.2% with a region term. Admitting body text is a larger pool, at the cost of
+  reading claims that are often incidental.
+
+**Options:**
+  A. **Province labels**, from the strict rule on title and category. (consequence: about
+     3 commercial recipes, so RQ1 has a commercial vertex in 2 provinces at most.)
+  B. **Region labels** from compound region terms, with official recipes rolled up to
+     `region4`. (consequence: RQ1 becomes a region-level comparison with about 22
+     commercial recipes, and Central has none.)
+  C. **Both**, each at its own confidence, with the analysis run at region level and
+     province rows shown where they exist.
+  D. **Admit body text** to A, B or C. (consequence: a larger pool, about 1.3% for
+     provinces and 6.2% for regions, but each claim needs reading, as the August hand
+     audit did.)
+  E. **No labels.** The commercial register stays a coverage corpus, and RQ1's commercial
+     vertex rests on another source. (consequence: depends on HD-sources and the
+     pending source audits.)
+
+**Also open under T1.14:** HD-sources, whether the commercial register stays
+single-source this cycle. It is not written up here.
+
+**Recommendation:** none. What counts as a province claim is an attribution rule the
+paper defends.
+**Decision:**
+**Reasoning:**
+**Date decided:**
+
+---
+
+## HD-38 — How a register's recipes become one ingredient vector (RQ1)
+**Date presented:** 2026-10-12 · **Status:** OPEN
+**Arises from:** T1.19. Bible v4 §6 specifies "cosine distance on normalised ingredient
+vectors" but not how a set of recipes becomes one vector. The choice changes the
+distances, so `src/analyze/rq1_registers.py` takes it as a required input with no default.
+
+**Options:**
+  A. **Prevalence**: the share of the unit's recipes that contain each ingredient.
+     (consequence: every ingredient counts by how often it appears. Common ingredients,
+     such as fish sauce and salt, dominate, so registers may look closer than they are.
+     Under cosine this equals summing binary presence, since cosine ignores scale.)
+  B. **TF-IDF**: prevalence times a smoothed inverse document frequency over all
+     (register, unit) vectors together. (consequence: ingredients common everywhere are
+     down-weighted, so distances reflect what is distinctive. It is the weighting
+     CLAUDE.md §6 already uses for Figure 6, the heatmap. The result depends on which
+     units are in the comparison.)
+  C. **Raw counts**: the number of times each ingredient appears. (consequence: under
+     cosine this differs from A only when a recipe lists an ingredient twice. Not
+     implemented.)
+
+Both A and B are implemented; whichever is chosen is passed in. A short sensitivity
+note (running both) is cheap if wanted.
+
+**Recommendation:** none. The weighting is a measurement decision the paper defends.
+**Decision:**
+**Reasoning:**
+**Date decided:**
+
+---
+
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
 **Date:** 2026-09-12
 **This is not a gate.** It is a documentation discrepancy found while building

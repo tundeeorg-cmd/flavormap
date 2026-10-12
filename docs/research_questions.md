@@ -15,14 +15,14 @@ the paper; it removes questions from it.
 
 | RQ | Question | Needs | Figure | Waiting on |
 |---|---|---|---|---|
-| 1 | Do the state, the market and the kitchen agree on what a province eats? | fieldwork | 1, register triangle | the lexicon (HD-6\*), the commercial register's province labels (HD-Kapook\*, TIMELINE T1.14), interviews |
+| 1 | Do the state, the market and the kitchen agree on what a province eats? | fieldwork | 1, register triangle | the lexicon (HD-6\*), the commercial register's labels (HD-37, HD-Kapook), the vector weighting (HD-38), interviews |
 | 2 | Is regional identity built from what's included or what's refused? | fieldwork, for validation | 2, distinctiveness decomposition | the measure's definition (HD-13\*), the lexicon, interview Q9 |
 | 3 | What does the official record leave out? | fieldwork, entirely | 3, official-record overlap | interviews |
 | 4 | Can you cook a dish from the normalised dataset? | cooking, entirely | 4, pipeline fidelity | the lexicon, 8 cook-alongs |
 | 5 | Do cooks agree with the state about which dishes are disappearing? | fieldwork, entirely | 5, endangerment agreement | interviews; the six checkbox readings verified by eye (T0.4) |
 
 \* A proposed gate with no entry in `docs/decisions.md` yet. The numbers come from CLAUDE.md §9's
-unconfirmed list; HD-Kapook is TIMELINE's name.
+unconfirmed list.
 
 ---
 

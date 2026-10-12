@@ -481,7 +481,7 @@ Buri Ram interviews, HD-32) are complete-by-design samples and enter analyses wh
 ## 9. Human decision gates
 
 Twenty gates, ~180 hours (Bible v4 §15). **`docs/decisions.md` is the record.** As of
-2026-10-12 it holds HD-1, HD-2, HD-3 (`dcp_food`), HD-21 to HD-36, HD-register-EN,
+2026-10-12 it holds HD-1, HD-2, HD-3 (`dcp_food`), HD-21 to HD-38, HD-register-EN,
 HD-register-MC and the RQ5 gate ("Evidence for RQ5"). New entries take the next number
 after the highest in use.
 
