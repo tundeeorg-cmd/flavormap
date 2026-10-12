@@ -7,15 +7,15 @@ Thai and English names, region4, border_country) and joins it to GADM v4.1 Thail
 level-1 polygons, writing both ``geom`` and the derived centroids.
 
 Why centroids are derived rather than typed. ``provinces.csv`` deliberately ships with
-``centroid_lat`` / ``centroid_lon`` empty. Every distance in RQ1 is computed from these
-numbers, and 154 coordinates transcribed by hand is 154 chances to introduce an error
-that no test would catch and that would quietly bend the distance-decay curve. Deriving
-them from the same geometry that draws the maps keeps them reproducible and consistent
-with Figure 1.
+``centroid_lat`` / ``centroid_lon`` empty. Every province-to-province distance is computed
+from these numbers (Figure 7 orders provinces by distance from Bangkok), and 154
+coordinates transcribed by hand is 154 chances to introduce an error that no test would
+catch and that would quietly bend every distance-based result. Deriving them from the same
+geometry that draws the maps keeps them reproducible and consistent with the maps.
 
 Centroids use ST_PointOnSurface, not ST_Centroid. A true centroid can fall outside a
 concave or multi-part polygon — Phang Nga and Krabi both have geometry where this
-happens — and a "province centre" in the Andaman Sea would corrupt distance-decay
+happens — and a "province centre" in the Andaman Sea would corrupt every distance
 without ever looking obviously wrong.
 
 GADM is CC-BY for non-commercial use; cite it in the dataset card.

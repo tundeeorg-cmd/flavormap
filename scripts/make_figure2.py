@@ -13,7 +13,7 @@ rather than degrees.
 
 Everything else — the labelled cohort, the tokenisation, the permutation tests — comes
 from `scripts.rq1_region_level`, so the figure and the numbers in
-`docs/rq1_region_level.md` cannot drift apart.
+`docs/archive/v3/rq1_region_level.md` cannot drift apart.
 """
 
 from __future__ import annotations

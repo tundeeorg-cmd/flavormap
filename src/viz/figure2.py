@@ -1,6 +1,6 @@
 """Figure 2 — regional separation against geographic distance.
 
-Draws the specification in ``docs/figure2_spec_draft.md``. Two panels, both 2D (rule 10),
+Draws the specification in ``docs/archive/v3/figure2_spec.md``. Two panels, both 2D (rule 10),
 300 dpi, colourblind-safe.
 
 **The absence of a fitted line is the argument.** RQ1 was specified as a distance-decay

@@ -2,10 +2,11 @@
 
     uv run python -m scripts.rq1_region_level [--permutations N]
 
-CLAUDE.md §4 specifies RQ1 as a distance-decay curve with change-point detection and a
-boundary width in kilometres. At a 1.3% labelled fraction §4's own constraint collapses
-the unit to four regions, and four units give six pairwise distances — too few for a fit,
-a change point, or a Mantel test that is not already at its p-value floor. See
+v3's CLAUDE.md §4 specified RQ1 (now retired) as a distance-decay curve with
+change-point detection and a boundary width in kilometres. At a 1.3% labelled fraction
+§4's own constraint collapses the unit to four regions, and four units give six pairwise
+distances — too few for a fit, a change point, or a Mantel test that is not already at
+its p-value floor. See
 `src.analyze.v3.region_signal` for that argument in full.
 
 This runs the question underneath it instead: does region membership explain ingredient

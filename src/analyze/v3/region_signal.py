@@ -1,6 +1,6 @@
 """Is there any regional signal in ingredient composition? — RQ1, rebuilt at region level.
 
-RQ1 as specified in CLAUDE.md §4 is a distance-decay curve with change-point detection:
+v3's RQ1, as v3's CLAUDE.md §4 specified it, is a distance-decay curve with change-point detection:
 cosine distance on province TF-IDF against great-circle kilometres, and a boundary width
 in kilometres as the output. **That analysis cannot be run on this corpus.** The labelled
 fraction is 1.3%, §4's own constraint collapses the unit to four regions, and four units
