@@ -31,6 +31,9 @@ data/coverage/*
 # scripts/lexicon_coverage.py): counts per register and source only, no ingredient
 # string, nothing DCP-derived.
 !data/coverage/lexicon_*.csv
+# The new-source inventory (T1.13a, scripts/inventory_sources.py): counts per source,
+# personal data by class only, examples limited to a dish name and a province.
+!data/coverage/sources_*.md
 
 # Database dumps (scripts/dump_db.sh writes data/exports/flavormap_*.sql.gz).
 # The directory stays tracked via .gitkeep so the path exists on clone; its contents
