@@ -12,8 +12,10 @@ from src.analyze.rq1_registers import (
     InputError,
     assemble,
     cosine_distance,
+    per_source_distances,
     profiles,
     register_distances,
+    split_by_source,
 )
 
 PROVINCES = pd.DataFrame({
@@ -109,3 +111,46 @@ def test_the_two_open_choices_have_no_fallback(unit: str, weighting: str) -> Non
     data = _data([(1, "official", "TH-30", None, ["ing_a"])])
     with pytest.raises(InputError):
         profiles(data, unit, weighting)  # type: ignore[arg-type]
+
+
+def _sourced(recipes: list[tuple[int, str, str, str | None, list[str]]]) -> pd.DataFrame:
+    """Like _data, with a source_id per recipe: (id, register, source, province, ings)."""
+    clean = pd.DataFrame(
+        [(rid, reg, prov, None, src) for rid, reg, src, prov, _ in recipes],
+        columns=["recipe_id", "register", "province_code", "region", "source_id"],
+    )
+    ingredients = pd.DataFrame(
+        [(rid, ing) for rid, *_, ings in recipes for ing in ings],
+        columns=["recipe_id", "canonical_id"],
+    )
+    return assemble(clean, ingredients, PROVINCES)
+
+
+def test_the_robustness_table_has_pooled_then_one_block_per_source() -> None:
+    data = _sourced([
+        (1, "official", "dcp_food", "TH-30", ["ing_a", "ing_b"]),
+        (2, "commercial", "kapook_cooking", "TH-30", ["ing_a", "ing_b"]),
+        (3, "commercial", "mthai_food", "TH-30", ["ing_c"]),
+    ])
+    table = per_source_distances(data, "province", "prevalence")
+    assert table["commercial_source"].tolist() == ["pooled", "kapook_cooking", "mthai_food"]
+    by = table.set_index("commercial_source")
+    assert by.loc["pooled", "n_commercial_side"] == 2
+    assert by.loc["kapook_cooking", "distance"] == pytest.approx(0.0)
+    assert by.loc["mthai_food", "distance"] == pytest.approx(1.0)
+    assert (table["n_official"] == 1).all()
+
+
+def test_splitting_by_source_leaves_other_registers_alone() -> None:
+    data = _sourced([
+        (1, "official", "dcp_food", "TH-30", ["ing_a"]),
+        (2, "commercial", "kapook_cooking", "TH-30", ["ing_a"]),
+    ])
+    assert sorted(split_by_source(data)["register"].unique()) == [
+        "commercial:kapook_cooking", "official"]
+
+
+def test_splitting_without_a_source_column_is_an_error() -> None:
+    data = _data([(1, "commercial", "TH-30", None, ["ing_a"])])
+    with pytest.raises(InputError, match="source_id"):
+        split_by_source(data)

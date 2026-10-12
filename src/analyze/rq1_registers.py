@@ -23,6 +23,12 @@ medium confidence, 3–25 mapped ingredients. A recipe's region is its province'
 ``region4`` when it has a province, otherwise the attribution's own region label. Both
 present and disagreeing is an error, never resolved silently.
 
+**Per-source robustness** (TIMELINE v3 T1.19). `per_source_distances` repeats the
+comparison with the commercial side split by ``source_id`` (Kapook only, MThai only, …)
+beside the pooled result, so a finding that is one site's house style shows up as one.
+Under ``tfidf`` the inverse document frequency is computed over the vectors in that
+comparison, so the split table's idf includes one vector per source.
+
 Inputs are the Parquet files `make parquet` writes (T1.18). This module writes nothing.
 """
 
@@ -78,7 +84,9 @@ def assemble(
 ) -> pd.DataFrame:
     """Join the three tables; resolve each recipe's region (see the module docstring)."""
     region4 = dict(zip(provinces["province_code"], provinces["region4"], strict=True))
-    rows = clean[["recipe_id", "register", "province_code", "region"]].copy()
+    keep = ["recipe_id", "register", "province_code", "region"]
+    keep += ["source_id"] if "source_id" in clean.columns else []
+    rows = clean[keep].copy()
     derived = rows["province_code"].map(region4)
     clash = rows["region"].notna() & derived.notna() & (rows["region"] != derived)
     if clash.any():
@@ -142,3 +150,34 @@ def register_distances(
             "distance": cosine_distance(pa.vector, pb.vector) if pa and pb else math.nan,
         })
     return pd.DataFrame(rows, columns=[unit, f"n_{a}", f"n_{b}", "distance"])
+
+
+def split_by_source(data: pd.DataFrame, register: str = "commercial") -> pd.DataFrame:
+    """Relabel `register`'s rows as ``"<register>:<source_id>"``, one pseudo-register per
+    source, leaving every other register as it is."""
+    if "source_id" not in data.columns:
+        raise InputError("no source_id column: rebuild the inputs with `make parquet`")
+    out = data.copy()
+    mask = out["register"] == register
+    out.loc[mask, "register"] = register + ":" + out.loc[mask, "source_id"].astype(str)
+    return out
+
+
+def per_source_distances(
+    data: pd.DataFrame, unit: Unit, weighting: Weighting
+) -> pd.DataFrame:
+    """Official↔commercial distances pooled, then per commercial source, in one long
+    table with a ``commercial_source`` column (``"pooled"`` first, then source ids)."""
+    tables = []
+    pooled = register_distances(data, unit, weighting)
+    tables.append(pooled.rename(columns={"n_commercial": "n_commercial_side"})
+                  .assign(commercial_source="pooled"))
+    split = split_by_source(data)
+    labels = split.loc[split["register"].str.startswith("commercial:"), "register"]
+    for source in sorted(labels.str.removeprefix("commercial:").unique()):
+        table = register_distances(split, unit, weighting,
+                                   pair=("official", f"commercial:{source}"))
+        tables.append(table.rename(columns={f"n_commercial:{source}": "n_commercial_side"})
+                      .assign(commercial_source=source))
+    columns = ["commercial_source", unit, "n_official", "n_commercial_side", "distance"]
+    return pd.concat(tables, ignore_index=True)[columns]
