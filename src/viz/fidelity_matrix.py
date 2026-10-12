@@ -30,8 +30,9 @@ import matplotlib
 
 matplotlib.use("Agg")  # no display needed to write a PNG
 import matplotlib.pyplot as plt  # noqa: E402  - must follow the backend selection
-from matplotlib import font_manager  # noqa: E402
 from matplotlib.patches import Patch, Rectangle  # noqa: E402
+
+from src.viz.thai_font import font_family  # noqa: E402
 
 # §6's order, verbatim. The Y axis follows it top to bottom.
 CLASSES: tuple[str, ...] = ("quantities", "order", "technique", "specificity", "completeness")
@@ -46,11 +47,6 @@ NOT_RECORDED_INK = "#6b6f6c"
 SURFACE = "#ffffff"
 RULE = "#3a403c"
 TITLE_INK = "#16191a"
-
-# Dish names are Thai. The first installed family on this list wins; DejaVu Sans is
-# matplotlib's bundled fallback and has no Thai glyphs, so it is last on purpose.
-THAI_FONTS = ("Sarabun", "Thonburi", "Noto Sans Thai", "Leelawadee UI", "Tahoma")
-
 
 @dataclass(frozen=True)
 class DishRow:
@@ -71,11 +67,6 @@ def order_dishes(rows: list[DishRow]) -> list[DishRow]:
     return sorted(rows, key=lambda r: (-r.loss, r.cook_date))
 
 
-def _font_family() -> list[str]:
-    installed = {f.name for f in font_manager.fontManager.ttflist}
-    return [f for f in THAI_FONTS if f in installed] + ["DejaVu Sans"]
-
-
 def render(rows: list[DishRow], out: Path, planned: int = 8) -> Path:
     """Draw the matrix to `out`. `planned` is §7.4's dish count, used in the caption
     so a partial matrix states how far through the cook-alongs it is."""
@@ -83,7 +74,7 @@ def render(rows: list[DishRow], out: Path, planned: int = 8) -> Path:
     n = len(dishes)
     width = max(4.8, 1.25 * max(n, 1) + 2.2)
 
-    with plt.rc_context({"font.family": _font_family()}):
+    with plt.rc_context({"font.family": font_family()}):
         fig, ax = plt.subplots(figsize=(width, 4.6))
         fig.patch.set_facecolor(SURFACE)
         ax.set_facecolor(SURFACE)
