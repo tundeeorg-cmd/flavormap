@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual status status-snapshot clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai status status-snapshot clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -71,6 +71,11 @@ lexicon-coverage:
 # with no text layer. Flagged extraction_method='manual'. All-or-nothing.
 dcp-manual:
 	uv run python -m scripts.load_dcp_manual
+
+# HD-40 evidence: parse mthai_food and report counts, fill rates and duplicates against
+# Kapook. Dry run only: writes nothing to the database until HD-40 is decided.
+parse-mthai:
+	uv run python -m scripts.parse_mthai
 
 # HD-29/HD-30 — fieldwork interview files (data/interviews/*.toml, gitignored) into
 # informants, interview_dishes and the domestic register. All-or-nothing; refuses any

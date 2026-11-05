@@ -1,0 +1,13 @@
+source_slug,register,record_id,post_id,url,title,publish_date,modified_date,date_shown_on_page,author,tags,tag_count,intro,ingredients,n_ingredient_lines,method,n_method_lines,n_ingredient_sections,n_method_sections,credited_source,qa_flags,scraped_at
+mthai_food,commercial,mthai_food:000001,1,https://food.mthai.com/fixture/1,สูตรต้มยำกุ้ง (fixture),2024-01-02T10:00:00+07:00,2024-01-03T10:00:00+07:00,2024,AUTHOR-FIXTURE,ต้มยำ | อาหารไทย,2,INTRO-FIXTURE text that must never be read,"กุ้ง 300 กรัม
+ตะไคร้ 2 ต้น
+
+ใบมะกรูด 5 ใบ
+น้ำปลา 2 ช้อนโต๊ะ",4,METHOD-FIXTURE step one,1,1,1,CREDIT-FIXTURE,,2026-10-07T00:00:00Z
+mthai_food,commercial,mthai_food:000002,2,https://food.mthai.com/fixture/2,ส้มตำ เชียงใหม่ (fixture),2022-06-30T08:30:00+07:00,,2022,AUTHOR-FIXTURE,ส้มตำ | เชียงใหม่,2,,"มะละกอสับ 1 ถ้วย
+พริกขี้หนู 5 เม็ด
+มะนาว 1 ลูก",3,METHOD-FIXTURE,1,1,1,,province_tagged,2026-10-07T00:00:00Z
+mthai_food,commercial,mthai_food:000003,3,https://food.mthai.com/fixture/3,ขนมทดสอบ (fixture),not-a-date,,,AUTHOR-FIXTURE,,0,INTRO-FIXTURE,"ส่วนผสมตัวแป้ง
+แป้งข้าวเจ้า 1 ถ้วย
+ส่วนผสมน้ำราด
+กะทิ 1 ถ้วย",4,METHOD-FIXTURE,2,2,1,CREDIT-FIXTURE,multi_section,2026-10-07T00:00:00Z

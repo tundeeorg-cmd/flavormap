@@ -1547,6 +1547,19 @@ sources.
 - **Not collected:** Wongnai (audited 2026-10-06, pending), Cookpad and Krua (frozen until
   after 13 Dec), and three English-language sites (HD-register-EN, open).
 
+**Evidence added 2026-11-06: MThai dry run** (`make parse-mthai`, i.e.
+`scripts/parse_mthai.py` with `src/ingest/mthai_food.py`; nothing written to the database).
+The parser reads only the id, URL, title, date, tags and ingredient lines; author, intro,
+method and credited source are never read.
+- **200 posts, 200 distinct**, published 2021-11-26 to 2025-05-30. Title, date and
+  ingredient lines are filled for all 200; tags for 199. All 200 have ≥3 ingredient lines
+  (2,060 lines, median 10 per post).
+- **PDPA:** 0 redactions in the kept fields.
+- **Province names inside a tag or the title:** 16 posts, of which 15 name **Chai Nat**
+  (all via the tag `อาหารจังหวัดชัยนาท`) and 1 names ตาก. That one is unverified and may be
+  the word "to dry" rather than Tak province.
+- **Overlap with Kapook:** none above Jaccard 0.5 (see HD-41).
+
 **Options:**
   A. **Kapook + MThai** this cycle; the shortfall against the Bible's four is a
      limitation. (consequence: two sources, and MThai depends on its `ETHICS.md` go.)
@@ -1574,6 +1587,23 @@ an **ingredient-set** Jaccard needs canonical ingredients, and the lexicon has 0
 so before HD-6 any comparison runs on raw strings, where formatting differences hide real
 duplicates. The two thresholds CLAUDE.md §7.2 states are recorded in the Note below.
 
+**Evidence added 2026-11-06: MThai vs Kapook** (`make parse-mthai`). For each of the 200
+MThai posts, the best Jaccard against any of the 1,360 loaded Kapook recipes:
+
+| Best Jaccard | Strings as keyed today | Quantity stripping on (HD-6 Q6 prototype) |
+|---|---|---|
+| [0.00, 0.10) | 95 | 5 |
+| [0.10, 0.30) | 100 | 162 |
+| [0.30, 0.50) | 5 | 33 |
+| [0.50, 0.70) | 0 | 0 |
+| [0.70, 0.85) | 0 | 0 |
+| [0.85, 0.90) | 0 | 0 |
+| [0.90, 1.00] | 0 | 0 |
+
+Option A (> 0.9) flags **0** pairs either way; option B (> 0.85 and title ratio > 0.8)
+flags **0**. Neither is a canonical-ingredient Jaccard (the lexicon is empty), so the
+numbers can change after HD-6. Sanook (80 recipes, excluded) was not compared.
+
 **Options:**
   A. **The Bible's rule:** ingredient-set Jaccard > 0.9 marks a duplicate.
   B. **CLAUDE.md §7.2's two-signal rule:** Jaccard > 0.85 **and** title ratio > 0.8,
@@ -1596,6 +1626,11 @@ duplicates. The two thresholds CLAUDE.md §7.2 states are recorded in the Note b
 both, Kapook is about 87% of the commercial register. Sanook's 80 are excluded. The
 commercial register already exceeds the Bible's ~550 web target, so volume is not the
 constraint.
+
+**Evidence added 2026-11-06** (`make parse-mthai`): MThai has 200 parseable posts, all
+with ≥3 ingredient lines. Kapook + MThai would be 1,360 + 200 = 1,560 commercial recipes,
+with Kapook at 87.2%. No cross-source duplicates were found at either HD-41 threshold, so
+deduplication does not change these counts today.
 
 **Options:**
   A. **Keep all**; report per-source results beside pooled ones (T1.19's robustness
