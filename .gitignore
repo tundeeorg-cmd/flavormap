@@ -73,3 +73,6 @@ private/
 # HD-3) and fieldwork rows (local-only until the HD-20 release review).
 data/processed/*.parquet
 data/processed/.staging/
+
+# Planning PDFs (timeline, DH outline): local reference copies, not tracked.
+docs/plans/

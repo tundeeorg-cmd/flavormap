@@ -1,122 +1,32 @@
-# The five research questions (Bible v4)
+# FlavorMap — Research Questions (v2)
 
-**Authority:** `FlavorMap_Project_Bible_v4.md` §6. This file is the repository's one copy of
-the questions. Where it and the Bible disagree, the Bible wins, except where a dated
-decision in `docs/decisions.md` has changed the Bible and the Bible is not yet amended.
-That applies in one place: the fieldwork provinces are **Nakhon Ratchasima and Buri Ram**
-(HD-32, 2026-09-29), where the Bible says Nan and Surin (amendment pending, TIMELINE T1.11).
+**Version:** 5 November 2026 · **Supersedes:** Bible v4 §6 wording · ✏️ = changed in this version
 
-Each question is stated twice: precisely, for the paper, and plainly, for the site,
-interviews and the build log. Each also states what a "no" looks like, because a null
-result ships (CLAUDE.md §1, rule 9).
+**Changes in v2:** RQ1 adds a permutation baseline and bootstrap confidence intervals. RQ4 is reframed as a test of the field's ingredient-list standard. RQ5 is replaced with a nationwide question about web presence of endangered dishes, so it no longer depends on fieldwork.
 
-**Four of the five need fieldwork and one needs cooking.** A cancelled trip does not weaken
-the paper; it removes questions from it.
+## ภาษาไทย
 
-| RQ | Question | Needs | Figure | Waiting on |
-|---|---|---|---|---|
-| 1 | Do the state, the market and the kitchen agree on what a province eats? | fieldwork | 1, register triangle | the lexicon (HD-6\*), the commercial register's labels (HD-37, HD-Kapook), the vector weighting (HD-38), interviews |
-| 2 | Is regional identity built from what's included or what's refused? | fieldwork, for validation | 2, distinctiveness decomposition | the measure's definition (HD-13\*), the lexicon, interview Q9 |
-| 3 | What does the official record leave out? | fieldwork, entirely | 3, official-record overlap | interviews |
-| 4 | Can you cook a dish from the normalised dataset? | cooking, entirely | 4, pipeline fidelity | the lexicon, 8 cook-alongs |
-| 5 | Do cooks agree with the state about which dishes are disappearing? | fieldwork, entirely | 5, endangerment agreement | interviews; the six checkbox readings verified by eye (T0.4) |
+| RQ | แบบสั้น | แบบเต็ม สำหรับเปเปอร์ |
+|---|---|---|
+| **RQ1** ✏️ | อาหารประจำจังหวัดที่รัฐเลือก สูตรบนเว็บ และอาหารที่คนในจังหวัดทำกินจริง **ต่างกันจริง หรือแค่บังเอิญ?** | ชุดวัตถุดิบของอาหารประจำจังหวัดจากสามแหล่ง ได้แก่ เอกสารของกรมส่งเสริมวัฒนธรรม สูตรจากเว็บไซต์อาหาร และอาหารที่แม่ครัวในจังหวัดทำกินจริง แตกต่างกันมากน้อยเพียงใด เมื่อวัดด้วยระยะห่างของชุดวัตถุดิบ (cosine distance) ในจังหวัดเดียวกัน **และความแตกต่างนั้นมากกว่าที่คาดได้จากความบังเอิญหรือไม่ โดยเทียบกับค่าพื้นฐานจากการสุ่มสลับจังหวัด (permutation test) และรายงานช่วงความเชื่อมั่นแบบ bootstrap?** |
+| **RQ2** | อาหารแต่ละภาคมีเอกลักษณ์เพราะวัตถุดิบที่ใส่ หรือเพราะวัตถุดิบที่คนในภาคไม่ใส่? | ความโดดเด่นของอาหารแต่ละจังหวัดเกิดจากวัตถุดิบที่ใช้มากกว่าค่าเฉลี่ยของประเทศ หรือจากวัตถุดิบที่ใช้น้อยกว่าหรือไม่ใช้เลย และผลการแยกสองส่วนนี้สอดคล้องกับสิ่งที่แม่ครัวบอกว่า "บ้านเราไม่มีวันใส่" หรือไม่? |
+| **RQ3** | มีอาหารหรือวัตถุดิบอะไรบ้างที่คนในจังหวัดทำกินจริง แต่ไม่อยู่ในรายชื่ออาหารของรัฐ? | เมนูและวัตถุดิบที่แม่ครัวในนครราชสีมาและบุรีรัมย์ระบุว่าทำกินจริง ปรากฏในรายชื่ออาหาร 3 เมนูต่อจังหวัดของรัฐ และในสูตรจากเว็บไซต์มากน้อยเพียงใด และมีอะไรบ้างที่ไม่ปรากฏในแหล่งใดเลย? |
+| **RQ4** | นักวิจัยศึกษาอาหารจากรายชื่อวัตถุดิบอย่างเดียว ถ้าไม่มีขั้นตอนการทำ เราจะยังทำอาหารจานนั้นออกมาได้จริงไหม? | ข้อมูลสูตรอาหารแบบรายชื่อวัตถุดิบ ซึ่งงานวิจัยด้านอาหารใช้เป็นมาตรฐาน ยังเก็บความรู้เพียงพอที่จะทำอาหารจานนั้นได้จริงหรือไม่ และข้อมูลใดสูญหายไป (ปริมาณ ลำดับ เทคนิค ชนิดวัตถุดิบที่เจาะจง)? ทดสอบโดยการทำอาหาร 8 จานจากสูตรของรัฐ เว็บไซต์ และแม่ครัว |
+| **RQ5** | อินเทอร์เน็ตกำลังช่วยรักษา หรือปล่อยให้เมนูพื้นบ้านที่ใกล้สูญหายหายไป? | เมนูที่รัฐระบุว่าใกล้สูญหาย มีสูตรเผยแพร่บนเว็บไซต์อาหารมากน้อยเพียงใด เมื่อเทียบกับเมนูที่รัฐระบุว่ายังมีการสืบทอดอยู่? |
 
-\* A proposed gate with no entry in `docs/decisions.md` yet. The numbers come from CLAUDE.md §9's
-unconfirmed list.
+## English
 
----
+| RQ | Short version | Full version (for the paper) |
+|---|---|---|
+| **RQ1** ✏️ | How different are the dishes the state chose to represent each province, the recipes on the web, and what people in that province actually cook, **and are the differences real or just chance?** | How far apart are the ingredient profiles of the same province across three sources: the Department of Cultural Promotion's records, recipes on food websites, and the dishes home cooks in that province actually make? Distance is measured as cosine distance between ingredient profiles within each province. **Are these differences larger than expected by chance? We compare against a baseline built by randomly shuffling province labels (a permutation test) and report bootstrap confidence intervals.** |
+| **RQ2** | Does a region's food identity come from the ingredients it uses, or from the ingredients it refuses to use? | Is each province's culinary distinctiveness driven by ingredients it uses more than the national average, or by ingredients it uses less or never uses? Does this decomposition agree with what home cooks say "we would never put in"? |
+| **RQ3** | Which dishes and ingredients do people actually cook that are missing from the state's list? | To what extent do the dishes and ingredients that home cooks in Nakhon Ratchasima and Buri Ram report cooking appear in the state's three-dishes-per-province list and in web recipes, and which appear in neither? |
+| **RQ4** | Researchers study food from ingredient lists alone. Without the cooking steps, can we still actually make the dish? | Does the ingredient-list representation of recipes, standard in computational food research, retain enough knowledge to cook the dish, and what information is lost (quantities, order, technique, ingredient specificity)? We test this by cooking eight dishes from state, web and home-cook sources. |
+| **RQ5** | Is the internet helping to preserve endangered local dishes, or letting them disappear? | How widely are recipes for dishes the state classifies as endangered published on food websites, compared with dishes the state classifies as still being passed on? |
 
-## RQ1: Do the state, the market and the kitchen agree on what a province eats?
+## Implementation note for RQ1 (timeline task T1.19)
 
-*Plain: does the food the government picks to represent your province match what people
-there actually cook?*
-
-- **Method.** The ingredient-profile distance between the three registers for the same
-  province: cosine distance on normalised ingredient vectors, pairwise (official↔commercial,
-  official↔domestic, commercial↔domestic).
-- **Output.** A triangle per province, one vertex per register, with edge length as the
-  disagreement (Figure 1).
-- **A no looks like.** The three registers agree, so official selection and web recipes
-  faithfully represent domestic practice.
-- **Transferable claim.** Cultural corpora carry the selection pressure of whoever
-  assembled them.
-
-The spine of the paper. The domestic vertex exists only for the two fieldwork provinces;
-every other province is a two-register line.
-
-## RQ2: Is regional identity built from what's included or what's refused?
-
-*Plain: is a region's food about what it uses, or about what it refuses to use?*
-
-- **Method.** Decompose each province's distinctiveness into presence-driven and
-  absence-driven parts, and validate the result against the absences cooks state in
-  interview Q9.
-- **Output.** A scatter of presence-driven against absence-driven, one point per province,
-  with the diagonal marking balance (Figure 2).
-- **A no looks like.** Distinctiveness is symmetric everywhere.
-- **Transferable claim.** Every standard distinctiveness measure (TF-IDF, log-odds, Zeta)
-  measures presence only. Absence is invisible to all of them.
-
-No off-the-shelf measure exists, so it has to be defined and defended (proposed gate HD-13). Question 9
-is asked out loud exactly as written:
-
-> **อะไรที่คนจังหวัดอื่นใส่ในจานนี้ แต่บ้านเราไม่มีวันใส่?**
-> *What do people in other provinces put in this that we would never put in?*
-
-## RQ3: What does the official record leave out?
-
-*Plain: whose cooking didn't make the government's list?*
-
-- **Method.** The state selected 3 dishes per province. Ask cooks in Nakhon Ratchasima and
-  Buri Ram what they actually cook, and measure the overlap at dish and ingredient level.
-- **Output.** A table of dishes and ingredients that cooks name but no register contains,
-  plus stacked bars (Figure 3). The "in neither register" segment is the finding.
-- **A no looks like.** High overlap, which validates the state's selection.
-- **Transferable claim.** Heritage designation is a sampling procedure with a bias, and the
-  bias is measurable.
-
-Framed as an **existence claim**, which n≈6 cooks per province supports, and never as a
-basis for ranking provinces.
-
-## RQ4: Can you cook a dish from the normalised dataset?
-
-*Plain: after the computer cleans up a recipe, is it still a recipe?*
-
-- **Method.** Cook 8 dishes from the **cleaned dataset's** ingredient list, not the source
-  page. Log what was missing, substituted or destroyed, and whether the result was
-  recognisable.
-- **Output.** A fidelity matrix: 8 dishes × {quantities, order, technique, specificity,
-  completeness}, each cell survived, degraded or lost (Figure 4,
-  `figures/fidelity_matrix.png`).
-- **A no looks like.** Everything cooks fine, so normalisation is lossless in practice.
-- **Transferable claim.** Tokenisation and canonicalisation silently delete information,
-  and nobody measures how much.
-
-Logged through `cook_along_log` (`make cook-along`). At least two of the eight dishes are
-ones the pipeline handles badly, and at least two come from the official register (Bible
-v4 §11).
-
-## RQ5: Do cooks agree with the state about which dishes are disappearing?
-
-*Plain: the government says these dishes are at risk. Do the people who cook them agree?*
-
-- **Method.** Compare the endangerment level in the government forms with what cooks in
-  Nakhon Ratchasima and Buri Ram say about the same dishes.
-- **Output.** An agreement matrix, official level against the level cooks report
-  (Figure 5). The off-diagonal cells are the interesting ones.
-- **A no looks like.** Full agreement, which validates the state's assessment.
-- **Transferable claim.** Official risk assessments of cultural practice can be checked
-  against practitioners, and the disagreements are informative.
-
-The RQ5 gate was decided on 2026-09-29: option B, through HD-29 and HD-32 (`docs/decisions.md`,
-"Evidence for RQ5"). On the extractor's readings the
-fieldwork sample has two official values, `transmitted` and `near_lost`, both from Buri
-Ram. Those readings are not yet verified by eye (T0.4, `scripts/verify_checkboxes.py`).
-
----
-
-## Retired questions
-
-v3's five questions are retired by Bible v4 §1 and §14.5. The code and figures built for
-them are kept in `src/analyze/v3/` and `figures/v3/`, and whether they appear in the paper
-is an open researcher decision (CLAUDE.md §6). Superseded plans are in `docs/archive/`.
+- **Permutation test:** shuffle province labels 9,999 times, recompute the official↔commercial distance each time, and report where the observed distance falls (empirical p-value).
+- **Bootstrap:** 95% confidence intervals from resampling recipes within each province.
+- Report n beside every distance.
+- Changing the RQ wording after pre-registration requires a dated amendment in `docs/hypotheses.md`, not a silent edit.
