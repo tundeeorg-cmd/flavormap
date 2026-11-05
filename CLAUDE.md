@@ -1,7 +1,14 @@
 # FlavorMap — Build Plan for Claude Code
 
-**Version:** 4.1 · **Reconciled:** 2026-10-12 (T1.10) · **Authority:** `FlavorMap_Project_Bible_v4.md`
+**Version:** 5.0 · **Reconciled:** 2026-11-06 · **Authority:** `FlavorMap_Project_Bible_v5.md`
 **Window:** Aug 2026 – Nov 2027 · **Freeze:** 31 March 2027
+
+> **Authority moved to Bible v5 on 2026-11-06.** v5 (5 Nov) keeps v4's three-register
+> design and rewrites the research questions to v2: RQ1 adds a permutation baseline and
+> bootstrap CIs, RQ4 is framed as a test of the ingredient-list standard, and RQ5 is
+> replaced by the web presence of endangered dishes, which needs no fieldwork. §4, §6
+> (Figure 5) and §7.3 below are updated to match. Elsewhere, "Bible v4 §n" citations
+> are historical: where v5 differs, v5 wins.
 
 > **Reconciled to Bible v4 on 2026-10-12** (TIMELINE T1.10). The research questions (§4),
 > figures (§6), corpus target (§7.1), fieldwork's role (§7.3) and the gate list (§9) are v4.
@@ -172,18 +179,19 @@ Each is stated precisely (for the paper) and plainly (for the site, the build lo
 interviews). Each carries a **transferable claim** — what a reader outside Thai food
 studies takes away.
 
-> **The risk profile inverted.** This file previously said "All five run on the web
-> corpus. **None can be blocked by a cancelled trip.**" Under v4 that is false and
-> dangerous to leave standing: **four of five require fieldwork and one requires cooking**
-> (Bible §6, "Read together"). A cancelled trip does not degrade the paper, it removes
-> questions from it. §22 lists unbooked trips as the top risk for exactly this reason.
+> **The risk profile (Bible v5).** Under v4 four of five questions required fieldwork.
+> v5 reduces that to **two**: RQ3 entirely, plus RQ1's three-way comparison and RQ2's
+> validation in part. RQ4 depends only on the researcher cooking, and RQ5 only on data
+> already collected. A cancelled trip still removes RQ3, so fieldwork stays a top risk.
 
 ### RQ1 — Do the state, the market, and the kitchen agree on what a province eats?
 *Plain: does the food the government picks to represent your province match what people there actually cook?*
 
 - **Method** — ingredient-profile distance between the three registers for the same
   province. Cosine distance on normalised ingredient vectors, pairwise:
-  official↔commercial, official↔domestic, commercial↔domestic.
+  official↔commercial, official↔domestic, commercial↔domestic. **Bible v5:** a
+  permutation baseline (9,999 province-label shuffles, empirical p), 95% bootstrap CIs
+  (recipes resampled within province), and the commercial side repeated per source.
 - **Output** — triangle plot per province, one vertex per register, edge length =
   disagreement. **Figure 1**.
 - **Needs fieldwork** — yes. The domestic register *is* the interviews.
@@ -240,8 +248,12 @@ v3's RQ3 asked how much of the map is legible from public online data and was an
 kapook is held as a coverage corpus — but under v4 it is evidence feeding this question,
 not the question itself.
 
-### RQ4 — Can you cook a dish from the normalised dataset?
-*Plain: after the computer cleans up a recipe, is it still a recipe?*
+### RQ4 — Without the steps, can you still make the dish?
+*Plain: researchers study food from ingredient lists alone. Without the cooking steps, can we still make the dish?*
+
+Bible v5 frames this as a test of the field's ingredient-list standard: the dataset holds
+lists only (copyright, comparability, convention since Ahn et al. 2011). Same method as
+below; each information class is scored survived / degraded / lost.
 
 - **Method** — cook 8 dishes from the **cleaned dataset's** ingredient list, not the
   original source page. Log what was missing, what had to be substituted, what
@@ -258,16 +270,27 @@ not the question itself.
 Requires a `cook_along_log` table (Bible §13). In v3 the cooking was narrative colour and
 the first thing to cut; here it is the validation layer, and cutting it removes a question.
 
-### RQ5 — Do cooks agree with the state about which dishes are disappearing?
-*Plain: the government says these dishes are at risk. Do the people who cook them agree?*
+### RQ5 — Is the internet preserving or abandoning endangered dishes?
+*Plain: is the internet helping to preserve endangered local dishes, or letting them disappear?*
 
-- **Method** — compare the **endangerment level** field in the government PDFs against
-  what cooks in Nakhon Ratchasima and Buri Ram (HD-32) say about the same dishes.
-- **Output** — agreement matrix, official level vs. cook-reported status. **Figure 5**.
-- **Needs fieldwork** — entirely.
-- **A NO looks like** — full agreement, validating the state's assessment process.
+- **Method** — match official dish names to commercial recipes (exact → fuzzy →
+  hand-checked sample; report matching precision/recall; rules = HD-match). Compare web
+  presence of dishes the state marks endangered with those marked still transmitted
+  (counts, rate, a test controlling for region). Q10 answers in Buri Ram are a
+  qualitative check.
+- **Output** — web presence by official endangerment level. **Figure 5**.
+  `endangered_web_presence.csv` feeds impact tasks I2 and I3.
+- **Needs fieldwork** — no.
+- **A NO looks like** — no difference in web presence: the web neither preserves nor
+  neglects endangered dishes.
+- **Transferable** — official risk lists of cultural practice can be checked against
+  where practice is actually transmitted today.
 
-> **RQ5 gate: decided 2026-09-29, option B.** The checkbox extraction works: endangerment
+> **Superseded by Bible v5 (2026-11-05).** Under v4, RQ5 asked whether cooks agree with
+> the state about which dishes are disappearing, as a dish-matched agreement matrix. The
+> gate history below is kept for the record; Q10 now serves only the qualitative check.
+
+> **RQ5 gate (v4 question): decided 2026-09-29, option B.** The checkbox extraction works: endangerment
 > recovers on 157 of 231 documents, within 1.3 points of the corpus ceiling. With the
 > original Nan + Surin sample, all four levels were the same, so Figure 5's matrix could
 > not be built. Option B ("widen the fieldwork provinces") was taken through HD-29 and
@@ -328,7 +351,7 @@ Seven figures, specified before implementation, axes named. All 2D. All regenera
 | 2 | **Distinctiveness decomposition** (RQ2) | presence-driven | absence-driven | One point per province, diagonal = balanced. Above the line = defines itself by refusal. A chart type reviewers have not seen |
 | 3 | **Official-record overlap** (RQ3) | province | count | Stacked bars: dishes named by cooks that are in the official three / in the commercial register / in neither. **The "neither" segment is the finding** |
 | 4 | **Pipeline fidelity** (RQ4) | dish | information class | Matrix, 8 dishes × {quantities, order, technique, specificity, completeness}. Cell = survived / degraded / lost. Reads as a table, functions as a figure. Built: `src/viz/fidelity_matrix.py` → `figures/fidelity_matrix.png` (not `figure4.*`, which v3's prevalence view still holds); dish order by information lost, HD-25 |
-| 5 | **Endangerment agreement** (RQ5) | official level | cook-reported status | Confusion-matrix style; off-diagonal cells are the interesting ones. RQ5 gate decided (option B, via HD-29/HD-32): the Nakhon Ratchasima + Buri Ram sample has two official values (`transmitted`, `near_lost`), both from Buri Ram and unverified by eye, so a two-row matrix exists. Needs the interviews |
+| 5 | **Endangered dishes online** (RQ5, Bible v5 §12) | official endangerment level | share of dishes with ≥1 web recipe | Bars with counts and 95% CIs; annotate the endangered dishes with zero online recipes. Needs HD-match, not the interviews. (v4's endangerment-agreement matrix is superseded) |
 | 6 | **Province × ingredient heatmap** | ingredients (top ~60 by variance) | provinces | Fill = TF-IDF, **faceted by register**. Both axes seriated by clustering, never alphabetical. Good first Results figure because no modelling sits between data and image |
 | 7 | **Acquisition mode by province** | province, ordered by distance from Bangkok | share of ingredients | Stacked bars: grown / foraged / market / packaged. Uses a government field directly. Supporting figure, and the most immediately legible in the set |
 
@@ -406,10 +429,10 @@ corpus size), **and it cannot be delegated.**
 2026-09-29; Bible v4 §10 says Nan and Surin and needs the researcher's amendment). Two
 adjacent Isaan provinces, so the domestic register supports no North/South or national
 claim (L19). 60–90 minutes each, 2 trips.
-**Four of the five research questions depend on this** (Bible v4 §1). The interviews *are*
-the domestic register (RQ1); Q9's stated absences validate RQ2; RQ3 is built on them
-entirely, as an *existence claim*; and RQ5 compares Q10's answers with the official
-endangerment level. They are also authorship evidence.
+**Under Bible v5, two research questions depend on this**: RQ3 entirely, as an
+*existence claim*, and RQ1's three-way comparison and RQ2's validation in part. The
+interviews *are* the domestic register (RQ1); Q9's stated absences validate RQ2; Q10's
+answers are RQ5's qualitative check in Buri Ram. They are also authorship evidence.
 
 If only one trip happens, **do Buri Ram** (from HD-29; HD-32 did not revisit it) — six
 interviews beats zero by an enormous margin. On the extractor's readings, both RQ5
@@ -624,6 +647,12 @@ scope and no work proceeds on it.
 ---
 
 ## Changelog
+
+- **2026-11-06** — **Authority moved to Bible v5.** §4: RQ1 gains the permutation
+  baseline and bootstrap CIs; RQ4 is reframed as a test of the ingredient-list standard;
+  RQ5 is replaced by web presence of endangered dishes (the v4 question and its gate
+  history are kept as a note). The risk note and §7.3 now say two questions depend on
+  fieldwork, not four. §6 Figure 5 follows v5 §12.
 
 - **2026-10-12** — **Reconciled to Bible v4** (TIMELINE T1.10). Corpus target ~800, not
   ~2,200; gate hours ~180 and lexicon hours ~50, per v4. §7.3 now says four of five
