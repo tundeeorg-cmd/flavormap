@@ -165,12 +165,14 @@ def build_worklist(
     rows: Iterable[tuple[str, str, int, str | None]],
     mapped: dict[str, tuple[str, str]],
     threshold: float = SIMILARITY_THRESHOLD,
+    strip_quantities: bool | None = None,
 ) -> list[WorklistRow]:
     """Rank strings from `(source_id, register, recipe_id, raw string)` rows by recipe
-    count, most frequent first. `mapped` is `mapping_index()`'s output."""
+    count, most frequent first. `mapped` is `mapping_index()`'s output.
+    `strip_quantities` is passed to `key()` (None = `src.config.STRIP_QUANTITIES`)."""
     recipes: defaultdict[str, set[tuple[str, str, int]]] = defaultdict(set)
     for source_id, register, recipe_id, name in rows:
-        if name and (k := key(name)):
+        if name and (k := key(name, strip_quantities)):
             recipes[k].add((source_id, register, recipe_id))
 
     total_pairs = sum(len(v) for v in recipes.values())
@@ -201,6 +203,32 @@ def build_worklist(
 def rank_reaching(worklist: list[WorklistRow], share: float) -> int | None:
     """The first rank at which cumulative coverage reaches `share`, if any."""
     return next((r.rank for r in worklist if r.cum_share >= share), None)
+
+
+def ranks_by_source(
+    rows: Iterable[tuple[str, str, int, str | None]],
+    strip_quantities: bool | None = None,
+    shares: tuple[float, ...] = (0.8, 0.9),
+) -> dict[str, tuple[int, int, list[int | None]]]:
+    """Per source: (pairs, distinct strings, [rank reaching each share]), each source
+    ranked on its own strings. HD-6 question 6's evidence: how many strings the lexicon
+    must cover per source, with quantity stripping off or on."""
+    by_source: defaultdict[str, set[tuple[str, int]]] = defaultdict(set)
+    for source_id, _, recipe_id, name in rows:
+        if name and (k := key(name, strip_quantities)):
+            by_source[source_id].add((k, recipe_id))
+    out: dict[str, tuple[int, int, list[int | None]]] = {}
+    for source_id, pairs in sorted(by_source.items()):
+        counts = sorted(Counter(k for k, _ in pairs).values(), reverse=True)
+        total, covered = len(pairs), 0
+        ranks: list[int | None] = [None] * len(shares)
+        for rank, n in enumerate(counts, start=1):
+            covered += n
+            for i, share in enumerate(shares):
+                if ranks[i] is None and covered >= share * total:
+                    ranks[i] = rank
+        out[source_id] = (total, len(counts), ranks)
+    return out
 
 
 def category_check(
@@ -266,6 +294,9 @@ def main() -> int:
     ap.add_argument("--out", type=Path, default=INTERIM_DIR / "lexicon_worklist.csv")
     ap.add_argument("--threshold", type=float, default=SIMILARITY_THRESHOLD,
                     help="difflib ratio for the 'similar' column (HD-33: 0.8)")
+    ap.add_argument("--strip-quantities", action=argparse.BooleanOptionalAction,
+                    default=None, help="override src.config.STRIP_QUANTITIES (HD-6 Q6 "
+                    "prototype, OFF until decided)")
     args = ap.parse_args()
 
     conn = get_connection()
@@ -279,7 +310,7 @@ def main() -> int:
     finally:
         conn.close()
 
-    worklist = build_worklist(rows, mapped, args.threshold)
+    worklist = build_worklist(rows, mapped, args.threshold, args.strip_quantities)
     write_csv(worklist, args.out)
 
     n_recipes = len({(s, r) for s, _, r, _ in rows})
@@ -292,6 +323,11 @@ def main() -> int:
         print(f"top {top.rank} strings cover {top.cum_share:.1%} of (recipe, string) pairs")
         for share in (0.5, 0.8, 0.9):
             print(f"  {share:.0%} coverage at rank {rank_reaching(worklist, share)}")
+        print("per source (pairs, distinct strings, rank for 80% / 90%):")
+        for source_id, (pairs, distinct, ranks) in ranks_by_source(
+                rows, args.strip_quantities).items():
+            print(f"  {source_id}: {pairs} pairs, {distinct} strings, "
+                  + " / ".join(str(r) for r in ranks))
     for line in category_check(entries_by_category, worklist):
         print(line)
     return 0

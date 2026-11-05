@@ -54,6 +54,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
+from src.config import STRIP_QUANTITIES
 from src.ingest.pdpa import personal_data_classes
 
 CANONICAL_FILE = "canonical_ingredients.csv"
@@ -80,11 +81,52 @@ OTHER_CEILING = 0.05
 
 _WS = re.compile(r"\s+")
 
+# --- HD-6 question 6 prototype: quantity stripping (OFF by default) -------------------
+# Removes amounts only: a number (Arabic or Thai digits, decimals, thousands commas,
+# a/b fractions, ½ ¼ ¾ ⅓ ⅔, mixed "1 1/2", ranges "2-3" / "2 ถึง 3") with an optional
+# unit after it and an optional จำนวน / ประมาณ before it; amount words with no number
+# (ตามชอบ, เล็กน้อย …); and leading bullet glyphs. A unit word is removed only when a
+# number precedes it, so ใบมะกรูด and หัวกะทิ are never touched. Preparation and state
+# words (หั่น, สับ, สด, ป่น) and parentheses are left alone: which of those belong to
+# the name is HD-6 question 2, not this function's call.
+_UNITS = (
+    "ช้อนโต๊ะ", "ช้อนชา", "ช้อนกาแฟ", "ช้อน", "ถ้วยตวง", "ถ้วย", "ทัพพี", "แก้ว",
+    "กิโลกรัม", "กิโล", "กก.", "กรัม", "ก.", "ขีด", "มิลลิลิตร", "มล.", "ลิตร", "ซีซี",
+    "cc", "ml", "g", "kg", "ฟอง", "ตัว", "เม็ด", "กลีบ", "หัว", "ต้น", "ราก", "ใบ", "ดอก",
+    "ลูก", "ผล", "แผ่น", "ชิ้น", "ชุด", "กำมือ", "หยิบมือ", "กำ", "ก้อน", "ซอง", "ถุง",
+    "กระป๋อง", "ขวด", "มัด", "ช่อ", "ฝัก", "แท่ง", "เส้น", "ห่อ", "ซม.", "เซนติเมตร",
+    "นิ้ว", "ส่วน",
+)
+_NUM = r"(?:[0-9๐-๙]+(?:[.,][0-9๐-๙]+)*(?:\s*/\s*[0-9๐-๙]+)?(?:\s*[½¼¾⅓⅔])?|[½¼¾⅓⅔])"
+_UNIT = "|".join(re.escape(u) for u in sorted(_UNITS, key=len, reverse=True))
+_QUANTITY = re.compile(
+    rf"(?:จำนวน|ประมาณ)?\s*{_NUM}(?:\s+{_NUM})?(?:\s*(?:-|–|ถึง)\s*{_NUM})?"
+    rf"(?:\s*(?:{_UNIT}))?(?:\s*\+\s*(?={_NUM}))?",
+    re.IGNORECASE,
+)
+_AMOUNT_WORDS = re.compile(r"ตามชอบ|ตามต้องการ|เล็กน้อย|นิดหน่อย|พอประมาณ")
+_BULLETS = re.compile(r"^[\s►◆•▪●○*\-–]+")
+_TRAILING = re.compile(r"[\s\-–:+,]+$")
 
-def key(text: str) -> str:
-    """NFC plus whitespace collapsing, and nothing more. The one string comparison the
-    lexicon, its loader and the authoring worklist all share."""
-    return _WS.sub(" ", unicodedata.normalize("NFC", text)).strip()
+
+def strip_quantity(text: str) -> str:
+    """`text` with amounts removed (see the block comment above). The rest is returned
+    as written, so `strip_quantity("พริกขี้หนูสด จำนวน 20 เม็ด") == "พริกขี้หนูสด"`."""
+    out = _BULLETS.sub("", text)
+    out = _QUANTITY.sub(" ", out)
+    out = _AMOUNT_WORDS.sub(" ", out)
+    out = _WS.sub(" ", out).strip()
+    return _TRAILING.sub("", out)
+
+
+def key(text: str, strip_quantities: bool | None = None) -> str:
+    """NFC plus whitespace collapsing. The one string comparison the lexicon, its loader
+    and the authoring worklist all share. With quantity stripping on (the argument, or
+    `src.config.STRIP_QUANTITIES` when it is None) amounts are removed first."""
+    text = unicodedata.normalize("NFC", text)
+    if STRIP_QUANTITIES if strip_quantities is None else strip_quantities:
+        text = strip_quantity(text)
+    return _WS.sub(" ", text).strip()
 
 
 # Aliases in the database that map across a conflation pair: the alias is (by key) the

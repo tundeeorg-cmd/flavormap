@@ -1764,6 +1764,38 @@ researcher's, and `scripts/lexicon_worklist.py` never proposes one (boundary set
      and which words count as preparation words rather than part of the name, e.g.
      whether สด is stripped, is the same judgment as question 2.)
 
+**Evidence for question 6, added 2026-11-06: the stripping step prototyped.**
+`src.clean.lexicon.strip_quantity()`, applied by `key()` only when
+`src/config.py` `STRIP_QUANTITIES` is on (it is **off**). It removes number-anchored amounts
+(digits, Thai digits, fractions, ranges, an optional unit after the number, จำนวน/ประมาณ
+before it), five amount words (ตามชอบ, ตามต้องการ, เล็กน้อย, นิดหน่อย, พอประมาณ) and
+leading bullets. It leaves preparation and state words (หั่น, สับ, สด) and parentheses
+alone, because those are question 2. Unit words are removed only after a number, so
+ใบมะกรูด and หัวกะทิ are untouched. Tests are in `tests/test_lexicon_worklist.py`.
+
+Coverage, from `uv run python -m scripts.lexicon_worklist --no-strip-quantities` and
+`--strip-quantities` (distinct strings needed to reach 80% / 90% of (recipe, string)
+pairs; each source ranked on its own strings):
+
+| Scope | Stripping | Pairs | Distinct strings | 80% | 90% |
+|---|---|---|---|---|---|
+| All | off | 13,206 | 8,162 | 5,521 | 6,842 |
+| All | on | 13,178 | 5,310 | 2,675 | 3,993 |
+| `dcp_food` (official) | off | 1,063 | 604 | 392 | 498 |
+| `dcp_food` (official) | on | 1,063 | 595 | 383 | 489 |
+| `kapook_cooking` (commercial) | off | 12,143 | 7,692 | 5,264 | 6,478 |
+| `kapook_cooking` (commercial) | on | 12,115 | 4,888 | 2,465 | 3,677 |
+
+With stripping on, the top 100 strings cover 41.9% of pairs (21.3% off). Pairs fall
+slightly because two lines in one recipe that differ only in amount become one string.
+- **Known false positive:** a number that is part of a name is removed, e.g.
+  `ข้าวเหนียวพันธุ์ กข. 6` (RD6 rice) → `ข้าวเหนียวพันธุ์ กข.`.
+- **What stripping does not reach:** even with it on, 80% needs about 2,700 strings. Most of
+  the remainder carries preparation or state words (`กระเทียมสับ`, `ต้นหอมซอย`,
+  `พริกไทยป่น`), so question 2's answer decides how much further coverage moves.
+- The official register barely changes (604 → 595 strings): DCP rows are already bare
+  names.
+
 **Recommendation:** none. These rules are the lexicon's methods section.
 **Decision:**
 **Reasoning:**

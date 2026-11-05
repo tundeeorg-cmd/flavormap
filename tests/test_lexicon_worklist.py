@@ -17,8 +17,11 @@ from scripts.lexicon_worklist import (
     key,
     mapping_index,
     rank_reaching,
+    ranks_by_source,
     similar_strings,
 )
+from src import config
+from src.clean.lexicon import strip_quantity
 
 ROWS = [
     ("dcp_food", "official", 1, "หอมแดง"),
@@ -243,3 +246,59 @@ def test_running_the_worklist_leaves_the_lexicon_untouched(tmp_path, monkeypatch
     finally:
         probe.rollback()
         probe.close()
+
+
+# --- HD-6 question 6: the quantity-stripping prototype (OFF by default) ---------------
+
+def test_quantity_stripping_is_off_by_default() -> None:
+    assert config.STRIP_QUANTITIES is False
+    assert key("ไข่ไก่ 2 ฟอง") == "ไข่ไก่ 2 ฟอง"
+
+
+@pytest.mark.parametrize(("raw", "stripped"), [
+    ("ไข่ไก่ 2 ฟอง", "ไข่ไก่"),
+    ("เกลือ 1/4 ช้อนชา", "เกลือ"),
+    ("ข้าวคั่ว 1 1/2 ช้อนโต๊ะ", "ข้าวคั่ว"),
+    ("พริกขี้หนูสด จำนวน 20 เม็ด", "พริกขี้หนูสด"),     # สด stays: HD-6 question 2
+    ("หัวกะทิ 2 ¾ ถ้วยตวง 605", "หัวกะทิ"),
+    ("►กระเทียมจีนกลีบใหญ่ 10-12 กลีบ", "กระเทียมจีนกลีบใหญ่"),
+    ("แป้งมันสำปะหลัง 1 ช้อนชา + 1/2 ช้อนชา", "แป้งมันสำปะหลัง"),
+    ("เนยสด (อุณภูมิห้อง) 50 กรัม", "เนยสด (อุณภูมิห้อง)"),  # parentheses stay
+    ("น้ำเปล่า 1,000 มล.", "น้ำเปล่า"),
+    ("หัวปลี -๔", "หัวปลี"),                               # Thai digits
+    ("เกลือนิดหน่อย", "เกลือ"),                              # amount word, no number
+    ("กระเทียมสับ", "กระเทียมสับ"),                          # prep word stays
+])
+def test_strip_quantity_removes_amounts_only(raw: str, stripped: str) -> None:
+    assert strip_quantity(raw) == stripped
+    assert key(raw, strip_quantities=True) == stripped
+
+
+@pytest.mark.parametrize("name", ["ใบมะกรูด", "หัวกะทิ", "ต้นหอม", "ไข่ไก่", "รากผักชี"])
+def test_unit_words_without_a_number_are_never_stripped(name: str) -> None:
+    assert strip_quantity(name) == name
+
+
+def test_known_false_positive_a_number_inside_a_variety_name() -> None:
+    # RD6 glutinous rice: the 6 is part of the name, and the prototype removes it.
+    # Recorded as evidence for HD-6 question 6, not fixed by guessing.
+    assert strip_quantity("ข้าวเหนียวพันธุ์ กข. 6") == "ข้าวเหนียวพันธุ์ กข."
+
+
+def test_stripping_merges_lines_into_fewer_worklist_strings() -> None:
+    rows = [("kapook_cooking", "commercial", 1, "ไข่ไก่ 2 ฟอง"),
+            ("kapook_cooking", "commercial", 2, "ไข่ไก่ 3 ฟอง"),
+            ("dcp_food", "official", 3, "ไข่ไก่")]
+    assert len(build_worklist(rows, {})) == 3
+    on = build_worklist(rows, {}, strip_quantities=True)
+    assert [(r.name_th, r.n_recipes) for r in on] == [("ไข่ไก่", 3)]
+
+
+def test_ranks_by_source_ranks_each_source_on_its_own() -> None:
+    rows = [("a", "commercial", i, "x") for i in range(8)]
+    rows += [("a", "commercial", 8, "y"), ("a", "commercial", 9, "z")]
+    rows += [("b", "official", 1, "p 1 ช้อนชา"), ("b", "official", 2, "p 2 ช้อนชา")]
+    off = ranks_by_source(rows, strip_quantities=False)
+    assert off["a"] == (10, 3, [1, 2])
+    assert off["b"] == (2, 2, [2, 2])
+    assert ranks_by_source(rows, strip_quantities=True)["b"] == (2, 1, [1, 1])
