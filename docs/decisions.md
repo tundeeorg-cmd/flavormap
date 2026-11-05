@@ -1612,6 +1612,165 @@ constraint.
 
 ---
 
+## HD-43 (HD-Q10) — Where do Q10 answers about the state's dishes go?
+**Date presented:** 2026-11-06 · **Status:** OPEN
+**Arises from:** TIMELINE v4 T1.4 (due 19 Oct; it blocks interviews). No entry existed
+before this one.
+
+**Evidence:**
+- Q10 is asked about **the three dishes the state listed for the province**, whether or not
+  the cook makes them (CLAUDE.md §7.3; TIMELINE T2.1).
+- `scripts/load_interviews.py` (line 125) writes one `recipes` row with
+  `register='domestic'` for **every** dish in an interview file. The template
+  (`data/interviews/_template.toml`) has only one place for a Q10-type answer:
+  `cook_status_verbatim` on a dish the cook describes. So if a Q10 answer about a dish the
+  cook does not make is entered as a dish, it becomes a domestic recipe, probably with no
+  ingredients. That would inflate the domestic register and RQ3's counts.
+- Under TIMELINE v4, RQ5 is now web presence of endangered dishes (T4.4). Q10 answers are
+  its qualitative check for Buri Ram, not its main axis.
+- `make status` on 2026-11-06: 0 informants and 0 interview dishes loaded. Interviews
+  were scheduled from 31 Oct (T2.1).
+
+**Part 1: storage.**
+  A. **A separate table** (TIMELINE's sketch), e.g. `dish_status_reports(informant_id,
+     official_recipe_id, …)`, filled from its own section of the interview file. Never
+     creates a `recipes` row. (consequence: migration 026, loader and tests; a Q10 answer
+     is always tied to an official dish by ID, entered by the researcher as HD-30 (1)
+     already requires.)
+  B. **Keep it in `interview_dishes`** with a new flag saying whether the cook makes the
+     dish; the loader skips the `recipes` row when they do not. (consequence: one table,
+     but every RQ3 and RQ1 query has to filter on the flag, and `interview_dishes` then
+     holds rows that are not dishes the cook described.)
+  C. **No change.** Q10 is recorded only for dishes the cook makes
+     (`cook_status_verbatim`); answers about other state dishes go into
+     `validation_notes` as free text. (consequence: no migration; Q10 for the state's
+     three dishes is not stored in a form an analysis can read, and the 500-character
+     limit applies.)
+
+**Part 2: what is stored per answer** (applies to A and B).
+  A. **Verbatim only**, the three sub-questions (still made? who? do young people know?)
+     in the cook's words; any coding happens later under HD-11.
+  B. **Verbatim plus coded fields** at write-up (e.g. still made yes/no/unsure).
+     (consequence: coding at write-up time, the same day as the interview, rather than in
+     one pass under HD-11.)
+
+Under every option, "who makes it" is answered by role only (ยาย, แม่ค้า): the loader's
+personal-data check refuses names.
+
+**Recommendation:** none.
+**Decision:**
+**Reasoning:**
+**Date decided:**
+
+---
+
+## HD-15 — ที่มา → acquisition-mode mapping
+**Date presented:** 2026-11-06 · **Status:** OPEN
+**Arises from:** TIMELINE v4 T1.12 (due 26 Oct; blocks Figure 7). CLAUDE.md §9 reserved
+this number for this gate; no entry existed before this one.
+
+**What the code does today.** `src/ingest/dcp_form.py` (line 130) holds
+`ACQUISITION_HINTS`, 13 substring → mode pairs, applied first-match-wins. Nobody decided
+it, which TIMELINE §0 rule 2 names as the thing not to do. The modes it writes sit only in
+`raw_recipes.parsed_json`; `recipe_ingredients` is empty, so no analysis reads them yet.
+
+**Evidence** (official ingredient rows of the 203 loaded DCP recipes; query on
+`raw_recipes.parsed_json->'ingredients'`, run 2026-11-06):
+- 1,064 ingredient rows; **805 carry ที่มา text**; the hints assign a mode to **251**
+  (market 147, grown 83, foraged 21, packaged 0). 554 rows with text get no mode.
+  (TIMELINE quotes 264 of 1,132 from an earlier load.)
+- **461 distinct strings.** The top 79 cover 50% of the 805 rows; the top 300 cover 80%;
+  362 strings occur once.
+- **Several modes in one string:** 65 rows in 14 strings match hints for two or more
+  modes, e.g. `ปลูกเองรอบบ้าน/ขอจาก เพื่อนบ้าน/จัดซื้อในชุมชน` (18 rows, plus 13 under the
+  misspelling `เพื่อบ้าน`), which the hints
+  call `grown` because that hint is listed first.
+- **Place, not mode:** `ท้องถิ่น` (17), `ชุมชน` (13), `วัตถุดิบในท้องถิ่น` (10),
+  `ในท้องถิ่น` (8), `สวนหลังบ้าน` (6) and similar get no mode.
+- **Not a source at all:** units (`กรัม` 9, `ช้อนโต๊ะ` 4), a citation
+  (`กรมอนามัย กระทรวงสาธารณสุข` 16) and `[REDACTED]` (9). Units are column bleed from
+  §4 of the form.
+- The schema allows only `grown | foraged | market | packaged` (migration 005); a new
+  value would need a migration.
+
+**Options:**
+  A. **Accept the 13 hints as they are.** (consequence: no work; 31% of rows with text get
+     a mode, and multi-mode strings take whichever hint is listed first.)
+  B. **Edit the keyword table**, row by row, plus written rules for multi-mode, place-only
+     and non-source strings. (consequence: an hour or two; coverage stays partial and
+     rule-dependent.)
+  C. **Hand-code the strings** into `data/reference/acquisition_map.csv`: every one of
+     the 461, or the top N (79 → 50% of rows, 300 → 80%), and the rest stay NULL.
+     (consequence: exact and auditable; several hours.)
+  D. **Drop acquisition mode** this cycle; Figure 7 is cut or becomes descriptive.
+
+**Sub-question for A–C, multi-mode strings:** (i) NULL; (ii) a new `mixed` value
+(migration); (iii) store every mode the text names (migration); (iv) the first-named mode.
+**And place-only strings** (`ท้องถิ่น`, `ชุมชน`): NULL, or a value of their own.
+
+Whatever is decided, the code will read the decided table and write NULL for anything not
+in it (T1.12).
+
+**Recommendation:** none.
+**Decision:**
+**Reasoning:**
+**Date decided:**
+
+---
+
+## HD-6 (rules) — Lexicon granularity rules
+**Date presented:** 2026-11-06 · **Status:** OPEN
+**Arises from:** TIMELINE v4 T1.16 (rules due 20 Oct; Gate G3 on Sun 8 Nov asks for ≥150
+entries covering ≥80% of mentions). CLAUDE.md §9 calls HD-6 the most important gate in
+the project. This entry covers only the **rules**; the entries themselves stay the
+researcher's, and `scripts/lexicon_worklist.py` never proposes one (boundary set
+2026-09-29).
+
+**Evidence** (`scripts/lexicon_worklist.py` and `data/coverage/lexicon_20261012.csv`):
+- The lexicon has **0 entries**. The corpus holds **13,206 ingredient mentions in 8,162
+  distinct strings**: official 1,063 mentions (604 strings), commercial 12,143 (7,692).
+- **On raw strings, 80% of mentions needs the top 5,521 strings, and 90% needs 6,842.**
+  The reason is that kapook strings are whole lines with quantities and preparation
+  words still attached; the §7.2 step that strips them has not been built. A rough regex
+  screen run in this session (digits, Thai digits, and common unit words such as ช้อน,
+  ถ้วย, กรัม, เม็ด; it over-matches, e.g. หัว inside หัวหอม) flags about 63% of commercial
+  mentions and 7.5% of official mentions.
+- Granularity questions the corpus already raises (strings and official / commercial
+  recipe counts from the worklist):
+  - **Variety or freshness:** `พริกขี้หนู` (4 / 13), `พริกขี้หนูสวน` (2 / 3),
+    `พริกขี้หนูสด` (1 / 0), `พริกขี้หนูแดงจินดา` (1 / 0).
+  - **Processed form:** `กะทิ` (21 / 6) and `กะทิสด` (2 / 2); `มะขามเปียก` (6 / 6) and
+    `น้ำมะขามเปียก` (6 / 8); `เกลือ` (21 / 51) and `เกลือป่น` (7 / 34).
+  - **Plant part:** `มะพร้าว` (8 / 0) beside `กะทิ` and `น้ำตาลมะพร้าว` (8 / 3).
+  - **Sugars by source:** `น้ำตาลทราย` (8 / 124), `น้ำตาลปี๊บ` (5 / 19),
+    `น้ำตาลมะพร้าว` (8 / 3), `น้ำตาลโตนด` (5 / 0).
+  - **Several ingredients or alternatives in one string:** `ข่า ตะไคร้ หอมแดง`,
+    `ปลาร้าหรือปลาเค็ม`, `กะทิ+เครื่องแกง+สับปะรด`.
+  - **Text that is not an ingredient:** a health claim attached to กะทิ, from the form.
+
+**Rule questions:**
+  1. **Variety / cultivar** (พริกขี้หนู vs พริกขี้หนูสวน): one entry, or separate
+     entries?
+  2. **State** (สด, แห้ง, ป่น): part of the entry, or dropped as a modifier?
+  3. **Processed or derived forms** (กะทิ from มะพร้าว, น้ำมะขามเปียก from มะขามเปียก):
+     their own entries, or mapped to the source ingredient?
+  4. **Plant parts** (ใบมะกรูด / ผิวมะกรูด / มะกรูด): separate entries, or one?
+  5. **Multi-ingredient and "A หรือ B" strings:** split into several mentions, map to the
+     first, or leave unmapped?
+  6. **What the lexicon maps:** (a) raw strings as they stand, so coverage is measured on
+     whole lines; or (b) build the §7.2 quantity-and-unit stripping step first [CC], so
+     the lexicon maps bare names. (consequence of (a): G3's 80% target means thousands of
+     mappings. Consequence of (b): a cleaning step must exist before authoring starts,
+     and which words count as preparation words rather than part of the name, e.g.
+     whether สด is stripped, is the same judgment as question 2.)
+
+**Recommendation:** none. These rules are the lexicon's methods section.
+**Decision:**
+**Reasoning:**
+**Date decided:**
+
+---
+
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
 **Date:** 2026-09-12
 **This is not a gate.** It is a documentation discrepancy found while building
