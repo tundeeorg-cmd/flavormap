@@ -1723,6 +1723,23 @@ before this one.
 Under every option, "who makes it" is answered by role only (ยาย, แม่ค้า): the loader's
 personal-data check refuses names.
 
+**Drafts ready, 2026-11-06 (none applied).** Each option is a small step once chosen; all
+in `db/drafts/hd43/`. Each was tested on a throwaway database built from migrations
+001–025 plus the draft, which was dropped afterwards; the project database was not touched.
+- **A:** `026_A_dish_status_reports.sql` and `A_loader.patch`, which adds a `[[q10]]`
+  block to the interview file, a `Q10Answer` in `src/ingest/interview.py`, the loader
+  write, the template text and tests. On the scratch database: 110 interview tests pass,
+  including "a Q10 answer writes no recipe" (T1.4's done-when) and "a Q10 answer about a
+  non-official recipe aborts the load".
+- **B:** `026_B_interview_dishes_flag.sql` (adds `cooked_by_informant` and a CHECK that a
+  Q10-only dish has no recipe and names an official dish) and `B_loader.patch`. On the
+  scratch database: 108 interview tests pass, including the T1.4 done-when test.
+- **C:** `C_template.patch`, a template comment only. No migration and no loader change.
+- Part 2 B's coded columns are written as commented lines in the A and B SQL drafts.
+
+To adopt A or B: copy the SQL to `db/migrations/026_….sql`, run `git apply` on the
+patch, then `make migrate` and `make test`. Both patches currently apply cleanly to `main`.
+
 **Recommendation:** none.
 **Decision:**
 **Reasoning:**
