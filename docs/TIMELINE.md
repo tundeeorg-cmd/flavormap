@@ -42,7 +42,7 @@ committed.
 5. **Green before commit:** `pytest -q`, `ruff check`, `mypy` all pass. New behaviour gets a test.
 6. **Small, honest commits.** One logical change per commit, conventional-commit prefixes
    (`feat:`, `fix:`, `docs:`, `data:`, `test:`). No work left on side branches — merge or delete within the week.
-7. **Migrations are append-only** (next is `025`). Never edit an applied migration.
+7. **Migrations are append-only** (next is `026`; `025` is `recipes.extraction_method`). Never edit an applied migration.
 8. **Raw data stays raw.** `data/raw/` is read-only to pipelines and never committed or published.
 9. **Back up after any data change:** `make db-dump`, then `make backup TO=<off-laptop path>`.
 10. **Repo-relative paths only.** No `~/Desktop/...` in code.
@@ -161,11 +161,11 @@ and Phase 3 compresses by one week (ICWSM is then the first thing dropped).
 
 | ID | Owner | Task | Files / commands | Done when |
 |---|---|---|---|---|
-| T0.1 | [BO→CC] | Review the unmerged parser fix `b55d02b` (branch `claude/elastic-jemison-170dd6`). Bo reads the diff and the 10→0 section-bleed evidence; decide merge or reject | `src/ingest/dcp_form.py`, `tests/test_ingredient_table.py` | Fix is on `main` (or rejected and DB re-ingested from `main`); worktree branch deleted; suite green |
+| T0.1 ✅ | [BO→CC] | Review the unmerged parser fix `b55d02b` (branch `claude/elastic-jemison-170dd6`). Bo reads the diff and the 10→0 section-bleed evidence; decide merge or reject | `src/ingest/dcp_form.py`, `tests/test_ingredient_table.py` | Fix is on `main` (or rejected and DB re-ingested from `main`); worktree branch deleted; suite green |
 | T0.2 | [CC] | Dump and back up the database off the laptop | `make db-dump`; `make backup TO=<USB or Drive path>` | A dump dated ≥ T0.1 exists in two places; restore tested once with `scripts/restore*` into a scratch DB |
-| T0.3 | [CC] | Load the 30 DCP documents whose province parse failed, including `northeast_5_3.pdf` (Nakhon Ratchasima). Add a test per failure pattern | `src/ingest/dcp_form.py`, `scripts/` ingest, `tests/` | `recipes` has 231 official rows (or each exclusion is listed with a reason in `docs/source_audit.md`); PDPA tests pass |
+| T0.3 ✅ | [CC] | Load the 30 DCP documents whose province parse failed, including `northeast_5_3.pdf` (Nakhon Ratchasima). Add a test per failure pattern | `src/ingest/dcp_form.py`, `scripts/` ingest, `tests/` | `recipes` has 231 official rows (or each exclusion is listed with a reason in `docs/source_audit.md`); PDPA tests pass |
 | T0.4 | [BO] | Verify the 6 fieldwork-province checkbox readings by eye (`northeast_5_1..3`, Buri Ram `northeast_6_1..3`); resolve `northeast_5_3` double tick and `northeast_6_2` occasion/endangerment confusion | `scripts/verify_checkboxes.py` | 6 readings confirmed or corrected in a committed fixture; HD-RQ5 entry written (see §11) |
-| T0.5 | [CC] | Commit the fieldwork pack | `FlavorMap_Fieldwork_Pack.pdf` → `docs/fieldwork/` | Tracked; `.gitignore` unchanged |
+| T0.5 ✅ | [CC] | Commit the fieldwork pack | `FlavorMap_Fieldwork_Pack.pdf` → `docs/fieldwork/` | Tracked; `.gitignore` unchanged |
 | T0.6 | [BO] | **Send the DCP permission request (HD-3)** | `docs/dcp_permission_request.md` → email; status line updated | Sent; date recorded in `docs/decisions.md` HD-3 |
 | T0.7 | [BO] | Fill the capacity table (§4) with ISB exam and break dates | this file | Dates entered |
 | T0.8 | [CC] | Load the Nakhon Nayok manual transcription from `data/raw/dcp_manual/` with `extraction_method = 'manual'`; loader + test; PDPA scan (no name/address/phone fields exist in the template) | migration if the column is missing, `src/ingest/`, `tests/` | Nakhon Nayok rows in `recipes` flagged manual; official coverage reported (target 74–77 provinces); suite green |
@@ -178,13 +178,13 @@ and Phase 3 compresses by one week (ICWSM is then the first thing dropped).
 
 | ID | Owner | Task | Files | Done when |
 |---|---|---|---|---|
-| T1.1 | [CC] | Verify the CFP items in §1.1 from the official sites | `docs/venues.md` | Every bullet answered with source URL and date checked |
+| T1.1 ✅ | [CC] | Verify the CFP items in §1.1 from the official sites | `docs/venues.md` | Every bullet answered with source URL and date checked |
 | T1.2 | [BO] | Finalise the interview protocol: reconcile Q1, Q2, Q4–Q7 with v2 (locate the v2 protocol in `docs/archive/` or past chats); keep Q3, Q8, Q9, Q10 as written in the Bible | `docs/fieldwork/protocol_v4.md` (Thai + English) | Committed; marked FINAL; dated |
 | T1.3 | [BO] | Fix the Thai consent form: remove the real-name option (or move named credit outside the database, decided in HD-consent); fix the grade (ม.4 vs ม.5) to match the permission letter | `docs/fieldwork/consent_th.md` | Form promises only what the system does; committed |
-| T1.4 | [BO→CC] | **Q10 storage.** Bo decides (HD-Q10); Claude Code adds a separate table, e.g. `dish_status_reports(informant_id, official_recipe_id, still_made, who_makes, young_people_know, notes)`, so Q10 answers about government dishes never create a `domestic` recipe. Loader + tests | migration `025_dish_status_reports.sql`, `src/ingest/interview.py`, `tests/test_interview.py` | A Q10 answer about a dish the cook does not make produces zero `recipes` rows (test); PDPA scan passes |
+| T1.4 | [BO→CC] | **Q10 storage.** Bo decides (HD-Q10); Claude Code adds a separate table, e.g. `dish_status_reports(informant_id, official_recipe_id, still_made, who_makes, young_people_know, notes)`, so Q10 answers about government dishes never create a `domestic` recipe. Loader + tests | migration `026_dish_status_reports.sql`, `src/ingest/interview.py`, `tests/test_interview.py` | A Q10 answer about a dish the cook does not make produces zero `recipes` rows (test); PDPA scan passes |
 | T1.5 | [BO+FAM] | Book interview dates: 6 Korat interviews on weekends 31 Oct – 6 Dec; Buri Ram weekend (28–29 Nov or 5–6 Dec). Arrange introductions | `docs/fieldwork/schedule.md` (no names, roles only) | All 12 slots dated; transport confirmed |
 | T1.6 | [BO] | Mentor outreach: email Assoc. Prof. Attapol Rutherford (Chula Linguistics) and Dr. Chulanee Thianthai (Chula Sociology & Anthropology); attach the 2-page summary and GitHub link; ask for a 30-min review of the DH draft ~10 Nov | email | Sent; replies logged in `CREDITS.md` draft (role, hours) |
-| T1.7 | [CC] | Write the dated interview write-up template + cook-along log template check; one dry-run load with a fake, PII-free interview | `data/interviews/TEMPLATE.toml`, `data/cook_along/TEMPLATE` | Dry run loads, then is deleted; tests green |
+| T1.7 ✅ | [CC] | Write the dated interview write-up template + cook-along log template check; one dry-run load with a fake, PII-free interview | `data/interviews/TEMPLATE.toml`, `data/cook_along/TEMPLATE` | Dry run loads, then is deleted; tests green |
 
 ### 6.2 By Sun 26 Oct — pre-registration and origin story (Gate G2)
 
@@ -192,7 +192,7 @@ and Phase 3 compresses by one week (ICWSM is then the first thing dropped).
 |---|---|---|---|---|
 | T1.8 | [BO] | **Pre-register.** Rewrite `docs/hypotheses.md` for v4: one dated prediction per RQ (direction + rough magnitude) and what a NO looks like. Remove v3 content to `docs/archive/` | `docs/hypotheses.md` | Committed **before the first interview**; commit hash recorded in this file |
 | T1.9 | [BO] | Cook the origin dish with the family member; photograph the mise en place; write what actually happened, including what contradicts memory | `docs/notebook.md` (first researcher entry), `data/photos/origin/` (gitignored if faces) | Committed with the real date |
-| T1.10 | [CC] | Update docs to v4: README RQ section; `CLAUDE.md` §7.1/§10 (~800 target, not 2,200), §7.3 (fieldwork now load-bearing), gate numbering; create `docs/research_questions.md`; mark Mantel/region-signal code and v3 figures as `archived` (move to `src/analyze/v3/`, `figures/v3/`) | listed files | No v3 RQ text outside `docs/archive/`; suite green |
+| T1.10 ✅ | [CC] | Update docs to v4: README RQ section; `CLAUDE.md` §7.1/§10 (~800 target, not 2,200), §7.3 (fieldwork now load-bearing), gate numbering; create `docs/research_questions.md`; mark Mantel/region-signal code and v3 figures as `archived` (move to `src/analyze/v3/`, `figures/v3/`) | listed files | No v3 RQ text outside `docs/archive/`; suite green |
 | T1.11 | [BO] | Amend the Bible: v4.1 note — fieldwork provinces are Nakhon Ratchasima + Buri Ram (HD-32); limitation: two neighbouring Isaan provinces, no North contrast | `FlavorMap_Project_Bible_v4.md` | Committed |
 | T1.12 | [BO→CC] | **HD-15 acquisition mode.** Review the existing `ACQUISITION_HINTS` mapping (ที่มา text → grown/foraged/market/packaged). Bo accepts, edits or rejects each mapping; Claude Code then makes the code read the decided table instead of hard-coded hints | `docs/decisions.md` HD-15, `src/ingest/dcp_form.py`, `data/reference/acquisition_map.csv` | No acquisition mode written without a decided mapping; coverage (currently 264/1,132 rows) reported |
 
@@ -203,8 +203,8 @@ Order matters: **inventory → ethics → decisions → load → labels.** Nothi
 
 | ID | Owner | Task | Files | Done when |
 |---|---|---|---|---|
-| T1.13a | [CC] | **Inventory the new folders** (`sanook_food`, `mthai_food`, `tat_food`, `m_culture`), read-only. Per folder: file count and type (HTML/JSON/PDF/image), manifest present? (url, fetched_at, http_status, hash), date range, distinct pages vs. recipes (one article may hold several recipes), field fill rates (title, published_at, site category/tags, region claim, province claim, ingredient lines), and whether any page holds personal data (author names, phone, LINE IDs, comments). For `tat_food` and `m_culture`: are these recipes with ingredient lists, or dish lists/descriptions only? | `scripts/inventory_sources.py` → `data/coverage/sources_20261013.md`; fill `[TBD]` in §2.1 | Report committed; §2.1 counts filled from the report |
-| T1.13b | [CC] | **Ethics backfill.** Add a dated ETHICS.md row for each of the 4 sources: robots.txt and Terms text checked *today*, quoted. Record honestly whether these checks happened **before** the 7 Oct collection; if not, say so ("retrospective audit, 13 Oct"). If any site's terms forbid collection or reuse → mark that source **excluded**, keep raw files local only, never load or publish | `ETHICS.md`, `docs/source_audit.md` | 4 rows; any excluded source listed with the clause quoted |
+| T1.13a ✅ | [CC] | **Inventory the new folders** (`sanook_food`, `mthai_food`, `tat_food`, `m_culture`), read-only. Per folder: file count and type (HTML/JSON/PDF/image), manifest present? (url, fetched_at, http_status, hash), date range, distinct pages vs. recipes (one article may hold several recipes), field fill rates (title, published_at, site category/tags, region claim, province claim, ingredient lines), and whether any page holds personal data (author names, phone, LINE IDs, comments). For `tat_food` and `m_culture`: are these recipes with ingredient lists, or dish lists/descriptions only? | `scripts/inventory_sources.py` → `data/coverage/sources_20261013.md`; fill `[TBD]` in §2.1 | Report committed; §2.1 counts filled from the report |
+| T1.13b ✅ | [CC] | **Ethics backfill.** Add a dated ETHICS.md row for each of the 4 sources: robots.txt and Terms text checked *today*, quoted. Record honestly whether these checks happened **before** the 7 Oct collection; if not, say so ("retrospective audit, 13 Oct"). If any site's terms forbid collection or reuse → mark that source **excluded**, keep raw files local only, never load or publish | `ETHICS.md`, `docs/source_audit.md` | 4 rows; any excluded source listed with the clause quoted |
 | T1.13c | [BO] | **HD-register** for `tat_food` and `m_culture` (state sources that are not the DCP forms). Options: (a) merge into *official* — breaks the balanced 3 × 77 design; (b) new *state-promotional* register kept separate from DCP — usable in RQ3 ("which dishes appear on other state lists?"); (c) reference only — used for dish-name matching and province hints, never as recipes. Decide with T1.13a's evidence | `docs/decisions.md` | DECIDED entry with rejected options |
 | T1.13d | [BO] | **HD-sources (updated)**: commercial register = Kapook + Sanook + MThai (3 of the Bible's ≥4; Wongnai/Cookpad not this cycle). **HD-dedup**: cross-source duplicates (portals syndicate content) — accept the Bible rule (ingredient-set Jaccard > 0.9) or set another threshold after seeing T1.13e's numbers. **HD-balance**: keep all commercial recipes, or cap/sample per source so Kapook doesn't dominate | `docs/decisions.md`, `docs/limitations.md` | Three DECIDED entries |
 | T1.13e | [CC] | Parse + load the approved sources: Sanook and MThai as `commercial` (one record per recipe; `recipe_index_in_article` where needed); TAT / m-culture per HD-register. PDPA filter before any write; no method prose, no author names. Then measure cross-source duplicates and report before applying HD-dedup | `src/ingest/<source>.py`, `scripts/`, migration `026_*` if new columns, `tests/` (3 fixtures per source) | Rows per source in `raw_recipes` / `recipes`; duplicate report; PDPA + full suite green; `make db-dump` + backup |
@@ -220,7 +220,7 @@ T1.13–T1.15 by Sun 1 Nov.
 | ID | Owner | Task | Files | Done when |
 |---|---|---|---|---|
 | T1.16 | [BO→CC] | **HD-6 granularity rules** first (e.g. are พริกขี้หนู / พริกขี้หนูสวน one entry or two; how plant parts and processed forms map). Then author entries top-down by frequency | `scripts/lexicon_worklist.py`, `data/reference/ingredients_lexicon.csv`, `scripts/load_lexicon.py` | ≥150 canonical entries; **≥80% of ingredient mentions** (by count) mapped; every non-obvious mapping has a note |
-| T1.17 | [CC] | Mention-coverage report after each batch | `scripts/lexicon_coverage.py` → `data/coverage/lexicon_YYYYMMDD.csv` | Weekly snapshot committed |
+| T1.17 ✅ | [CC] | Mention-coverage report after each batch | `scripts/lexicon_coverage.py` → `data/coverage/lexicon_YYYYMMDD.csv` | Weekly snapshot committed |
 
 Weekly quota: **50 entries/week** (Oct 20 → Dec 13 ≈ 8 weeks ≈ 400).
 
@@ -232,9 +232,9 @@ corpus, reported per source.
 
 | ID | Owner | Task | Files | Done when |
 |---|---|---|---|---|
-| T1.18 | [CC] | Export analysis Parquet from the DB (no PII) | `scripts/export_parquet.py` → `data/processed/*.parquet` | Parquet regenerated by one command; PDPA scan covers Parquet |
+| T1.18 ✅ | [CC] | Export analysis Parquet from the DB (no PII) | `scripts/export_parquet.py` → `data/processed/*.parquet` | Parquet regenerated by one command; PDPA scan covers Parquet |
 | T1.19 | [CC] | Preliminary RQ1: per province (or region, per HD-labelling) normalised ingredient vectors per register; official↔commercial cosine distance; n reported beside every value. **Is it real? (RQ1 v2):** permutation test — shuffle province labels 9,999 times and report where the observed distance falls (empirical p-value); 95% bootstrap CIs from resampling recipes within each province. **Robustness check:** repeat the commercial side per source (Kapook-only, Sanook-only, MThai-only) to show the result is not one site's house style | `src/analyze/rq1_registers.py`, `notebooks/01_rq1_prelim.ipynb` (keep unpolished) | Table of distances + n + 95% CI + permutation p, pooled and per source, committed |
-| T1.20 | [CC] | Figure 6: province × ingredient TF-IDF heatmap, top ~60 ingredients by variance, both axes seriated by clustering (never alphabetical), faceted by register | `src/viz/figure6.py` → `figures/fig6_heatmap.png` | Figure regenerates from Parquet with one command |
+| T1.20 ✅ | [CC] | Figure 6: province × ingredient TF-IDF heatmap, top ~60 ingredients by variance, both axes seriated by clustering (never alphabetical), faceted by register | `src/viz/figure6.py` → `figures/fig6_heatmap.png` | Figure regenerates from Parquet with one command |
 | T1.21 | [BO] | Interpret: which provinces/regions agree most and least; is anything surprising; write 5 bullet observations | `docs/notebook.md` | Committed, dated |
 
 ### 6.6 Write and submit DH2027 — Mon 9 – Fri 20 Nov
