@@ -19,6 +19,7 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 
 from scripts.lexicon_worklist import QUERY as INGREDIENT_QUERY
+from scripts.measure_kapook_labels import BARE_REGION_TERMS, REGION_TERMS, region_claims
 from src.clean.dedupe import jaccard_similarity, title_similarity
 from src.clean.lexicon import key
 from src.db import get_connection
@@ -105,6 +106,13 @@ def main() -> int:
         print(f"  {label:58} {n}")
     named = Counter(p for r in records for p in provinces_named(r, provinces))
     print(f"  posts naming each province: {dict(named.most_common()) or 'none'}")
+    for rule, terms in (("b_compound", REGION_TERMS), ("b_bare", BARE_REGION_TERMS)):
+        regions: Counter[str] = Counter()
+        for r in records:
+            found = region_claims(" ".join([r.title, *r.tags]), terms)
+            if len(found) == 1:
+                regions[next(iter(found))] += 1
+        print(f"  one region claimed in title/tags ({rule}, Kapook's rule): {dict(regions)}")
     lines = [len(r.ingredient_lines) for r in records]
     dates = sorted(r.published_at for r in records if r.published_at)
     print(f"  ingredient lines: total {sum(lines)}, median {sorted(lines)[len(lines) // 2]}")

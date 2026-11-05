@@ -1450,6 +1450,33 @@ register"). On title and category, across the 1,360 loaded kapook recipes:
      vertex rests on another source. (consequence: depends on HD-sources and the
      pending source audits.)
 
+**Evidence added 2026-11-06: how many units reach n ≥ 5 commercial recipes under each
+option.** Counts only. The official register is complete by design (HD-23) and is not
+counted here. Sources: Kapook from `data/coverage/kapook_label_yield.csv`
+(`scripts/measure_kapook_labels.py`, 1,360 loaded recipes); Kapook body text from the
+August hand audit `docs/kapook_province_hits_audit.csv` and `docs/labelled_fraction.md`
+(2,521 **pages**, not loaded recipes); MThai from `make parse-mthai` (200 posts, not
+loaded, so it counts only if HD-40 admits it).
+
+| Option | Unit | Kapook only | Kapook + MThai |
+|---|---|---|---|
+| A. Province, strict rule on title/category | province | **0** of 77 (Nakhon Ratchasima 2, TH-73 1) | **1** (Chai Nat 15, all from the MThai tag `อาหารจังหวัดชัยนาท`) |
+| B. Region, compound terms | region | **3** of 4 (Northeast 9, South 8, North 5; Central 0) | **3** of 4 (Northeast 14, South 11, North 9; Central 1) |
+| B, with bare เหนือ/ใต้ | region | 3 of 4 (South 10) | 3 of 4 |
+| C. Both | region / province | 3 of 4 regions; 0 provinces | 3 of 4 regions; 1 province |
+| D. Body text, provinces, hand-audited `dish` verdicts | province | **2** (Nakhon Ratchasima 9, Sukhothai 5; next Chiang Mai, Phuket, Chiang Rai 3 each) | adds MThai's Chai Nat → 3 |
+| D. Body text, regions, unaudited compound terms | region | **4** of 4 (Northeast 74, South 53, North 38, Central 15 pages) | 4 of 4 |
+| D. Body-text `dish` verdicts rolled up to region | region | **4** of 4 (North 11, Northeast 10, Central 7, South 5) | 4 of 4 |
+| E. No labels | — | 0 | 0 |
+
+Notes:
+- Kapook + MThai under B adds MThai's single-region claims in title or tags (Kapook's
+  `b_compound` rule): Northeast 5, North 4, South 3, Central 1. MThai's 15 Chai Nat posts
+  are Central under `region4` but use no region term, so they count under A, not B.
+- Row D counts pages. A page can hold several recipes (HD-22), so the recipe counts may
+  differ. 137 of the 157 region-term pages have not been read by hand.
+- Under C, region-level analysis has the same counts as B.
+
 **Also open under T1.14:** HD-sources, whether the commercial register stays
 single-source this cycle. It is not written up here.
 
@@ -1466,6 +1493,10 @@ paper defends.
 **Arises from:** T1.19. Bible v4 §6 specifies "cosine distance on normalised ingredient
 vectors" but not how a set of recipes becomes one vector. The choice changes the
 distances, so `src/analyze/rq1_registers.py` takes it as a required input with no default.
+
+**Evidence added 2026-11-06:** the weighting does not change how many recipes a unit
+has, so the n ≥ 5 counts in HD-37's table are the same under A, B and C here. The choice
+changes the distances only, and no distances have been computed.
 
 **Options:**
   A. **Prevalence**: the share of the unit's recipes that contain each ingredient.
