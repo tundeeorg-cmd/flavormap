@@ -50,6 +50,19 @@ ON CONFLICT (alias) DO UPDATE SET
     match_score = NULL, approved_by_human = true
 """
 
+UPSERT_SPLIT = """
+INSERT INTO ingredient_alias_splits (alias, canonical_id, approved_by_human)
+VALUES (%s, %s, true)
+ON CONFLICT (alias, canonical_id) DO NOTHING
+"""
+
+# A string may be an alias or a split, never both (src.clean.lexicon refuses it in the
+# files; this catches one that reached the database by another route).
+SPLIT_ALIAS_OVERLAP = """
+SELECT DISTINCT s.alias FROM ingredient_alias_splits s
+  JOIN ingredient_aliases a ON a.alias = s.alias
+"""
+
 UPSERT_CONFLATION = """
 INSERT INTO ingredient_conflations (canonical_id_a, canonical_id_b, reason)
 VALUES (%s, %s, %s)
@@ -70,9 +83,15 @@ def load(lexicon: Lexicon) -> dict[str, list[str]]:
                                                 c.decision_note))
             for alias, cid in lexicon.aliases.items():
                 conn.execute(UPSERT_ALIAS, (alias, cid))
+            for alias, parts in lexicon.splits.items():
+                for cid in parts:
+                    conn.execute(UPSERT_SPLIT, (alias, cid))
             for p in lexicon.conflations:
                 conn.execute(UPSERT_CONFLATION, (p.canonical_id_a, p.canonical_id_b,
                                                  p.reason))
+            overlap = [r[0] for r in conn.execute(SPLIT_ALIAS_OVERLAP).fetchall()]
+            if overlap:
+                raise LexiconError("both an alias and a split: " + ", ".join(overlap))
             violations = conn.execute(CONFLATION_VIOLATIONS).fetchall()
             if violations:
                 raise LexiconError("\n".join(
@@ -91,6 +110,10 @@ def load(lexicon: Lexicon) -> dict[str, list[str]]:
                 r[0] for r in conn.execute(
                     "SELECT alias FROM ingredient_aliases WHERE match_method = 'manual'")
                 if r[0] not in lexicon.aliases),
+            "ingredient_alias_splits": sorted(
+                f"{a}→{c}" for a, c in conn.execute(
+                    "SELECT alias, canonical_id FROM ingredient_alias_splits")
+                if c not in lexicon.splits.get(a, ())),
             "ingredient_conflations": sorted(
                 f"{a}/{b}" for a, b in conn.execute(
                     "SELECT canonical_id_a, canonical_id_b FROM ingredient_conflations")
@@ -113,7 +136,8 @@ def main() -> int:
         return 1
 
     print(f"loaded {len(lexicon.canonicals)} entries, {len(lexicon.aliases)} aliases "
-          f"(entry names included), {len(lexicon.conflations)} conflation pairs")
+          f"(entry names included), {len(lexicon.conflations)} conflation pairs, "
+          f"{len(lexicon.splits)} split strings")
     for table, keys in not_in_files.items():
         if keys:
             print(f"in {table} but not in the files (not removed): {', '.join(keys)}")

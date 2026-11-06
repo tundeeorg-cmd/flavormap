@@ -18,6 +18,10 @@ cleaning step. An entry named ``พริกแห้ง`` maps the DCP mention 
 so the commercial share stays low until that step exists or the line is an alias. That is
 a fact about the pipeline, not about the lexicon's progress.
 
+**Re-run after each batch** (``make lexicon``: load, canonicalise, report). Each scope
+shows its change since the newest earlier snapshot. A split string (HD-6 Q5) counts as
+mapped.
+
 **What is committed.** ``data/coverage/lexicon_YYYYMMDD.csv`` holds counts only: no
 ingredient string, nothing DCP-derived. It is committed under the same rule as HD-28's
 status snapshots (`.gitignore`). This script never writes to the database and never
@@ -99,6 +103,26 @@ def write_snapshot(results: list[Coverage], day: datetime.date, out_dir: Path) -
     return path
 
 
+def previous_snapshot(out_dir: Path, before: datetime.date) -> dict[str, tuple[int, int]]:
+    """``{scope: (mapped, mentions)}`` from the newest snapshot dated before `before`,
+    so each batch's report shows what the batch moved. Empty when there is none."""
+    older = sorted(p for p in out_dir.glob("lexicon_*.csv")
+                   if p.stem.removeprefix("lexicon_") < f"{before:%Y%m%d}")
+    if not older:
+        return {}
+    with older[-1].open(encoding="utf-8", newline="") as handle:
+        return {r["scope"]: (int(r["mapped"]), int(r["mentions"]))
+                for r in csv.DictReader(handle)}
+
+
+def _delta(c: Coverage, before: dict[str, tuple[int, int]]) -> str:
+    if c.scope not in before:
+        return ""
+    mapped, mentions = before[c.scope]
+    old = mapped / mentions if mentions else 0.0
+    return f"  ({c.share - old:+.1%} since last snapshot)"
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out-dir", type=Path, default=COVERAGE_DIR)
@@ -109,16 +133,19 @@ def main() -> int:
         index = mapping_index(conn.execute(MAPPED_QUERY).fetchall())
         entries = conn.execute("SELECT count(*) FROM canonical_ingredients").fetchone()[0]
     results = coverage(rows, index)
-    path = write_snapshot(results, datetime.date.today(), args.out_dir)
+    today = datetime.date.today()
+    before = previous_snapshot(args.out_dir, today)
+    path = write_snapshot(results, today, args.out_dir)
 
     total = results[0]
     print(f"lexicon entries     {entries}  (T1.16 target ≥ {TARGET_ENTRIES})")
     print(f"mentions mapped     {total.mapped} of {total.mentions} = {total.share:.1%}  "
-          f"(T1.16 target ≥ {TARGET_SHARE:.0%})")
+          f"(T1.16 target ≥ {TARGET_SHARE:.0%}){_delta(total, before)}")
     if total.conflicting:
         print(f"CONFLICTING         {total.conflicting} mentions map to two entries")
     for c in results[1:]:
-        print(f"  {c.scope:<28} {c.mapped:>6} / {c.mentions:<6} {c.share:6.1%}")
+        print(f"  {c.scope:<28} {c.mapped:>6} / {c.mentions:<6} {c.share:6.1%}"
+              f"{_delta(c, before)}")
     print(f"wrote {path}")
     return 0
 

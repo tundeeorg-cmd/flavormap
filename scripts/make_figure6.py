@@ -1,6 +1,12 @@
-"""Figure 6: province × ingredient TF-IDF heatmap by register (TIMELINE T1.20).
+"""Figure 6: unit × ingredient TF-IDF heatmap by register (TIMELINE T1.20).
 
-    uv run python -m scripts.make_figure6 [--threshold 10] [--out figures/fig6_heatmap.png]
+    uv run python -m scripts.make_figure6 [--unit region|province] [--threshold N]
+                                          [--out figures/fig6_heatmap.png]
+
+**Unit.** Default region, RQ1's analysis unit (HD-37 C); ``--unit province`` draws the
+original province figure. At region level no commercial count threshold has been decided
+(HD-23's applies to provinces), so the default there is 0: every region is drawn and each
+panel title carries its recipe count. Pass ``--threshold`` to apply one.
 
 Reads the Parquet that `make parquet` writes; `make figures` runs this. The design is
 documented in `src/viz/figure6.py`.
@@ -24,20 +30,29 @@ from pathlib import Path
 import pandas as pd
 
 from src.analyze.eligibility import caption
-from src.analyze.rq1_registers import PROCESSED, InputError, load_inputs, profiles
+from src.analyze.rq1_registers import (
+    ANALYSIS_UNIT,
+    COLUMN,
+    PROCESSED,
+    UNITS,
+    InputError,
+    load_inputs,
+    profiles,
+)
 from src.config import FIGURES_DIR, PROVINCE_MIN_N
 from src.viz.figure6 import TOP_N, build, render
 
 OUT = FIGURES_DIR / "fig6_heatmap.png"
 
 
-def commercial_filter(data: pd.DataFrame, threshold: int) -> pd.DataFrame:
-    """Drop commercial recipes in provinces below `threshold` (HD-23). Other registers
-    pass untouched."""
+def commercial_filter(data: pd.DataFrame, threshold: int,
+                      column: str = "province_code") -> pd.DataFrame:
+    """Drop commercial recipes in units below `threshold` (HD-23 for provinces). Other
+    registers pass untouched."""
     commercial = data["register"] == "commercial"
-    counts = data[commercial].groupby("province_code")["recipe_id"].nunique()
+    counts = data[commercial].groupby(column)["recipe_id"].nunique()
     keep = set(counts[counts >= threshold].index)
-    return data[~commercial | data["province_code"].isin(keep)]
+    return data[~commercial | data[column].isin(keep)]
 
 
 def labels(processed: Path = PROCESSED) -> tuple[dict[str, str], dict[str, str]]:
@@ -52,29 +67,44 @@ def labels(processed: Path = PROCESSED) -> tuple[dict[str, str], dict[str, str]]
     return province_label, ingredient_label
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--threshold", type=int, default=PROVINCE_MIN_N)
+    ap.add_argument("--unit", choices=UNITS, default=ANALYSIS_UNIT)
+    ap.add_argument("--threshold", type=int, default=None,
+                    help=f"commercial minimum per unit (default: province {PROVINCE_MIN_N}, "
+                         "region 0)")
     ap.add_argument("--top-n", type=int, default=TOP_N)
     ap.add_argument("--out", type=Path, default=OUT)
-    args = ap.parse_args()
+    ap.add_argument("--processed", type=Path, default=PROCESSED)
+    args = ap.parse_args(argv)
     try:
-        data = load_inputs()
+        data = load_inputs(args.processed)
     except InputError as e:
         raise SystemExit(f"{e}") from None
-    data = commercial_filter(data, args.threshold)
-    heatmap = build(profiles(data, "province", "tfidf"), top_n=args.top_n)
-    counts = {r: data[data["register"] == r].groupby("province_code")["recipe_id"].nunique()
+    unit, column = args.unit, COLUMN[args.unit]
+    threshold = args.threshold if args.threshold is not None else (
+        PROVINCE_MIN_N if unit == "province" else 0)
+    data = commercial_filter(data, threshold, column)
+    heatmap = build(profiles(data, unit, "tfidf"), top_n=args.top_n)
+    counts = {r: data[data["register"] == r].dropna(subset=[column])
+              .groupby(column)["recipe_id"].nunique()
               for r in ("official", "commercial", "domestic")}
-    text = (f"Official: {len(counts['official'])} of 77 provinces. "
-            f"Commercial, at ≥ {args.threshold} recipes (HD-23): "
-            f"{caption(counts['commercial'].to_dict(), args.threshold)}. "
-            f"Domestic: {len(counts['domestic'])} of 77 provinces. "
-            f"Top {len(heatmap.ingredients)} ingredients by variance.")
-    province_label, ingredient_label = labels()
-    render(heatmap, args.out, province_label=province_label,
-           ingredient_label=ingredient_label, caption=text)
-    print(f"wrote {args.out} ({len(heatmap.provinces)} provinces × "
+    if unit == "province":
+        text = (f"Official: {len(counts['official'])} of 77 provinces. "
+                f"Commercial, at ≥ {threshold} recipes (HD-23): "
+                f"{caption(counts['commercial'].to_dict(), threshold)}. "
+                f"Domestic: {len(counts['domestic'])} of 77 provinces. ")
+    else:
+        text = "Recipes per region — " + "; ".join(
+            f"{r}: " + (", ".join(f"{u} {n}" for u, n in counts[r].items()) or "none")
+            for r in ("official", "commercial", "domestic")) + ". "
+        if threshold:
+            text += f"Commercial regions with < {threshold} recipes dropped. "
+    text += f"Top {len(heatmap.ingredients)} ingredients by variance."
+    province_label, ingredient_label = labels(args.processed)
+    render(heatmap, args.out, province_label=province_label if unit == "province" else {},
+           ingredient_label=ingredient_label, caption=text, unit_name=unit)
+    print(f"wrote {args.out} ({len(heatmap.provinces)} {unit}s × "
           f"{len(heatmap.ingredients)} ingredients)")
     return 0
 

@@ -9,6 +9,11 @@ Three CSV files in ``data/reference/lexicon/``, one per table in migration 004:
     ``alias, canonical_id``
 ``ingredient_conflations.csv``
     ``canonical_id_a, canonical_id_b, reason``
+``ingredient_splits.csv`` (optional; migration 028)
+    ``alias, canonical_id``, one row per part. HD-6 question 5 (decided 2026-11-06,
+    "split all"): a string naming several ingredients or alternatives ("A หรือ B",
+    "A+B") becomes one mention per named ingredient. Such a string is listed here once
+    per entry it names, at least twice, and never in ``ingredient_aliases.csv``.
 
 Every row is written by the researcher, so every row loads as ``approved_by_human =
 true`` and every alias as ``match_method = 'manual'``. The file is the approval, which is
@@ -51,7 +56,7 @@ import csv
 import re
 import unicodedata
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from src.config import STRIP_QUANTITIES
@@ -60,11 +65,13 @@ from src.ingest.pdpa import personal_data_classes
 CANONICAL_FILE = "canonical_ingredients.csv"
 ALIASES_FILE = "ingredient_aliases.csv"
 CONFLATIONS_FILE = "ingredient_conflations.csv"
+SPLITS_FILE = "ingredient_splits.csv"
 
 CANONICAL_COLUMNS = ("canonical_id", "name_th", "name_en", "category", "is_fermented",
                      "regional_note", "decision_note")
 ALIAS_COLUMNS = ("alias", "canonical_id")
 CONFLATION_COLUMNS = ("canonical_id_a", "canonical_id_b", "reason")
+SPLIT_COLUMNS = ("alias", "canonical_id")
 
 CANONICAL_ID = re.compile(r"ING_\d{4}")
 
@@ -198,6 +205,16 @@ class Lexicon:
     canonicals: list[Canonical]
     aliases: dict[str, str]  # alias -> canonical_id, canonical names included
     conflations: list[Conflation]
+    # alias -> the entries it names, in file order (HD-6 Q5). Never overlaps `aliases`.
+    splits: dict[str, tuple[str, ...]] = field(default_factory=dict)
+
+    def entries_for(self, text: str) -> tuple[str, ...]:
+        """Every entry a raw string maps to: one for an alias, several for a split,
+        none when unmapped. Compared by `key()`."""
+        k = key(text)
+        if k in self.aliases:
+            return (self.aliases[k],)
+        return self.splits.get(k, ())
 
 
 def _read(path: Path, columns: tuple[str, ...]) -> list[dict[str, str]]:
@@ -298,6 +315,34 @@ def read_lexicon(directory: Path) -> Lexicon:
         seen_pairs.add((a, b))
         conflations.append(Conflation(a, b, row["reason"]))
 
+    splits: dict[str, list[str]] = {}
+    split_path = directory / SPLITS_FILE
+    rows = _read(split_path, SPLIT_COLUMNS) if split_path.exists() else []
+    for line, row in enumerate(rows, 2):
+        where = f"{SPLITS_FILE}:{line}"
+        alias, cid = row["alias"], row["canonical_id"]
+        if not alias:
+            errors.append(f"{where}: alias is required")
+            continue
+        if cid not in by_id:
+            errors.append(f"{where}: {alias} points at {cid!r}, which is not an entry")
+            continue
+        if alias in aliases:
+            errors.append(f"{where}: {alias} is already mapped to {aliases[alias]} "
+                          "(an alias or entry name), so it cannot also be a split")
+            continue
+        parts = splits.setdefault(alias, [])
+        if cid in parts:
+            errors.append(f"{where}: {alias} lists {cid} twice")
+            continue
+        parts.append(cid)
+    for alias, parts in splits.items():
+        if len(parts) < 2:
+            errors.append(f"{SPLITS_FILE}: {alias} names only {parts[0]}; a split needs "
+                          "two or more entries (one entry belongs in "
+                          f"{ALIASES_FILE})")
+
     if errors:
         raise LexiconError("\n".join(errors))
-    return Lexicon(canonicals, aliases, conflations)
+    return Lexicon(canonicals, aliases, conflations,
+                   {a: tuple(p) for a, p in splits.items()})

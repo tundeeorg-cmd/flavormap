@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai load-mthai labels status status-snapshot clean analyze vision figures api web export test all verify
+.PHONY: lexicon-groups lexicon-apply rq1 setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai load-mthai labels status status-snapshot clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -57,11 +57,25 @@ ingest: scrape
 	uv run python -m scripts.parse_kapook
 
 # HD-6/HD-10 — the hand-authored lexicon (data/reference/lexicon/*.csv) into
-# canonical_ingredients, ingredient_aliases and ingredient_conflations. All-or-nothing;
-# nothing is ever deleted.
+# canonical_ingredients, ingredient_aliases, ingredient_alias_splits and
+# ingredient_conflations (all-or-nothing; nothing is ever deleted), then
+# recipe_ingredients rebuilt from it, then the per-source coverage report. Run after
+# every authoring batch.
 lexicon:
 	uv run python -m scripts.load_lexicon
+	uv run python -m scripts.canonicalise
 	uv run python -m scripts.lexicon_coverage
+
+# HD-6 authoring loop: (1) make lexicon-groups writes the grouped worksheet
+# (data/interim/lexicon_groups.csv, suggestions only); (2) add entries to
+# canonical_ingredients.csv and fill decision / group_decision in the worksheet;
+# (3) make lexicon-apply shows what would be added, make lexicon-apply WRITE=1 appends it;
+# (4) make lexicon.
+lexicon-groups:
+	uv run python -m scripts.lexicon_groups
+
+lexicon-apply:
+	uv run python -m scripts.lexicon_apply $(if $(WRITE),--write,)
 
 # Mention coverage only (T1.17); `make lexicon` already runs it after each load.
 lexicon-coverage:
@@ -104,6 +118,13 @@ clean:
 # built so far; the rest of `analyze` does not exist yet.
 analyze:
 	uv run python -m scripts.eligibility_sweep
+
+# RQ1 (DH2027): official↔commercial distance per region, TF-IDF primary, prevalence
+# sensitivity, permutation p-values and bootstrap CIs, pooled and per commercial source;
+# then Figure 6. Needs the lexicon (make lexicon) and fresh Parquet.
+rq1: parquet
+	uv run python -m scripts.run_rq1
+	uv run python -m scripts.make_figure6
 
 vision:
 	@echo "make vision: not yet implemented" && exit 1

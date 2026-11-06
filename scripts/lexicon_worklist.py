@@ -33,7 +33,8 @@ it. What a worklist can do honestly is put them in front of the researcher, rank
   - ``cum_share``: running share of all (recipe, string) pairs covered by this row and
     those above it.
   - ``mapped``: ``yes`` when the string is already an ``ingredient_aliases`` alias or a
-    ``canonical_ingredients`` Thai name, so it can be skipped; ``conflict`` when it maps
+    ``canonical_ingredients`` Thai name, so it can be skipped; ``split`` when the
+    researcher split it into several entries (HD-6 Q5); ``conflict`` when it maps
     to more than one entry, which the lexicon loader should have refused.
   - ``canonical_id``, ``category``: the entry a mapped string belongs to, and that
     entry's HD-27 category, read from the researcher's own lexicon. Blank for unmapped
@@ -92,11 +93,16 @@ SELECT a.alias, a.canonical_id, ci.category
   FROM ingredient_aliases a JOIN canonical_ingredients ci USING (canonical_id)
 UNION
 SELECT name_th, canonical_id, category FROM canonical_ingredients
+UNION
+SELECT DISTINCT alias, 'split', 'split' FROM ingredient_alias_splits
 """
 
 CATEGORY_QUERY = "SELECT category, count(*) FROM canonical_ingredients GROUP BY category"
 
 CONFLICT = "conflict"
+# HD-6 Q5: a string the researcher split into several entries (ingredient_splits.csv).
+# Counts as mapped; its entries are in ingredient_alias_splits.
+SPLIT = "split"
 
 
 @dataclass(frozen=True)
@@ -166,6 +172,7 @@ def build_worklist(
     mapped: dict[str, tuple[str, str]],
     threshold: float = SIMILARITY_THRESHOLD,
     strip_quantities: bool | None = None,
+    with_similar: bool = True,
 ) -> list[WorklistRow]:
     """Rank strings from `(source_id, register, recipe_id, raw string)` rows by recipe
     count, most frequent first. `mapped` is `mapping_index()`'s output.
@@ -178,7 +185,8 @@ def build_worklist(
     total_pairs = sum(len(v) for v in recipes.values())
     ordered = sorted(recipes.items(), key=lambda kv: (-len(kv[1]), kv[0]))
     unmapped = {name for name in recipes if name not in mapped}
-    neighbours = similar_strings([name for name, _ in ordered], threshold, unmapped)
+    neighbours = (similar_strings([name for name, _ in ordered], threshold, unmapped)
+                  if with_similar else {})
 
     out: list[WorklistRow] = []
     covered = 0
@@ -282,9 +290,10 @@ def write_csv(worklist: list[WorklistRow], out: Path) -> None:
                         *(r.by_register.get(g, 0) for g in REGISTERS),
                         *(r.by_source.get(s, 0) for s in sources),
                         f"{r.cum_share:.4f}",
-                        (CONFLICT if r.category == CONFLICT else "yes") if r.mapped else "",
-                        "" if r.category == CONFLICT else (r.canonical_id or ""),
-                        "" if r.category == CONFLICT else (r.category or ""),
+                        (r.category if r.category in (CONFLICT, SPLIT) else "yes")
+                        if r.mapped else "",
+                        "" if r.category in (CONFLICT, SPLIT) else (r.canonical_id or ""),
+                        "" if r.category in (CONFLICT, SPLIT) else (r.category or ""),
                         " | ".join(f"{name} ({ratio:.2f}, {counts[name]})"
                                    for name, ratio in r.similar)])
 

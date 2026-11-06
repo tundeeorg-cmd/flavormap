@@ -1,5 +1,9 @@
 """Figure 6: province × ingredient heatmap, faceted by register (TIMELINE T1.20).
 
+**Unit.** Built for provinces; since HD-37 (C, 2026-11-06) RQ1 runs at region level, so
+the same layout also draws region × ingredient (``unit_name="region"``): the "province"
+fields below then hold region names.
+
 Specified in Bible v4 §12 and CLAUDE.md §6: fill = TF-IDF, the top ~60 ingredients by
 variance, **both axes seriated by clustering, never alphabetical**, one panel per
 register. 2D (rule 10), 300 dpi, one sequential hue.
@@ -121,6 +125,7 @@ def render(
     province_label: dict[str, str],
     ingredient_label: dict[str, str],
     caption: str,
+    unit_name: str = "province",
 ) -> Path:
     """Draw the three panels to `out`. With nothing to draw, write a figure that says
     so, so `make figures` always produces the file and never a misleading empty grid."""
@@ -129,7 +134,7 @@ def render(
         if not heatmap.provinces:
             fig, ax = plt.subplots(figsize=(7.5, 2.2))
             ax.axis("off")
-            ax.text(0.0, 0.75, "Figure 6 — province × ingredient (TF-IDF), by register",
+            ax.text(0.0, 0.75, f"Figure 6 — {unit_name} × ingredient (TF-IDF), by register",
                     fontsize=12, fontweight="bold", color=TITLE_INK, transform=ax.transAxes)
             ax.text(0.0, 0.35, "No data yet: no recipe in v_recipes_clean has mapped "
                     "ingredients.\nThe lexicon (HD-6) has to exist first.",
@@ -158,7 +163,7 @@ def render(
                                            linewidth=0))
             covered = sum(1 for p in heatmap.provinces if p in heatmap.n_recipes[register])
             recipes = sum(heatmap.n_recipes[register].values())
-            ax.set_title(f"{register}\n{covered} provinces · {recipes} recipes",
+            ax.set_title(f"{register}\n{covered} {unit_name}s · {recipes} recipes",
                          fontsize=9.5, color=TITLE_INK, loc="left")
             ax.set_xticks(range(n_i))
             ax.set_xticklabels([ingredient_label.get(k, k) for k in heatmap.ingredients],
@@ -174,7 +179,7 @@ def render(
         fig.legend(handles=[Patch(facecolor=NO_DATA_FILL, edgecolor=NO_DATA_INK,
                                   hatch="////", label="no recipes from this register")],
                    loc="upper right", bbox_to_anchor=(0.99, 1.0), frameon=False, fontsize=8)
-        fig.suptitle("Figure 6 — province × ingredient (TF-IDF), by register. "
+        fig.suptitle(f"Figure 6 — {unit_name} × ingredient (TF-IDF), by register. "
                      "Both axes ordered by clustering.", x=0.01, ha="left",
                      fontsize=11, fontweight="bold", color=TITLE_INK)
         fig.text(0.01, -0.02, caption, fontsize=8, color=RULE, va="top")
