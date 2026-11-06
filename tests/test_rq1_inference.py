@@ -337,7 +337,11 @@ _NUMBERS_MD = """
 _DRAFT = """---
 title: x
 ---
-# Introduction
+# A Title Of 6 Words Here
+
+Author line 2026
+
+## Introduction
 
 We loaded 203 official recipes (Ahn et al. 2011) and mapped 81.4% of mentions (11,462).
 The Central distance was 0.57 [0.453, 0.592]; see Figure 6 and RQ1 and HD-44.
@@ -349,6 +353,10 @@ An invented 0.731 and 999 appear here.
 *Figure 6: Region × ingredient heatmap, 60 ingredients.*
 
 <!-- hidden 777 -->
+
+## AI-use disclosure
+
+Not counted: 4242 words of disclosure.
 
 ## References
 
@@ -375,6 +383,8 @@ def test_paper_audit_counts_words_references_and_traces_numbers(tmp_path: Path) 
     assert {"203", "81.4%", "11,462", "0.57", "0.453", "0.592"} <= set(audit.traced)
     assert "2011" in audit.years and "6" in audit.labels and "44" in audit.labels
     assert "12345" not in audit.traced + audit.labels and "777" not in audit.traced
+    assert "4242" not in audit.traced + [t for _, t, _ in audit.untraced]   # disclosure
+    assert "6" not in [t for _, t, _ in audit.untraced]                      # title block
 
 
 def test_paper_audit_thai_is_counted_in_words_not_characters() -> None:
@@ -391,10 +401,10 @@ def test_paper_audit_writes_only_the_two_submission_rows(tmp_path: Path) -> None
         "| References verified (count) | [TBD: scripts.paper_audit] |\n"
         "| Other | [TBD: x] |\n", encoding="utf-8")
     draft = tmp_path / "draft.md"
-    draft.write_text("Hello world.\n", encoding="utf-8")
+    draft.write_text("# Title\n\n## Intro\n\nHello world.\n", encoding="utf-8")
     assert pa.main(["--draft", str(draft), "--numbers", str(numbers), "--write"]) == 0
     lines = numbers.read_text(encoding="utf-8").splitlines()
-    assert "`2`" in lines[0] and "draft.md" in lines[0] and "[TBD" not in lines[0]
+    assert "`3`" in lines[0] and "draft.md" in lines[0] and "[TBD" not in lines[0]
     assert "`0` counted" in lines[1] and lines[2] == "| Other | [TBD: x] |"
 
 

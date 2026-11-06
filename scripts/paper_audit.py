@@ -11,7 +11,8 @@ counts, the draft's file name and the commit. It never edits the draft.
 headings and figure/table captions. Not counted: Markdown table rows (lines starting
 ``|``; the outline says counts in table cells do not count), the reference section (the
 heading named ``References`` or ``Bibliography`` to the next heading of the same or higher
-level), fenced code, HTML comments and the YAML front matter. Words are whitespace tokens
+level), the AI disclosure section, the title block before the first ``##`` heading,
+fenced code, HTML comments and the YAML front matter. Words are whitespace tokens
 holding a letter or digit; author placeholders (``[TBD: …]``, ``[ORIGIN STORY …]``: a
 bracket opening with a capitalised tag) are left out and listed, here and in the
 reference count. A Thai run is split with PyThaiNLP ``newmm`` and each Thai word counts
@@ -55,6 +56,8 @@ WORD_RANGE = (1_000, 1_250)
 
 _HEADING = re.compile(r"^(#{1,6})\s+(.*)$")
 _REF_HEADING = re.compile(r"^(references|bibliography|works cited)\b", re.I)
+# Not counted (outline: "AI disclosure (not counted)"); its numbers are not audited.
+_UNCOUNTED_HEADING = re.compile(r"^ai(-use| use)? disclosure\b", re.I)
 _THAI = re.compile(r"[฀-๿]+")
 _WORD = re.compile(r"[^\s]*[^\W_][^\s]*", re.U)
 _NUMBER = re.compile(r"(?<![\w.])(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?(%?)(?![\w.]\w)")
@@ -83,7 +86,8 @@ def split(text: str) -> Draft:
     if lines and lines[0].strip() == "---":           # YAML front matter
         start = next((i for i, ln in enumerate(lines[1:], 1) if ln.strip() == "---"), 0) + 1
     out = Draft([], [])
-    in_code, ref_level = False, 0
+    in_code, ref_level, skip_level = False, 0, 0
+    in_body = False          # the title block before the first "## " heading is not counted
     for lineno, ln in enumerate(lines[start:], start + 1):
         if ln.strip().startswith("```"):
             in_code = not in_code
@@ -93,11 +97,20 @@ def split(text: str) -> Draft:
         h = _HEADING.match(ln)
         if h:
             level, title = len(h.group(1)), h.group(2).strip()
+            if level >= 2:
+                in_body = True
+            if ref_level and level <= ref_level:
+                ref_level = 0
+            if skip_level and level <= skip_level:
+                skip_level = 0
             if _REF_HEADING.match(title):
                 ref_level = level
                 continue
-            if ref_level and level <= ref_level:
-                ref_level = 0
+            if _UNCOUNTED_HEADING.match(title):
+                skip_level = level
+                continue
+        if skip_level or not in_body:
+            continue
         if ref_level:
             for m in _PLACEHOLDER.finditer(ln):
                 out.placeholders.append((lineno, m.group(0)[:60]))
