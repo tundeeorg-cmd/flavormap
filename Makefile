@@ -122,9 +122,10 @@ analyze:
 # RQ1 (DH2027): official↔commercial distance per region, TF-IDF primary, prevalence
 # sensitivity, permutation p-values and bootstrap CIs, pooled and per commercial source;
 # then Figure 6. Needs the lexicon (make lexicon) and fresh Parquet.
+# REVIEWED=1: researcher-drafted or reviewed entries only (writes *_reviewed files).
 rq1: parquet
-	uv run python -m scripts.run_rq1
-	uv run python -m scripts.make_figure6
+	uv run python -m scripts.run_rq1 $(if $(REVIEWED),--reviewed-only,)
+	uv run python -m scripts.make_figure6 $(if $(REVIEWED),--reviewed-only,)
 
 vision:
 	@echo "make vision: not yet implemented" && exit 1

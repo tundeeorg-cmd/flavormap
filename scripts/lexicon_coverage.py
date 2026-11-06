@@ -28,6 +28,13 @@ a fact about the pipeline, not about the lexicon's progress.
 shows its change since the newest earlier snapshot. A split string (HD-6 Q5) counts as
 mapped.
 
+**Both ways (provenance, 2026-11-06).** Every scope is reported twice: against all
+entries, and against **trusted** entries only (drafted by the researcher, or reviewed by
+them; `src.clean.lexicon.Canonical.trusted`). A mention counts as reviewed-mapped when
+at least one entry it maps to is trusted, which is what a ``--reviewed-only`` RQ1 run
+would see. Recipes qualifying for analysis (v_recipes_clean's 3–25 mapped ingredients)
+are counted per register both ways and written to ``qualifying_YYYYMMDD.csv``.
+
 **What is committed.** ``data/coverage/lexicon_YYYYMMDD.csv`` holds counts only: no
 ingredient string, nothing DCP-derived. It is committed under the same rule as HD-28's
 status snapshots (`.gitignore`). This script never writes to the database and never
@@ -53,7 +60,33 @@ COVERAGE_DIR = DATA_DIR / "coverage"
 TARGET_ENTRIES = 150
 TARGET_SHARE = 0.80
 COLUMNS = ("snapshot_date", "scope", "mentions", "mapped", "conflicting", "excluded",
-           "mapped_share", "strings", "strings_mapped")
+           "mapped_share", "strings", "strings_mapped", "mapped_reviewed",
+           "mapped_reviewed_share")
+QUALIFY_COLUMNS = ("snapshot_date", "register", "qualifying_all", "qualifying_reviewed")
+
+TRUSTED = "(ci.drafted_by = 'bo' OR ci.reviewed_by_bo IS NOT NULL)"
+# Strings that map to at least one trusted entry (entry names, aliases, split parts).
+REVIEWED_QUERY = f"""
+SELECT ci.name_th FROM canonical_ingredients ci WHERE {TRUSTED}
+UNION
+SELECT a.alias FROM ingredient_aliases a JOIN canonical_ingredients ci USING (canonical_id)
+ WHERE a.approved_by_human AND {TRUSTED}
+UNION
+SELECT s.alias FROM ingredient_alias_splits s JOIN canonical_ingredients ci USING (canonical_id)
+ WHERE s.approved_by_human AND {TRUSTED}
+"""
+# Recipes in v_recipes_clean (3–25 mapped, all entries), and of those, how many still have
+# 3–25 trusted entries.
+QUALIFY_QUERY = f"""
+WITH t AS (
+  SELECT ri.recipe_id, count(*) FILTER (WHERE {TRUSTED}) AS n_trusted
+    FROM recipe_ingredients ri JOIN canonical_ingredients ci USING (canonical_id)
+   GROUP BY ri.recipe_id)
+SELECT v.register, count(*),
+       count(*) FILTER (WHERE t.n_trusted BETWEEN 3 AND 25)
+  FROM v_recipes_clean v JOIN t USING (recipe_id)
+ GROUP BY v.register ORDER BY v.register
+"""
 
 
 @dataclass(frozen=True)
@@ -65,6 +98,7 @@ class Coverage:
     strings: int
     strings_mapped: int
     excluded: int = 0
+    mapped_reviewed: int = 0
 
     @property
     def share(self) -> float:
@@ -72,14 +106,29 @@ class Coverage:
         base = self.mentions - self.excluded
         return self.mapped / base if base else 0.0
 
+    @property
+    def reviewed_share(self) -> float:
+        """Share mapped through trusted entries, same denominator as `share`."""
+        base = self.mentions - self.excluded
+        return self.mapped_reviewed / base if base else 0.0
+
 
 def coverage(
     rows: Iterable[tuple[str, str, int, str | None]],
     index: dict[str, tuple[str, str]],
+    reviewed: set[str] | None = None,
 ) -> list[Coverage]:
     """Coverage overall, per register and per source, from worklist-shaped rows
-    ``(source_id, register, recipe_id, raw string)``."""
+    ``(source_id, register, recipe_id, raw string)``. `reviewed`: keys of strings that
+    map to at least one trusted entry (None = not reported)."""
+    trusted = {key(s) for s in reviewed} if reviewed is not None else set()
     mentions = {(src, reg, rid, key(s)) for src, reg, rid, s in rows if s and key(s)}
+
+    def status_of(hit: tuple[str, str] | None) -> str:
+        if not hit:
+            return "unmapped"
+        return "conflict" if hit[0] == CONFLICT else "excluded" if hit[0] == EXCLUDED \
+            else "mapped"
 
     def measure(scope: str, subset: set[tuple[str, str, int, str]]) -> Coverage:
         status = Counter(
@@ -93,7 +142,9 @@ def coverage(
                         len(strings),
                         sum(1 for k in strings if (h := index.get(k))
                             and h[0] not in (CONFLICT, EXCLUDED)),
-                        status["excluded"])
+                        status["excluded"],
+                        sum(1 for *_, k in subset if k in trusted
+                            and status_of(index.get(k)) == "mapped"))
 
     out = [measure("all", mentions)]
     for register in sorted({m[1] for m in mentions}):
@@ -111,7 +162,22 @@ def write_snapshot(results: list[Coverage], day: datetime.date, out_dir: Path) -
         w.writerow(COLUMNS)
         for c in results:
             w.writerow((day.isoformat(), c.scope, c.mentions, c.mapped, c.conflicting,
-                        c.excluded, f"{c.share:.4f}", c.strings, c.strings_mapped))
+                        c.excluded, f"{c.share:.4f}", c.strings, c.strings_mapped,
+                        c.mapped_reviewed, f"{c.reviewed_share:.4f}"))
+    return path
+
+
+def write_qualifying(counts: list[tuple[str, int, int]], day: datetime.date,
+                     out_dir: Path) -> Path:
+    """``qualifying_YYYYMMDD.csv``: recipes per register entering the analysis with all
+    entries vs trusted entries only. Counts only."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / f"qualifying_{day:%Y%m%d}.csv"
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        w = csv.writer(handle)
+        w.writerow(QUALIFY_COLUMNS)
+        for register, n_all, n_reviewed in counts:
+            w.writerow((day.isoformat(), register, n_all, n_reviewed))
     return path
 
 
@@ -146,15 +212,22 @@ def main() -> int:
         rows = conn.execute(QUERY).fetchall()
         index = mapping_index(conn.execute(MAPPED_QUERY).fetchall())
         entries = conn.execute("SELECT count(*) FROM canonical_ingredients").fetchone()[0]
-    results = coverage(rows, index)
+        trusted_entries = conn.execute(
+            f"SELECT count(*) FROM canonical_ingredients ci WHERE {TRUSTED}").fetchone()[0]
+        reviewed = {r[0] for r in conn.execute(REVIEWED_QUERY).fetchall()}
+        qualifying = [(str(r), int(a), int(b)) for r, a, b in conn.execute(QUALIFY_QUERY)]
+    results = coverage(rows, index, reviewed)
     today = datetime.date.today()
     before = previous_snapshot(args.out_dir, today)
     path = write_snapshot(results, today, args.out_dir)
 
     total = results[0]
-    print(f"lexicon entries     {entries}  (T1.16 target ≥ {TARGET_ENTRIES})")
+    print(f"lexicon entries     {entries}  (T1.16 target ≥ {TARGET_ENTRIES}); "
+          f"trusted (bo or reviewed) {trusted_entries}")
     print(f"mentions mapped     {total.mapped} of {total.mentions - total.excluded} = "
           f"{total.share:.1%}  (T1.16 target ≥ {TARGET_SHARE:.0%}){_delta(total, before)}")
+    print(f"  reviewed only     {total.mapped_reviewed} of {total.mentions - total.excluded}"
+          f" = {total.reviewed_share:.1%}")
     if total.excluded:
         print(f"excluded            {total.excluded} mentions (not ingredients; left out "
               "of the share)")
@@ -162,7 +235,12 @@ def main() -> int:
         print(f"CONFLICTING         {total.conflicting} mentions map to two entries")
     for c in results[1:]:
         print(f"  {c.scope:<28} {c.mapped:>6} / {c.mentions - c.excluded:<6} {c.share:6.1%}"
-              f"{_delta(c, before)}")
+              f"   reviewed {c.reviewed_share:6.1%}{_delta(c, before)}")
+    print("recipes qualifying (3–25 mapped)   all entries   reviewed only")
+    for register, n_all, n_reviewed in qualifying:
+        print(f"  {register:<32} {n_all:>11}   {n_reviewed:>13}")
+    qpath = write_qualifying(qualifying, today, args.out_dir)
+    print(f"wrote {qpath}")
     print(f"wrote {path}")
     return 0
 

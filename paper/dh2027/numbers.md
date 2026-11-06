@@ -9,6 +9,10 @@ Fill a line as: `value` · output file · commit · date.
 
 - **RQ1 unit is the region**, not the province (HD-37 C, 2026-11-06). The outline still
   says "province" in Sections 4 and 5, so its wording needs updating to match.
+- **Lexicon provenance (2026-11-06).** 302 of 492 entries were drafted by the agent and
+  are not reviewed yet. Report every lexicon-dependent number **both ways**: all entries,
+  and reviewed only (researcher-drafted or reviewed). Use `make rq1` and
+  `make rq1 REVIEWED=1`; `scripts.lexicon_coverage` prints both.
 - **The permutation p-value is not chosen yet** (HD-44 open). `run_rq1` writes
   `p_unit_shuffle` and `p_register_shuffle`, and only the one HD-44 names goes in the paper.
 
@@ -52,6 +56,10 @@ Fill a line as: `value` · output file · commit · date.
 | Aliases (mapping decisions) in the lexicon | [TBD: scripts.load_lexicon] |
 | Split strings (HD-6 Q5) | [TBD: scripts.load_lexicon] |
 | Recipes with mapped ingredients (`recipe_ingredients`) | [TBD: scripts.canonicalise] |
+| Lexicon entries drafted by the researcher / by the agent / agent-drafted and reviewed | [TBD: scripts.lexicon_coverage] |
+| Mentions mapped: all entries vs reviewed only (%) | [TBD: scripts.lexicon_coverage] |
+| Recipes qualifying (3–25 mapped) per register: all entries vs reviewed only | [TBD: scripts.lexicon_coverage] (`qualifying_YYYYMMDD.csv`) |
+| Main result rerun on reviewed entries only: does the order of regions change? | [TBD: scripts.run_rq1 --reviewed-only] |
 | Permutations per distance (outline: 9,999) | [TBD: scripts.run_rq1] (json: `permutations`) |
 | Bootstrap resamples per distance | [TBD: scripts.run_rq1] (json: `bootstrap`) |
 | Random seed | [TBD: scripts.run_rq1] (json: `seed`) |

@@ -57,6 +57,9 @@ SENSITIVITY_WEIGHTING: Weighting = "prevalence"
 # where they exist.
 ANALYSIS_UNIT: Unit = "region"
 PROCESSED = DATA_DIR / "processed"
+# v_recipes_clean's bounds on mapped ingredients per recipe (migration 015). Re-applied in
+# Python when a run is restricted to reviewed entries (`restrict_to_trusted`).
+MIN_INGREDIENTS, MAX_INGREDIENTS = 3, 25
 COLUMN: dict[str, str] = {"province": "province_code", "region": "region"}
 
 
@@ -74,9 +77,36 @@ class Profile:
     vector: dict[str, float]
 
 
-def load_inputs(processed: Path = PROCESSED) -> pd.DataFrame:
+def trusted_ids(processed: Path = PROCESSED) -> set[str]:
+    """Entries the researcher drafted (``drafted_by = bo``) or has reviewed
+    (``reviewed_by_bo`` set): the lexicon a ``--reviewed-only`` run uses."""
+    path = processed / "canonical_ingredients.parquet"
+    if not path.exists():
+        raise InputError(f"missing canonical_ingredients in {processed}; run `make parquet`")
+    lexicon = pd.read_parquet(path)
+    if not {"drafted_by", "reviewed_by_bo"} <= set(lexicon.columns):
+        raise InputError("canonical_ingredients.parquet has no provenance columns; "
+                         "run `make lexicon` and `make parquet` again")
+    keep = (lexicon["drafted_by"] == "bo") | lexicon["reviewed_by_bo"].notna()
+    return set(lexicon.loc[keep, "canonical_id"].astype(str))
+
+
+def restrict_to_trusted(data: pd.DataFrame, trusted: set[str]) -> pd.DataFrame:
+    """`load_inputs` rows using trusted entries only. A recipe whose trusted ingredients
+    fall outside v_recipes_clean's 3–25 bounds leaves the analysis, as it would have
+    under a lexicon of trusted entries alone. (v_recipes_clean has already dropped
+    recipes over 25 under the full lexicon; no trusted-only count can bring them back,
+    since dropping entries only lowers a recipe's count.)"""
+    kept = data[data["canonical_id"].isin(trusted)]
+    n = kept.drop_duplicates(["recipe_id", "canonical_id"]).groupby("recipe_id").size()
+    ok = n[(n >= MIN_INGREDIENTS) & (n <= MAX_INGREDIENTS)].index
+    return kept[kept["recipe_id"].isin(ok)]
+
+
+def load_inputs(processed: Path = PROCESSED, reviewed_only: bool = False) -> pd.DataFrame:
     """One row per (recipe, canonical ingredient), with register, province and region.
-    Reads ``v_recipes_clean``, ``recipe_ingredients`` and ``provinces`` from Parquet."""
+    Reads ``v_recipes_clean``, ``recipe_ingredients`` and ``provinces`` from Parquet.
+    With `reviewed_only`, only trusted entries (`trusted_ids`) count."""
     needed = ("v_recipes_clean", "recipe_ingredients", "provinces")
     missing = [n for n in needed if not (processed / f"{n}.parquet").exists()]
     if missing:
@@ -84,7 +114,8 @@ def load_inputs(processed: Path = PROCESSED) -> pd.DataFrame:
     clean = pd.read_parquet(processed / "v_recipes_clean.parquet")
     ingredients = pd.read_parquet(processed / "recipe_ingredients.parquet")
     provinces = pd.read_parquet(processed / "provinces.parquet")
-    return assemble(clean, ingredients, provinces)
+    data = assemble(clean, ingredients, provinces)
+    return restrict_to_trusted(data, trusted_ids(processed)) if reviewed_only else data
 
 
 def assemble(

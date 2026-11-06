@@ -117,7 +117,11 @@ def _processed(tmp: Path, with_ingredients: bool = True) -> Path:
     ings.to_parquet(tmp / "recipe_ingredients.parquet")
     PROVINCES.to_parquet(tmp / "provinces.parquet")
     ids = sorted(ings["canonical_id"].unique()) if len(ings) else []
-    pd.DataFrame({"canonical_id": ids, "name_th": ids, "name_en": ids}).to_parquet(
+    # Provenance: the commercial-only pool is agent-drafted, one entry reviewed.
+    drafted = ["claude" if i.startswith("ing_com_") else "bo" for i in ids]
+    reviewed = ["2026-11-07" if i == "ing_com_0" else None for i in ids]
+    pd.DataFrame({"canonical_id": ids, "name_th": ids, "name_en": ids,
+                  "drafted_by": drafted, "reviewed_by_bo": reviewed}).to_parquet(
         tmp / "canonical_ingredients.parquet")
     return tmp
 
@@ -152,4 +156,45 @@ def test_figure6_end_to_end(tmp_path: Path, unit: str) -> None:
     out = tmp_path / f"fig6_{unit}.png"
     assert make_figure6.main(["--processed", str(processed), "--out", str(out),
                               "--unit", unit]) == 0
+    assert out.stat().st_size > 0
+
+
+
+# --- reviewed-only (provenance, 2026-11-06) -----------------------------------------
+
+def test_trusted_ids_are_bo_drafted_or_reviewed(tmp_path: Path) -> None:
+    from src.analyze.rq1_registers import trusted_ids
+    ids = trusted_ids(_processed(tmp_path))
+    assert "ing_com_0" in ids and "ing_com_1" not in ids and "ing_salt" in ids
+
+
+def test_restrict_to_trusted_reapplies_the_3_to_25_bound() -> None:
+    from src.analyze.rq1_registers import restrict_to_trusted
+    data = pd.DataFrame({"recipe_id": [1, 1, 1, 2, 2, 2, 2],
+                         "canonical_id": ["a", "b", "x", "a", "b", "c", "x"]})
+    kept = restrict_to_trusted(data, {"a", "b", "c"})
+    assert set(kept["recipe_id"]) == {2}          # recipe 1 drops to 2 trusted entries
+    assert "x" not in set(kept["canonical_id"])
+
+
+def test_run_rq1_reviewed_only_writes_its_own_file(tmp_path: Path) -> None:
+    processed = _processed(tmp_path)
+    args = ["--processed", str(processed), "--out-dir", str(tmp_path),
+            "--permutations", "19", "--bootstrap", "19"]
+    assert run_rq1.main(args) == 0
+    assert run_rq1.main([*args, "--reviewed-only"]) == 0
+    full = next(tmp_path.glob("rq1_registers_*[0-9].json"))
+    rev = next(tmp_path.glob("rq1_registers_*_reviewed.json"))
+    m_full = json.loads(full.read_text(encoding="utf-8"))
+    m_rev = json.loads(rev.read_text(encoding="utf-8"))
+    assert m_full["lexicon"] == "all entries" and m_rev["lexicon"] == "reviewed-only"
+    assert m_rev["lexicon_entries_used"] < m_full["lexicon_entries_used"]
+    assert m_rev["recipes"] < m_full["recipes"]
+
+
+def test_figure6_reviewed_only(tmp_path: Path) -> None:
+    processed = _processed(tmp_path)
+    out = tmp_path / "fig6_reviewed.png"
+    assert make_figure6.main(["--processed", str(processed), "--out", str(out),
+                              "--reviewed-only"]) == 0
     assert out.stat().st_size > 0

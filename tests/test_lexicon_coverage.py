@@ -72,3 +72,13 @@ def test_excluded_mentions_are_left_out_of_the_share() -> None:
     assert (total.mentions, total.mapped, total.excluded) == (5, 2, 1)
     assert total.share == 2 / 4
     assert total.strings_mapped == 1  # แกงทดสอบ; the excluded string is not "mapped"
+
+
+
+def test_reviewed_mapping_is_counted_beside_all_entries() -> None:
+    """A mention is reviewed-mapped when its string maps to a trusted entry."""
+    total = {c.scope: c for c in coverage(ROWS, INDEX, reviewed={"แกงทดสอบ"})}["all"]
+    assert (total.mapped, total.mapped_reviewed) == (2, 2)
+    total = {c.scope: c for c in coverage(ROWS, INDEX, reviewed=set())}["all"]
+    assert total.mapped_reviewed == 0 and total.reviewed_share == 0.0
+    assert {c.scope: c for c in coverage(ROWS, INDEX)}["all"].mapped_reviewed == 0

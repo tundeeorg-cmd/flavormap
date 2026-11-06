@@ -76,9 +76,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--top-n", type=int, default=TOP_N)
     ap.add_argument("--out", type=Path, default=OUT)
     ap.add_argument("--processed", type=Path, default=PROCESSED)
+    ap.add_argument("--reviewed-only", action="store_true",
+                    help="use only entries drafted or reviewed by the researcher")
     args = ap.parse_args(argv)
+    if args.reviewed_only and args.out == OUT:
+        args.out = OUT.with_name(OUT.stem + "_reviewed" + OUT.suffix)
     try:
-        data = load_inputs(args.processed)
+        data = load_inputs(args.processed, reviewed_only=args.reviewed_only)
     except InputError as e:
         raise SystemExit(f"{e}") from None
     unit, column = args.unit, COLUMN[args.unit]
@@ -101,6 +105,8 @@ def main(argv: list[str] | None = None) -> int:
         if threshold:
             text += f"Commercial regions with < {threshold} recipes dropped. "
     text += f"Top {len(heatmap.ingredients)} ingredients by variance."
+    if args.reviewed_only:
+        text += " Reviewed lexicon entries only."
     province_label, ingredient_label = labels(args.processed)
     render(heatmap, args.out, province_label=province_label if unit == "province" else {},
            ingredient_label=ingredient_label, caption=text, unit_name=unit)

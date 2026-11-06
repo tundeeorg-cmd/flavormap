@@ -1,6 +1,7 @@
 """RQ1 end to end for DH2027: official↔commercial distance per region, with uncertainty.
 
     uv run python -m scripts.run_rq1 [--unit region] [--permutations 9999] [--bootstrap 9999]
+                                     [--reviewed-only]
     (or: make rq1, which re-exports the Parquet first and draws Figure 6 after)
 
 Runs every table the DH2027 outline's Section 4–5 needs, from the Parquet `make parquet`
@@ -13,6 +14,10 @@ writes, as soon as ``recipe_ingredients`` has rows (i.e. after `make lexicon`):
   (`src.analyze.rq1_inference`; which null is reported is HD-44, open).
 - **Per source:** pooled commercial, then each commercial source alone (T1.19; HD-42 A).
 - **Counts:** the recipe count of each side beside every distance.
+- **Lexicon:** all entries by default. ``--reviewed-only`` uses only entries the
+  researcher drafted or reviewed (`rq1_registers.trusted_ids`), re-applies the 3–25
+  ingredient bound, and writes ``rq1_registers_YYYYMMDD_reviewed.csv`` beside the
+  all-entries file, so both can be reported.
 
 Writes ``data/coverage/rq1_registers_YYYYMMDD.csv`` (one row per weighting × scope ×
 unit) and a ``.json`` beside it with the run's settings, the lexicon size and the git
@@ -82,9 +87,10 @@ def _fmt(v: object) -> str:
     return str(v)
 
 
-def write(rows: list[dict], meta: dict, out_dir: Path, day: datetime.date) -> Path:
+def write(rows: list[dict], meta: dict, out_dir: Path, day: datetime.date,
+          suffix: str = "") -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
-    path = out_dir / f"rq1_registers_{day:%Y%m%d}.csv"
+    path = out_dir / f"rq1_registers_{day:%Y%m%d}{suffix}.csv"
     with path.open("w", encoding="utf-8", newline="") as handle:
         w = csv.writer(handle)
         w.writerow(COLUMNS)
@@ -125,9 +131,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--bootstrap", type=int, default=9_999)
     ap.add_argument("--processed", type=Path, default=PROCESSED)
     ap.add_argument("--out-dir", type=Path, default=OUT_DIR)
+    ap.add_argument("--reviewed-only", action="store_true",
+                    help="use only entries drafted or reviewed by the researcher")
     args = ap.parse_args(argv)
     try:
-        data = load_inputs(args.processed)
+        data = load_inputs(args.processed, reviewed_only=args.reviewed_only)
         if data.empty:
             raise InputError("no recipe in v_recipes_clean has mapped ingredients yet: "
                              "author the lexicon, then `make lexicon` and `make parquet`")
@@ -145,12 +153,14 @@ def main(argv: list[str] | None = None) -> int:
         "permutations": args.permutations, "bootstrap": args.bootstrap,
         "seed": RANDOM_SEED, "ci": "percentile, 95%",
         "p_value": "one-sided, (1 + #null >= obs) / (1 + n); no adjustment (HD-44 open)",
+        "lexicon": "reviewed-only" if args.reviewed_only else "all entries",
         "lexicon_entries": len(entries),
+        "lexicon_entries_used": int(data["canonical_id"].nunique()),
         "recipes": int(data["recipe_id"].nunique()),
         "recipes_by_register": {k: int(v) for k, v in
                                 data.groupby("register")["recipe_id"].nunique().items()},
     }
-    path = write(rows, meta, args.out_dir, day)
+    path = write(rows, meta, args.out_dir, day, "_reviewed" if args.reviewed_only else "")
     print_table(rows)
     print(f"\nwrote {path} and {path.with_suffix('.json').name}")
     return 0
