@@ -8,12 +8,13 @@ Reproduced in the paper's acknowledgements.
 
 | Who | Contribution |
 |---|---|
-| **Jenissa Vichiansin** | All scraping, cleaning, lexicon construction, analysis, modelling, writing, fieldwork, transcription, cooking, and every build-log post. First author |
+| **Jenissa Vichiansin** | All scraping, cleaning, lexicon construction, analysis, modelling, fieldwork, transcription, cooking, and every build-log post; revision of the paper drafts. 302 of the 492 lexicon entries were drafted by Claude Code at her request and reviewed and confirmed by her. First author |
 | **Advisor** | *(to be named)* — bounded role, hours stated. Co-author only for substantive contribution to design or analysis; review and advice is an acknowledgement, not authorship |
 | **Sister** | *(to be named)* — visual identity, result-card design, map interface, Line distribution, photography |
 | **Parents** | Chaperoned every interview, transported, made two introductions. Did not conduct interviews, analyse data, or write |
 | **Participants** | By role and province, or by name where consent was given |
 | **Claude Code (Anthropic)** | See below |
+| **Claude, claude.ai chat (Anthropic)** | See below |
 
 ## AI use
 
@@ -22,6 +23,12 @@ Reproduced in the paper's acknowledgements.
 > granularity, labelling rules, thresholds, taxonomy, model choices — is mine and is
 > documented with its reasoning in `docs/decisions.md`. Claude Code did not choose what to
 > measure, did not interpret any result, and did not write the paper.
+>
+> Claude (claude.ai chat) wrote the first DH2027 draft from my outline, decisions and
+> results; I revise it. Analytical decisions are mine and are recorded in
+> `docs/decisions.md`, including those that followed an AI recommendation.
+
+*Amended 2026-11-06: until then this section said no AI wrote the paper.*
 
 This disclosure is a credibility asset, not a risk. In 2027 every reader assumes AI
 assistance was available; the discriminating question is whether the author is specific

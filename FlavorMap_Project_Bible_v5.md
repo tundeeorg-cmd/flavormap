@@ -708,8 +708,9 @@ benefit); a restaurant or ingredient-sourcing directory.
 Unnamed help looks like hidden help. Naming exactly who did what converts suspicion into confidence.
 Published as `CREDITS.md` and reproduced in the paper's acknowledgements.
 
-**Her:** all scraping, parsing, cleaning, lexicon construction, analysis, modelling, writing, fieldwork,
-transcription, cooking, and every build-log post.
+**Her:** all scraping, parsing, cleaning, lexicon construction, analysis, modelling, fieldwork,
+transcription, cooking, and every build-log post; revision of the paper drafts. Of the 492 lexicon
+entries, 302 were drafted by Claude Code at her request and reviewed and confirmed by her (HD-6).
 **Advisor:** named, bounded, hours stated.
 **Sister:** named, for visual identity, result-card design, map interface, Line distribution, photography.
 **Parents:** chaperoned, transported, made introductions — did not conduct interviews, analyse data, or write.
@@ -720,6 +721,13 @@ the Thai tokeniser. Every analytical decision — vocabulary granularity, labell
 taxonomy, the RQ2 decomposition definition, model choices — is hers and is documented with its reasoning
 in `docs/decisions.md`. Claude Code did not choose what to measure, did not interpret any result, and did
 not write the paper.
+
+**Claude (claude.ai chat):** wrote the first DH2027 draft from her outline, decisions and results; she
+revises it. Analytical decisions are hers and are recorded in `docs/decisions.md`, including those that
+followed an AI recommendation (each is marked there).
+
+*Amended 2026-11-06: the ledger previously said no AI wrote the paper; that stopped being true when
+Claude (claude.ai chat) drafted the DH2027 text.*
 
 ---
 

@@ -103,9 +103,9 @@ Include Table 1 (counts in table cells do not count toward the word limit).
 
 ### AI disclosure (not counted)
 
-> I used Claude Code to build the data pipeline and scrapers and to debug Thai text extraction. Every analytical decision — vocabulary granularity, labelling rules, thresholds and the distinctiveness definition — is mine and is documented with its reasoning in `docs/decisions.md`. The text of this proposal is my own.
+> I used Claude Code to build the data pipeline and scrapers and to debug Thai text extraction. Claude (claude.ai chat) wrote the first draft of this paper from my outline, decisions and results; I revise it. Every analytical decision — vocabulary granularity, labelling rules, thresholds and the choice of statistical test — is mine and is recorded in `docs/decisions.md`, including those that followed an AI recommendation.
 
-Only keep the last sentence if it is true at submission.
+*Updated 2026-11-06: the earlier version said the text was the author's own; the first draft is Claude-written.*
 
 ### References (not counted)
 
