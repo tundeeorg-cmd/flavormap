@@ -1642,7 +1642,7 @@ sources until then is a limitation. Rejected: A alone, B (Kapook only).
 ---
 
 ## HD-41 (HD-dedup) — Cross-source duplicate rule
-**Date presented:** 2026-10-12 · **Status:** OPEN
+**Date presented:** 2026-10-12 · **Status:** DECIDED 2026-11-06
 **Arises from:** TIMELINE v3 T1.13d. Due 22 Oct, to be confirmed once T1.13e reports
 numbers. Portals syndicate content, so one recipe can appear in two sources.
 
@@ -1676,9 +1676,14 @@ numbers can change after HD-6. Sanook (80 recipes, excluded) was not compared.
   Under any option, pre- and post-dedup counts are both reported (TIMELINE §13).
 
 **Recommendation:** none.
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** **B.** A pair is a candidate duplicate when ingredient-set Jaccard > 0.85
+**and** fuzzy title ratio (`title_similarity`) > 0.8. Candidates are **flagged for the
+researcher's review, never dropped automatically**. Pre- and post-dedup counts are both
+reported. This settles the CLAUDE.md §7.2 threshold note below (0.85 + title, not 0.9). It
+applies across all sources, including TAT vs m-culture and m-culture's 240
+collector-flagged rows. Rejected: A (Jaccard > 0.9 alone), C (wait for HD-6).
+**Reasoning:** [not stated in session; to be added by the researcher]
+**Date decided:** 2026-11-06, by the researcher in session
 
 ---
 
