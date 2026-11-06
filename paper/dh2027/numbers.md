@@ -9,6 +9,11 @@ Fill a line as: `value` · output file · commit · date.
 
 - **RQ1 unit is the region**, not the province (HD-37 C, 2026-11-06). The outline still
   says "province" in Sections 4 and 5, so its wording needs updating to match.
+- **Minimum n (researcher, 2026-11-06; HD-37 amendment):** a cell with fewer than 5
+  commercial recipes is marked **below minimum n**. It is kept, not deleted, and stays in
+  its Holm family. `run_rq1` writes `below_min_n`. Cells below: Kapook-only Central (4),
+  MThai-only North (4), MThai-only South (3), under both weightings. No pooled cell is
+  below.
 - **Filled 2026-11-06** from the 9,999/9,999 runs at commit 7cedfe2. Numbers only; no
   interpretation is written here. Commercial-side n per region per source are small
   (as low as 3), and are printed beside each distance.
@@ -44,7 +49,7 @@ Fill a line as: `value` · output file · commit · date.
 | Commercial recipes after dedup | `1,553` · `make status` · commit 7cedfe2 · 2026-11-06 |
 | Commercial recipes with a region label (high + medium) | `86` (of which `83` have 3–25 mapped ingredients and enter `v_recipes_clean`) · `province_attribution` query · commit 7cedfe2 · 2026-11-06 |
 | … with a province label | `18` · same query · commit 7cedfe2 · 2026-11-06 |
-| Commercial recipes entering RQ1, by region and by source | pooled: Central `18`, North `12`, Northeast `35`, South `18` (total `83`); Kapook: `4` / `8` / `28` / `15`; MThai: `14` / `4` / `7` / `3` · `rq1_registers_20261106.csv` (all entries) and `…_reviewed.csv` · commit 7cedfe2 · 2026-11-06 |
+| Commercial recipes entering RQ1, by region and by source | pooled: Central `18`, North `12`, Northeast `35`, South `18` (total `83`); Kapook: `4` (below minimum n) / `8` / `28` / `15`; MThai: `14` / `4` (below minimum n) / `7` / `3` (below minimum n) · `rq1_registers_20261106.csv` (all entries) and `…_reviewed.csv` · commit 7cedfe2 · 2026-11-06 |
 
 ### Domestic register
 | Number | Value |
@@ -86,8 +91,8 @@ Primary = TF-IDF, sensitivity = prevalence (HD-38). Source file: `data/coverage/
 | Region where the registers agree most | smallest distance: Northeast `0.430` (TF-IDF, pooled) · `rq1_registers_20261106.csv` (all entries) and `…_reviewed.csv` · commit 7cedfe2 · 2026-11-06 |
 | Region where the registers agree least | largest distance: North `0.649` (TF-IDF, pooled) · `rq1_registers_20261106.csv` (all entries) and `…_reviewed.csv` · commit 7cedfe2 · 2026-11-06 |
 | Sensitivity: the same per-region distances under prevalence, and whether the order of regions changes | Central `0.417`, North `0.484`, Northeast `0.329`, South `0.415`; ascending order Northeast < South < Central < North under both weightings (South and Central differ by 0.0015 under prevalence) · `rq1_registers_20261106.csv` (all entries) and `…_reviewed.csv` · commit 7cedfe2 · 2026-11-06 |
-| Robustness: Kapook-only distances per region, with n | Central `0.750` (49 / 4), North `0.683` (33 / 8), Northeast `0.439` (34 / 28), South `0.522` (28 / 15); Holm p (primary) 0.1454 / 0.1454 / 0.0004 / 0.0468 · `rq1_registers_20261106.csv` (all entries) and `…_reviewed.csv` · commit 7cedfe2 · 2026-11-06 |
-| Robustness: MThai-only distances per region, with n | Central `0.601` (49 / 14), North `0.813` (33 / 4), Northeast `0.526` (34 / 7), South `0.643` (28 / 3); Holm p (primary) 0.0068 / 0.3465 / 0.4650 / 0.5478 · `rq1_registers_20261106.csv` (all entries) and `…_reviewed.csv` · commit 7cedfe2 · 2026-11-06 |
+| Robustness: Kapook-only distances per region, with n | Central `0.750` (49 / 4; **below minimum n**), North `0.683` (33 / 8), Northeast `0.439` (34 / 28), South `0.522` (28 / 15); Holm p (primary) 0.1454 / 0.1454 / 0.0004 / 0.0468 · `rq1_registers_20261106.csv` (all entries) and `…_reviewed.csv` · commit 7cedfe2 · 2026-11-06 |
+| Robustness: MThai-only distances per region, with n | Central `0.601` (49 / 14), North `0.813` (33 / 4; **below minimum n**), Northeast `0.526` (34 / 7), South `0.643` (28 / 3; **below minimum n**); Holm p (primary) 0.0068 / 0.3465 / 0.4650 / 0.5478 · `rq1_registers_20261106.csv` (all entries) and `…_reviewed.csv` · commit 7cedfe2 · 2026-11-06 |
 | Figure 1 / Figure 6 caption: recipes per region per register; ingredients shown (top 60 by variance) | Figure 6: 4 regions × `60` ingredients; recipes per region as in Section 3 (official 49/33/34/28, commercial 18/12/35/18) · `figures/fig6_heatmap.png`, `fig6_heatmap_reviewed.png` · commit 7cedfe2 · 2026-11-06 |
 | Fieldwork: interviews completed; the one early observation, if any | `0` interviews as of 2026-11-06 · `make status` · commit 7cedfe2 · 2026-11-06 |
 

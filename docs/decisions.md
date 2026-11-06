@@ -1587,6 +1587,49 @@ recorded as genuine dish claims.
 
 ---
 
+### HD-37 amendment — minimum commercial n per cell (2026-11-06)
+**Decision (researcher, instructed in session, 2026-11-06):** apply n ≥ 5 commercial
+recipes as the minimum per RQ1 cell. A cell below it is **marked "below minimum n", not
+deleted**.
+**Note on the record:** HD-37's entry used n ≥ 5 only as the threshold for its evidence
+counts. It decided no minimum, and RQ_PLAYBOOK's step 1 ("below which a unit is dropped")
+was never decided either. This instruction is the first decision on it, and it flags
+rather than drops.
+**Reasoning:** [not stated in session; to be added by the researcher]
+**Built [CC]:**
+- `rq1_registers.COMMERCIAL_MIN_N = 5`.
+- `run_rq1` writes `below_min_n`, prints "below minimum n", and records the rule in its
+  `.json`.
+- Flagged cells stay inside their Holm family. Whether they should leave it was not
+  asked.
+- Cells below the minimum at commit f00ae26: Kapook-only Central (4), MThai-only North
+  (4), MThai-only South (3), under both weightings. No pooled cell.
+
+**Where each region's commercial recipes come from** (the 83 in `v_recipes_clean`, from
+`province_attribution` ⋈ `v_recipes_clean`, 2026-11-06):
+
+| Region | Source | Label rule | Confidence | Province | n |
+|---|---|---|---|---|---|
+| Central | mthai_food | rule 1 (province in title/category/tag) | high | Chai Nat | 13 |
+| Central | mthai_food | rule 2 (region term) | high | — | 1 |
+| Central | kapook_cooking | rule 1 | high | Nakhon Pathom | 1 |
+| Central | kapook_cooking | body text, read by hand | medium | — | 3 |
+| North | kapook_cooking | rule 2 | high | — | 5 |
+| North | kapook_cooking | body text | medium | — | 3 |
+| North | mthai_food | rule 2 | high | — | 4 |
+| Northeast | kapook_cooking | body text | medium | — | 17 |
+| Northeast | kapook_cooking | rule 2 | high | — | 9 |
+| Northeast | kapook_cooking | rule 1 | high | Nakhon Ratchasima | 2 |
+| Northeast | mthai_food | rule 2 | high | — | 5 |
+| Northeast | mthai_food | rule 1 | high | Nakhon Ratchasima | 2 |
+| South | kapook_cooking | rule 2 | high | — | 8 |
+| South | kapook_cooking | body text | medium | — | 7 |
+| South | mthai_food | rule 2 | high | — | 3 |
+
+- **Central: 13 of its 18 commercial recipes are the MThai Chai Nat posts.** All 13
+  matched the tag `อาหารจังหวัดชัยนาท`. None has ชัยนาท in its title.
+- The same 13 are 13 of MThai-only Central's 14.
+
 ## HD-38 — How a register's recipes become one ingredient vector (RQ1)
 **Date presented:** 2026-10-12 · **Status:** DECIDED 2026-11-06
 **Arises from:** T1.19. Bible v4 §6 specifies "cosine distance on normalised ingredient
@@ -2326,6 +2369,71 @@ printed table, `.json` `p_value`), `tests/test_rq1_inference.py`, OUTLINE §4 an
 RQ_PLAYBOOK RQ1 step 4–5, research_questions.md implementation note, Bible §6 RQ1 Method
 and §14.1, CLAUDE.md §4 RQ1, TIMELINE T1.19, `paper/dh2027/numbers.md`.
 
+
+### HD-44 amendment — the observed distance lies outside its interval in 3 cells
+**Date presented:** 2026-11-06 · **Status:** OPEN
+**Arises from:** the 9,999/9,999 run at f00ae26 (T1.19). In 3 primary (TF-IDF) cells the
+observed distance lies above its bias-corrected 95% interval:
+- pooled North: 0.6494 vs [0.5406, 0.6490];
+- pooled South: 0.4943 vs [0.3925, 0.4832];
+- Kapook-only South: 0.5217 vs [0.4193, 0.5138].
+
+The first HD-44 trial recorded this as a limit of bias correction.
+
+**Evidence** (`uv run python -m scripts.run_rq1 --interval-evidence` →
+`data/coverage/rq1_intervals_20261106.csv`). It uses the same 9,999 bootstrap draws and
+seed as the reported run, so its BC column equals the reported interval (a test checks
+this). TF-IDF, all 12 cells:
+- **Bias.** mean(bootstrap) − observed is +0.060 to +0.130 in every cell; resampling
+  inflates the distance everywhere. As a multiple of the bootstrap SE: pooled North 2.03,
+  pooled South 2.11, Kapook-only South 2.06; every other cell 0.89–1.78. The 3 cells
+  are exactly those where bias > 1.96 SE. There, fewer than 2.5% of bootstrap distances
+  fall below the observed one (share 0.016–0.025), so the BC interval's upper quantile
+  falls under the observed value.
+- **No interval type tried contains the observed value in those 3 cells:**
+
+| Cell | n (off / com) | Observed | Percentile | Bias-corrected (reported) | BCa | Basic | BC point (2·obs − mean) |
+|---|---|---|---|---|---|---|---|
+| pooled North | 33 / 12 | 0.649 | [0.650, 0.862] | [0.541, 0.649] | [0.541, 0.649] | [0.437, 0.649] | 0.539 |
+| pooled South | 28 / 18 | 0.494 | [0.505, 0.746] | [0.393, 0.483] | [0.393, 0.483] | [0.243, 0.484] | 0.365 |
+| Kapook South | 28 / 15 | 0.522 | [0.530, 0.776] | [0.419, 0.514] | [0.419, 0.514] | [0.267, 0.513] | 0.392 |
+
+  Percentile lies wholly *above* the observed value; BC, BCa and basic end just *below*
+  it. In all 9 other cells, every type contains the observed value.
+- **BCa ≈ BC** in every cell (bounds differ by ≤ 0.01): the jackknife acceleration is near
+  0, so BCa does not change the picture.
+- **The BC point estimate** lies *below* the BC interval in the same 3 cells (e.g. North
+  0.539 < 0.541). Pairing it with that interval does not put the point inside.
+
+**Options:**
+- **A. Keep:** report the observed distance with the BC interval, and add a footnote and
+  limitations line saying that where the bootstrap bias exceeds about 1.96 SE (3 of 12
+  cells), the observed value falls just outside the interval.
+  *Consequence:* no change to any number. A reader sees a point outside its own interval
+  in 3 cells and needs the note.
+- **B. Report the bias-corrected point estimate** (2·obs − mean(boot)) with the BC
+  interval, in place of the observed distance.
+  *Consequence:* every headline distance drops by 0.06–0.13. The point still lies outside
+  the interval in the same 3 cells. The p-values are computed on the observed distance,
+  so the point and the test would refer to different quantities.
+- **C. Switch interval type:**
+  - (i) Plain percentile: the observed value lies below the interval in the same 3 cells.
+  - (ii) BCa: the same as BC here.
+  - (iii) Basic: the observed value lies above the interval in the same 3 cells.
+  *Consequence:* none of these removes the 3 cells; (i) re-reverses the HD-44 choice.
+- **D. A normal interval around the bias-corrected point** (BC point ± 1.96 × bootstrap SE).
+  *Consequence:* the interval contains its own point by construction. It shows the
+  observed value outside it in the same 3 cells, and it is shifted down 0.06–0.13 like B.
+  It assumes a symmetric sampling distribution.
+- **E. Reduce the bias at the estimator** (e.g. a jackknife bias-corrected distance as the
+  reported statistic), with intervals and permutation tests re-run on it.
+  *Consequence:* changes the headline statistic, the p-values and the code. Not built.
+  Another methods change after results were seen, which the paper would disclose.
+
+**Recommendation:** none.
+**Decision:**
+**Reasoning:**
+**Date decided:**
 ---
 
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
