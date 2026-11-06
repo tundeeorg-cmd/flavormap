@@ -1,4 +1,4 @@
-.PHONY: labels-body lexicon-groups lexicon-apply rq1 setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai load-mthai labels status status-snapshot clean analyze vision figures api web export test all verify
+.PHONY: paper-audit labels-body lexicon-groups lexicon-apply rq1 setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai load-mthai labels status status-snapshot clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -128,6 +128,9 @@ analyze:
 # sensitivity, permutation p-values and bootstrap CIs, pooled and per commercial source;
 # then Figure 6. Needs the lexicon (make lexicon) and fresh Parquet.
 # REVIEWED=1: researcher-drafted or reviewed entries only (writes *_reviewed files).
+paper-audit:
+	uv run python -m scripts.paper_audit $(if $(DRAFT),--draft $(DRAFT),) $(if $(WRITE),--write,)
+
 rq1: parquet
 	uv run python -m scripts.run_rq1 $(if $(REVIEWED),--reviewed-only,)
 	uv run python -m scripts.make_figure6 $(if $(REVIEWED),--reviewed-only,)

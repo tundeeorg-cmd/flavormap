@@ -92,7 +92,7 @@ Primary = TF-IDF, sensitivity = prevalence (HD-38). Source file: `data/coverage/
 | Sensitivity: the same per-region distances under prevalence, and whether the order of regions changes | Central `0.417`, North `0.484`, Northeast `0.329`, South `0.415`; ascending order Northeast < South < Central < North under both weightings (South and Central differ by 0.0015 under prevalence) · `rq1_registers_20261106.csv` (all entries) and `…_reviewed.csv` · commit 7cedfe2 · 2026-11-06 |
 | Robustness: Kapook-only distances per region, with n | Central `0.750` (49 / 4; **below minimum n**), North `0.683` (33 / 8), Northeast `0.439` (34 / 28), South `0.522` (28 / 15); Holm p (primary) 0.1454 / 0.1454 / 0.0004 / 0.0468 · `rq1_registers_20261106.csv` (all entries) and `…_reviewed.csv` · commit 7cedfe2 · 2026-11-06 |
 | Robustness: MThai-only distances per region, with n | Central `0.601` (49 / 14), North `0.813` (33 / 4; **below minimum n**), Northeast `0.526` (34 / 7), South `0.643` (28 / 3; **below minimum n**); Holm p (primary) 0.0068 / 0.3465 / 0.4650 / 0.5478 · `rq1_registers_20261106.csv` (all entries) and `…_reviewed.csv` · commit 7cedfe2 · 2026-11-06 |
-| Figure 1 / Figure 6 caption: recipes per region per register; ingredients shown (top 60 by variance) | Figure 6: 4 regions × `60` ingredients; recipes per region as in Section 3 (official 49/33/34/28, commercial 18/12/35/18) · `figures/fig6_heatmap.png`, `fig6_heatmap_reviewed.png` · commit 7cedfe2 · 2026-11-06 |
+| Figure 1 / Figure 6 caption: recipes per region per register; ingredients shown (top 60 by variance) | Figure 6: 4 regions × `60` ingredients; recipes per region as in Section 3 (official 49/33/34/28, commercial 18/12/35/18) · `figures/fig6_heatmap.png`, `fig6_heatmap_reviewed.png`; counts in the caption block `figures/fig6_heatmap.json` · commit 7cedfe2 · 2026-11-06 |
 | Fieldwork: interviews completed; the one early observation, if any | `0` interviews as of 2026-11-06 · `make status` · commit 7cedfe2 · 2026-11-06 |
 
 ## Section 7: Limitations
@@ -107,5 +107,13 @@ Primary = TF-IDF, sensitivity = prevalence (HD-38). Source file: `data/coverage/
 
 | Number | Value |
 |---|---|
-| Word count, captions included (1,000–1,250) | [TBD: script — none yet] |
-| References verified (count) | [TBD: script — none yet] |
+| Word count, captions included (1,000–1,250) | [TBD: scripts.paper_audit] (`make paper-audit WRITE=1` once `draft.md` exists) |
+| References verified (count) | [TBD: scripts.paper_audit] (counts only; verifying is T1.25) |
+
+## T1.24 number audit
+
+`make paper-audit` (`scripts/paper_audit.py`) reads `paper/dh2027/draft.md` and checks
+every number in its prose and captions against the value cells of the filled rows above.
+It prints the word count (captions in; tables and references out), the reference count,
+and each **untraced** number with its line. T1.24 is done when it reports zero untraced.
+It exits 2 while any number is untraced. `WRITE=1` fills the two submission-check rows.

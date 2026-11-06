@@ -18,6 +18,10 @@ is ``PROVINCE_MIN_N`` (10, HD-24), the lowest headline value; 15 and 25 are the 
 (CLAUDE.md §7.5). The filter runs **before** TF-IDF, so a province not shown does not
 shape the weights of those that are.
 
+**Caption data block** (counts only, for the paper's caption and numbers.md): a
+``.json`` beside the PNG with the unit, weighting, threshold, lexicon mode, ingredients
+shown, and recipes per unit per register. No ingredient names, no text.
+
 Labels: provinces by English name; ingredients by the lexicon's English gloss where one
 exists, else the Thai name.
 """
@@ -25,6 +29,7 @@ exists, else the Thai name.
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -65,6 +70,21 @@ def labels(processed: Path = PROCESSED) -> tuple[dict[str, str], dict[str, str]]
                                lexicon["name_th"], strict=True)
     }
     return province_label, ingredient_label
+
+
+def caption_block(counts: dict[str, pd.Series], unit: str, threshold: int,
+                  n_ingredients: int, top_n: int, reviewed_only: bool) -> dict[str, object]:
+    """Figure 6's caption numbers, counts only."""
+    per = {r: {str(u): int(n) for u, n in c.items()} for r, c in counts.items()}
+    return {
+        "figure": "fig6_heatmap", "unit": unit, "weighting": "tfidf",
+        "commercial_threshold": threshold, "top_n_requested": top_n,
+        "ingredients_shown": n_ingredients,
+        "lexicon": "reviewed-only" if reviewed_only else "all entries",
+        "recipes_per_unit": per,
+        "recipes_total": {r: sum(v.values()) for r, v in per.items()},
+        "units_per_register": {r: len(v) for r, v in per.items()},
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -110,6 +130,10 @@ def main(argv: list[str] | None = None) -> int:
     province_label, ingredient_label = labels(args.processed)
     render(heatmap, args.out, province_label=province_label if unit == "province" else {},
            ingredient_label=ingredient_label, caption=text, unit_name=unit)
+    block = caption_block(counts, unit, threshold, len(heatmap.ingredients), args.top_n,
+                          args.reviewed_only)
+    args.out.with_suffix(".json").write_text(json.dumps(block, indent=1, ensure_ascii=False),
+                                             encoding="utf-8")
     print(f"wrote {args.out} ({len(heatmap.provinces)} {unit}s × "
           f"{len(heatmap.ingredients)} ingredients)")
     return 0

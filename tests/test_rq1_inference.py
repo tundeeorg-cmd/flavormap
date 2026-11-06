@@ -321,3 +321,78 @@ def test_run_rq1_flags_observed_outside_ci_and_excludes_listed_recipes(tmp_path:
     rows2 = list(csv.DictReader(out.open(encoding="utf-8")))
     assert sum(int(r["n_commercial_side"]) for r in rows2
                if r["role"] == "primary" and r["scope"] == "pooled") == full - 1
+
+
+# ── T1.24: scripts/paper_audit.py (the RQ1 → numbers.md → draft chain) ─────────────
+
+_NUMBERS_MD = """
+| Number | Value |
+|---|---|
+| Official recipes loaded | `203` · `make status` · commit abc1234 · 2026-11-06 |
+| Distance | Central `0.568` [0.453, 0.592] · `rq1.csv` · commit abc1234 · 2026-11-06 |
+| Coverage | `81.4%` (11,462 of 14,084) · file · commit abc1234 · 2026-11-06 |
+| Not yet | [TBD: scripts.run_rq1] 999 |
+"""
+
+_DRAFT = """---
+title: x
+---
+# Introduction
+
+We loaded 203 official recipes (Ahn et al. 2011) and mapped 81.4% of mentions (11,462).
+The Central distance was 0.57 [0.453, 0.592]; see Figure 6 and RQ1 and HD-44.
+An invented 0.731 and 999 appear here.
+
+| Table cell 12345 | not counted |
+|---|---|
+
+*Figure 6: Region × ingredient heatmap, 60 ingredients.*
+
+<!-- hidden 777 -->
+
+## References
+
+- Ahn, Y.-Y. et al. (2011). Flavor network.
+- Burrows, J. (2002). Delta.
+"""
+
+
+def test_paper_audit_counts_words_references_and_traces_numbers(tmp_path: Path) -> None:
+    from scripts import paper_audit as pa
+    draft = pa.split(_DRAFT)
+    assert draft.excluded_tables == 2
+    words, thai = pa.count_words(draft.counted)
+    assert thai == 0
+    assert words == sum(len(ln.split()) for ln in [
+        "Introduction",
+        "We loaded 203 official recipes (Ahn et al. 2011) and mapped 81.4% of mentions (11,462).",
+        "The Central distance was 0.57 [0.453, 0.592]; see Figure 6 and RQ1 and HD-44.",
+        "An invented 0.731 and 999 appear here.",
+        "Figure 6: Region × ingredient heatmap, 60 ingredients."]) - 1  # "×" is no word
+    assert pa.count_references(draft.references) == 2
+    audit = pa.audit_numbers(draft.counted, pa.known_values(_NUMBERS_MD))
+    assert {t for _, t, _ in audit.untraced} == {"0.731", "999", "60"}
+    assert {"203", "81.4%", "11,462", "0.57", "0.453", "0.592"} <= set(audit.traced)
+    assert "2011" in audit.years and "6" in audit.labels and "44" in audit.labels
+    assert "12345" not in audit.traced + audit.labels and "777" not in audit.traced
+
+
+def test_paper_audit_thai_is_counted_in_words_not_characters() -> None:
+    from scripts import paper_audit as pa
+    words, thai = pa.count_words(["Q9 asks อะไรที่คนจังหวัดอื่นใส่ในจานนี้"])
+    assert thai > 3 and words == thai + 2
+
+
+def test_paper_audit_writes_only_the_two_submission_rows(tmp_path: Path) -> None:
+    from scripts import paper_audit as pa
+    numbers = tmp_path / "numbers.md"
+    numbers.write_text(
+        "| Word count, captions included (1,000–1,250) | [TBD: scripts.paper_audit] |\n"
+        "| References verified (count) | [TBD: scripts.paper_audit] |\n"
+        "| Other | [TBD: x] |\n", encoding="utf-8")
+    draft = tmp_path / "draft.md"
+    draft.write_text("Hello world.\n", encoding="utf-8")
+    assert pa.main(["--draft", str(draft), "--numbers", str(numbers), "--write"]) == 0
+    lines = numbers.read_text(encoding="utf-8").splitlines()
+    assert "`2`" in lines[0] and "draft.md" in lines[0] and "[TBD" not in lines[0]
+    assert "`0` counted" in lines[1] and lines[2] == "| Other | [TBD: x] |"

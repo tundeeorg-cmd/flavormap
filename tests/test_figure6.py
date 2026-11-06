@@ -82,3 +82,18 @@ def test_render_writes_the_figure_and_an_honest_empty_state(tmp_path: Path) -> N
     empty = render(build([]), tmp_path / "e.png", province_label={}, ingredient_label={},
                    caption="synthetic")
     assert full.stat().st_size > 0 and empty.stat().st_size > 0
+
+
+def test_caption_block_is_counts_only() -> None:
+    """The Figure 6 caption data block: counts per unit per register, no names or text."""
+    import pandas as pd
+
+    from scripts.make_figure6 import caption_block
+    counts = {"official": pd.Series({"North": 33, "South": 28}),
+              "commercial": pd.Series({"North": 12}), "domestic": pd.Series(dtype=int)}
+    b = caption_block(counts, "region", 0, 60, 60, False)
+    assert b["recipes_total"] == {"official": 61, "commercial": 12, "domestic": 0}
+    assert b["units_per_register"] == {"official": 2, "commercial": 1, "domestic": 0}
+    assert b["ingredients_shown"] == 60 and b["weighting"] == "tfidf"
+    assert all(isinstance(v, int) for r in b["recipes_per_unit"].values()  # type: ignore[union-attr]
+               for v in r.values())
