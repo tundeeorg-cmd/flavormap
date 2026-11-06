@@ -13,8 +13,9 @@ Fill a line as: `value` · output file · commit · date.
   are not reviewed yet. Report every lexicon-dependent number **both ways**: all entries,
   and reviewed only (researcher-drafted or reviewed). Use `make rq1` and
   `make rq1 REVIEWED=1`; `scripts.lexicon_coverage` prints both.
-- **The permutation p-value is not chosen yet** (HD-44 open). `run_rq1` writes
-  `p_unit_shuffle` and `p_register_shuffle`, and only the one HD-44 names goes in the paper.
+- **HD-44 (decided 2026-11-06):** report `p_unit_shuffle` (region-label shuffle), Holm-adjusted
+  across the 4 regions within each scope. Intervals: 9,999 resamples, bias-corrected
+  percentile, 95%. The adjustment and the interval type are not built yet.
 
 ## Section 3: Data (Table 1)
 
@@ -74,7 +75,7 @@ Primary = TF-IDF, sensitivity = prevalence (HD-38). Source file: `data/coverage/
 | Official↔commercial distance per region, with 95% bootstrap CI (TF-IDF, pooled) | [TBD: scripts.run_rq1] |
 | Median distance across regions | [TBD: scripts.run_rq1] |
 | Range of distances across regions | [TBD: scripts.run_rq1] |
-| Regions differing more than chance, p < 0.05 ("n of N"), under HD-44's null | [TBD: scripts.run_rq1] |
+| Regions differing more than chance, Holm-adjusted p < 0.05 ("n of N"), region-label shuffle (HD-44) | [TBD: scripts.run_rq1] |
 | p-value per region (HD-44's null) | [TBD: scripts.run_rq1] |
 | Region where the registers agree most | [TBD: scripts.run_rq1] |
 | Region where the registers agree least | [TBD: scripts.run_rq1] |

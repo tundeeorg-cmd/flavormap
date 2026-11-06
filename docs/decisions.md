@@ -2148,7 +2148,7 @@ writing; `recipe_ingredients` holds 9,141 rows in 1,631 recipes.
 ---
 
 ## HD-44 — Which permutation null does RQ1 report?
-**Date presented:** 2026-11-06 · **Status:** OPEN
+**Date presented:** 2026-11-06 · **Status:** DECIDED 2026-11-06
 **Arises from:** DH2027 outline v0.2, Section 4 ("shuffle province labels 9,999 times and
 report where the real distance falls"), now that RQ1's unit is the region (HD-37 C).
 `src/analyze/rq1_inference.py` computes both nulls below for every distance and
@@ -2180,13 +2180,27 @@ HD-37's labelled count, so intervals will be wide; the counts are printed beside
   regions (e.g. North 0.572, interval [0.574, 0.827]). Resampling small groups inflates a
   cosine distance, so a plain percentile interval is biased upward. This bears on (ii).
 
-**Asked 2026-11-06, question 1 (A / B / C):** the researcher answered "no preference". Not
-recorded as a decision; the gate stays OPEN.
+**Asked 2026-11-06.** A first answer of "no preference" to question 1 was a mis-click; the
+researcher corrected it in session and the question was asked again.
 
 **Recommendation:** none.
 **Decision:**
-**Reasoning:**
-**Date decided:**
+- **Null: A, the region-label shuffle** (the outline's wording, at region level).
+  `p_unit_shuffle` is the reported p-value; B (`p_register_shuffle`) is not reported.
+- **Adjustment: Holm–Bonferroni across the 4 regions, within each scope.** Pooled
+  commercial, Kapook-only and MThai-only are each a separate family.
+- **Bootstrap: 9,999 resamples, bias-corrected percentile interval, 95%.**
+
+Rejected:
+- Null: B alone, and both (with A or B primary).
+- Adjustment: Bonferroni, Benjamini–Hochberg, none.
+- Bootstrap: BCa, plain percentile at 9,999, and 1,999 percentile.
+
+**Reasoning:** [not stated in session; to be added by the researcher]
+**Date decided:** 2026-11-06, by the researcher in session
+**To build [CC]:** Holm adjustment and the bias-corrected interval in
+`src/analyze/rq1_inference.py` / `scripts/run_rq1.py`. Today the code reports raw p
+and a plain percentile interval.
 
 ---
 
