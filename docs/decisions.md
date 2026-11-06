@@ -1863,7 +1863,7 @@ reads only that file; a coverage report.
 ---
 
 ## HD-6 (rules) — Lexicon granularity rules
-**Date presented:** 2026-11-06 · **Status:** question 6 DECIDED (2026-11-06); questions 1–5 OPEN
+**Date presented:** 2026-11-06 · **Status:** DECIDED 2026-11-06 (questions 1–6)
 **Arises from:** TIMELINE v4 T1.16 (rules due 20 Oct; Gate G3 on Sun 8 Nov asks for ≥150
 entries covering ≥80% of mentions). CLAUDE.md §9 calls HD-6 the most important gate in
 the project. This entry covers only the **rules**; the entries themselves stay the
@@ -1941,11 +1941,87 @@ slightly because two lines in one recipe that differ only in amount become one s
   names.
 
 **Recommendation:** none. These rules are the lexicon's methods section.
-**Decision:** **Question 6: (a), map raw strings as they stand.** `STRIP_QUANTITIES` stays
-off; the stripping prototype is kept, unused, so the evidence above can be reproduced.
-Questions 1–5: open.
-**Reasoning:** [not stated in session; to be added by the researcher]
-**Date decided:** 2026-11-06 (question 6), by the researcher in session
+**Evidence for questions 1–5 as presented in session, 2026-11-06** (worklist re-run with
+MThai loaded: 1,736 recipes, 9,289 distinct strings, 15,153 (recipe, string) pairs; 80%
+needs rank 6,259; counts are official / commercial recipes):
+- Q1: 114 strings start with `พริกขี้หนู` (153 pairs); `พริกขี้หนู` 4 / 13,
+  `พริกขี้หนูสวน` 2 / 3, `พริกขี้หนูแดงจินดา` 1 / 0.
+- Q2: strings containing `สด` 441 (567 pairs), `แห้ง` 157 (193), `ป่น` 232 (532);
+  `พริกสด` 4 / 31, `พริกแห้ง` 12 / 11, `กุ้งสด` 3 / 15, `กุ้งแห้ง` 4 / 4, `พริกไทยป่น` 0 / 41.
+  The question stated an assumption that preparation words (สับ, ซอย, ฉีก) are dropped
+  under any option; the researcher did not object (see Decision).
+- Q4: 103 strings contain `มะกรูด` (193 pairs); `ใบมะกรูด` 17 / 25, `ผิวมะกรูด` 4 / 1.
+- Q5: 592 strings contain `หรือ` (602 pairs); by a rough regex, 60 are "optional" notes
+  (`(ใส่หรือไม่ใส่ก็ได้)`), 8 alternative amounts, about 524 real alternatives; 13 lists
+  joined by `+`. Together about 4% of pairs.
+
+**Recommendation:** none. These rules are the lexicon's methods section.
+**Decision:**
+- **Question 1 (variety / cultivar): one entry.** Cultivars map to the species entry
+  (`พริกขี้หนูสวน` → `พริกขี้หนู`).
+- **Question 2 (state words สด, แห้ง, ป่น): always dropped.** State never makes a separate
+  entry (`กุ้งแห้ง` → `กุ้ง`, `เกลือป่น` → `เกลือ`). Preparation words (สับ, ซอย, ฉีก) are
+  also dropped; this was stated as an assumption in the question, not offered as an option.
+- **Question 3 (processed or derived forms): own entries.** `กะทิ`, `น้ำมะขามเปียก`,
+  `น้ำตาลมะพร้าว`, `น้ำตาลโตนด`, `น้ำตาลปี๊บ` are entries distinct from their source plant.
+- **Question 4 (plant parts): separate entries.** `ใบมะกรูด` ≠ `ผิวมะกรูด` ≠ `มะกรูด`.
+- **Question 5 (lists and alternatives): split all.** "A and B" and "A หรือ B" both become
+  one mention per named ingredient. "Optional" notes map to the one ingredient.
+- **Question 6: (a), map raw strings as they stand.** `STRIP_QUANTITIES` stays off; the
+  stripping prototype is kept, unused, so the evidence above can be reproduced.
+
+Rejected: Q1 separate entries, separate with a parent link; Q2 always kept, kept if it
+changes the item; Q3 map to source, own with trivial forms merged; Q4 one per plant,
+separate if the role differs; Q5 split lists with first-named or NULL for หรือ, leave both
+unmapped; Q6 (b).
+**Reasoning:**
+- Q1: [not stated in session; to be added by the researcher]
+- Q2: [not stated in session; to be added by the researcher]
+- Q3: [not stated in session; to be added by the researcher]
+- Q4: [not stated in session; to be added by the researcher]
+- Q5: [not stated in session; to be added by the researcher]
+- Q6: [not stated in session; to be added by the researcher]
+**Date decided:** 2026-11-06 (all six questions), by the researcher in session
+**Build [CC], 2026-11-06:** Q5 splits live in `data/reference/lexicon/ingredient_splits.csv`
+→ table `ingredient_alias_splits` (migration 028), one row per entry a string names.
+`scripts/canonicalise.py` fills `recipe_ingredients` from entry names, aliases and splits
+(`make lexicon`). Q2 with Q6 means each raw line variant is its own alias, so
+`scripts/lexicon_groups.py` writes a grouped worksheet (suggestions only, at the
+researcher's request) and `scripts/lexicon_apply.py` copies the researcher's filled
+decisions into the alias and split files.
+
+---
+
+## HD-44 — Which permutation null does RQ1 report?
+**Date presented:** 2026-11-06 · **Status:** OPEN
+**Arises from:** DH2027 outline v0.2, Section 4 ("shuffle province labels 9,999 times and
+report where the real distance falls"), now that RQ1's unit is the region (HD-37 C).
+`src/analyze/rq1_inference.py` computes both nulls below for every distance and
+`scripts/run_rq1.py` writes both, as `p_unit_shuffle` and `p_register_shuffle`; neither
+is reported in the paper until this is decided. Evidence so far is fixtures only: no
+real distance has been computed (the lexicon has 0 entries).
+
+**Options:**
+- **A. Unit-label shuffle** (the outline's wording, at region level). Within each register,
+  region labels are permuted across that register's recipes. The null is the distance
+  between same-sized random official and commercial recipe sets, so a small p says this
+  region's official↔commercial gap is larger than the registers' gap in general. It does
+  not test whether the registers differ at all.
+- **B. Register-label shuffle.** Within each region, official / commercial labels are
+  permuted across that region's pooled recipes. A small p says the two registers differ
+  in this region by more than chance allocation of its recipes would produce.
+- **C. Both,** one named primary.
+**Also open within this gate:** (i) whether p-values are adjusted for the number of
+regions (and sources) compared, and how (code applies none); (ii) the bootstrap count
+(default 9,999, the outline names none) and interval type (percentile, 95%).
+**Consequence common to all:** with 3 official recipes per province, a region's official
+side is about 3 × its provinces, and the commercial side is
+HD-37's labelled count, so intervals will be wide; the counts are printed beside each.
+
+**Recommendation:** none.
+**Decision:**
+**Reasoning:**
+**Date decided:**
 
 ---
 
