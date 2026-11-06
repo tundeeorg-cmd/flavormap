@@ -7,8 +7,8 @@ the named script has been run and its output file and git commit are written bes
 
 Fill a line as: `value` · output file · commit · date.
 
-- **RQ1 unit is the region**, not the province (HD-37 C, 2026-11-06). The outline still
-  says "province" in Sections 4 and 5, so its wording needs updating to match.
+- **RQ1 unit is the region**, not the province (HD-37 C, 2026-11-06). OUTLINE Sections
+  4 and 5 updated to match on 2026-11-06.
 - **Minimum n (researcher, 2026-11-06; HD-37 amendment):** a cell with fewer than 5
   commercial recipes is marked **below minimum n**. It is kept, not deleted, and stays in
   its Holm family. `run_rq1` writes `below_min_n`. Cells below: Kapook-only Central (4),
@@ -17,9 +17,8 @@ Fill a line as: `value` · output file · commit · date.
 - **Filled 2026-11-06** from the 9,999/9,999 runs at commit 7cedfe2. Numbers only; no
   interpretation is written here. Commercial-side n per region per source are small
   (as low as 3), and are printed beside each distance.
-- **Lexicon provenance (2026-11-06).** 302 of 492 entries were drafted by the agent and
-  are not reviewed yet. Report every lexicon-dependent number **both ways**: all entries,
-  and reviewed only (researcher-drafted or reviewed). Use `make rq1` and
+- **Lexicon provenance (2026-11-06).** Report every lexicon-dependent number **both
+  ways**: all entries, and reviewed only (researcher-drafted or reviewed). Use `make rq1` and
   `make rq1 REVIEWED=1`; `scripts.lexicon_coverage` prints both.
   *Update 2026-11-06 (later):* all 302 agent-drafted entries are now reviewed by the
   researcher (commit 6950051), so both ways give identical numbers at this commit.

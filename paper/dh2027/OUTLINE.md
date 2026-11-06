@@ -68,7 +68,8 @@ Include Table 1 (counts in table cells do not count toward the word limit).
 ### 4. Method · ~250 words
 
 - Ingredient normalisation to a controlled Thai vocabulary ([~150] entries at submission; target ~400), each mapping decision logged.
-- Province × ingredient vectors per register; pairwise cosine distance (official↔commercial now; three-way for the two fieldwork provinces later).
+- Region × ingredient vectors per register (HD-37 C; province rows shown where they exist); pairwise cosine distance (official↔commercial now; three-way for the two fieldwork provinces later).
+- Primary test chosen after trial results; disclosed.
 - **Is the difference real? (new in v2; test revised 2026-11-06, HD-44)** For each region (HD-37), compare the observed official↔commercial distance with a **permutation baseline**: within the region, shuffle the official/commercial labels across its recipes 9,999 times (register-label shuffle) and report where the real distance falls (empirical p-value, Holm-adjusted across the four regions). Secondary check: shuffle region labels within each register. Report **95% bias-corrected bootstrap confidence intervals** (resampling recipes within each region) beside every distance. The primary test was chosen after trial results were seen; say so.
 - Robustness: commercial side repeated per source (Kapook / Sanook / MThai) so the result is not one site's house style.
 - Sample sizes reported beside every distance — registers are unequal (3 vs. [n] vs. ~6).
@@ -81,10 +82,10 @@ Include Table 1 (counts in table cells do not count toward the word limit).
 
 **Do not write until the preliminary analysis is run. No numbers before then.**
 
-- Distribution of official↔commercial distance across provinces: [median, range], each with [95% bootstrap CI].
+- Distribution of official↔commercial distance across regions: [median, range], each with [95% bootstrap CI].
 - Against the permutation baseline (register-label shuffle, primary, HD-44): [n of N] regions differ more than chance (Holm-adjusted p < 0.05); give the region-label shuffle result beside it as secondary; state the overall result in one sentence. If the registers are no more different than chance, say so — that is a finding.
-- Provinces where the registers agree most and least: [names].
-- Figure 1 (appendix): province × ingredient heatmap, seriated by clustering, faceted by register.
+- Regions where the registers agree most and least: [names].
+- Figure 1 (appendix): region × ingredient heatmap, seriated by clustering, faceted by register.
 - Fieldwork status: [n] interviews completed; one concrete early observation if one exists.
 - Report a null or weak result plainly if that is what the data shows.
 
