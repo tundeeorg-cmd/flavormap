@@ -7,7 +7,7 @@ Section 1's origin story is deliberately left blank: it must come from cooking t
 (T1.9), not from memory or from a draft.
 -->
 
-# Three Dishes per Province: How the Thai State and the Web Record Regional Food Differently
+# The State's Dish, the Web's Recipe, the Home Kitchen: How Far Apart Are Thailand's Records of Regional Food?
 
 Jenissa Vichiansin — International School Bangkok · github.com/tundeeorg-cmd/flavormap
 
@@ -15,7 +15,7 @@ Jenissa Vichiansin — International School Bangkok · github.com/tundeeorg-cmd/
 
 [ORIGIN STORY — to be written by the author after cooking the dish with the family member (TIMELINE T1.9). First sentence starts with cooking; method enters no earlier than sentence three. Include what contradicted the remembered version. Do not draft this from memory. ~80 words.]
 
-The version cooked at home is not the version the government lists, nor the one a recipe site publishes. Thailand's Department of Cultural Promotion names three dishes for each of the country's 77 provinces; recipe portals publish thousands more; home cooks make what season, cost and habit allow. Which of these is "Thai regional food"? This paper treats the question as empirical: when the same cuisine is recorded by three actors with three different motives, how far apart are the records, and is the difference larger than chance?
+The version cooked at home is not the version the government lists, nor the one a recipe site publishes. Thailand's Department of Cultural Promotion names three dishes for each of the country's 77 provinces; recipe portals publish thousands more; home cooks make what season, cost and habit allow. Which of these is "Thai regional food"? This paper treats the question as empirical: when the same cuisine is recorded by three actors with three different motives, how far apart are the records, and is the difference larger than chance? This short paper reports the first side of that triangle, the state and the web; interviews with home cooks in Nakhon Ratchasima and Buri Ram, now under way, complete it.
 
 ## 2. Background and gap
 
@@ -29,7 +29,7 @@ I treat each source as a *register*: a record of the same cuisine produced under
 
 The **official** register is the Department of Cultural Promotion's local-food programme (`food.culture.go.th`, programme year 2568): 231 submission forms, three dishes per province. I loaded 203 recipes from 74 provinces; 144 have between 3 and 25 mapped ingredients and enter the analysis. The **commercial** register is two Thai recipe portals, Kapook (1,360 recipes) and MThai (193); a third portal is excluded pending the publisher's permission. Web recipes rarely say where a dish comes from: only 86 carry a region claim in their title, category, tags or hand-confirmed body text, and 83 of these enter the analysis. The **domestic** register is a planned set of twelve interviews with home cooks in Nakhon Ratchasima and Buri Ram; none had been completed at submission.
 
-The official forms contain informants' names, addresses and telephone numbers. These are stripped at parse time, before any database write, and a database-wide test fails the build if any survive. Raw files are never published, robots.txt and terms of use are audited and dated for every site, and only ingredient lists are stored, never recipe prose. Interviews use a Thai consent form, and a parent attends each one. Two Thai PDF extraction traps, a vowel (sara am) that silently drops out and checkboxes drawn in a symbol font, are handled with dedicated tests; a separate technical paper describes them.
+Informants' names, addresses and telephone numbers in the official forms are stripped at parse time, before any database write, and a database-wide test enforces this. Only ingredient lists are stored, never recipe prose; every site's terms are audited and dated; interviews use a Thai consent form with a parent present. Two Thai PDF extraction traps, a vowel that silently drops out and checkboxes drawn in a symbol font, are handled with dedicated tests.
 
 **Table 1.** Three registers (counts at submission).
 
@@ -41,11 +41,11 @@ The official forms contain informants' names, addresses and telephone numbers. T
 
 ## 4. Method
 
-Ingredients are normalised to a controlled Thai vocabulary of 492 entries, built from 5,864 logged mapping decisions and covering 81.4% of ingredient mentions in the two registers analysed. Its granularity rules (cultivars merged, fresh and dried forms merged, processed forms such as coconut cream kept distinct, plant parts kept distinct) are documented with their reasoning.
+Ingredients are normalised to a controlled Thai vocabulary of 492 entries, built from 5,864 logged mapping decisions and covering 81.4% of ingredient mentions in the two registers analysed. Every granularity rule is documented with its reasoning.
 
 Because web recipes so rarely name a province, the unit is the region: Central, North, Northeast and South. For each region and register I build a TF-IDF-weighted ingredient vector and measure the cosine distance between the official and commercial vectors. To ask whether a distance is larger than chance, I pool each region's recipes and reassign the official and commercial labels 9,999 times, report the share of shuffles at least as distant, and adjust across the four regions with Holm's method. My outline had planned a different null, shuffling region labels; I switched after trial runs because the register shuffle tests RQ1 directly, and I report the planned test as secondary. Each distance carries a 95% bias-corrected bootstrap interval (9,999 resamples). Robustness checks repeat the analysis with prevalence weighting and for each site separately; cells with fewer than five web recipes are flagged.
 
-Later stages extend the design: whether a region's identity lies in what it refuses as much as what it uses (validated against interview question 9, "อะไรที่คนจังหวัดอื่นใส่ในจานนี้ แต่บ้านเราไม่มีวันใส่?"); which dishes cooks name that no record lists; whether eight dishes can be cooked from ingredient lists alone; and whether dishes the state marks as endangered have any web presence.
+Later stages test whether regional identity lies in what cooks refuse as much as what they use (interview question 9: "อะไรที่คนจังหวัดอื่นใส่ในจานนี้ แต่บ้านเราไม่มีวันใส่?"), which dishes no record lists, whether dishes can be cooked from ingredient lists alone, and whether state-endangered dishes survive online.
 
 ## 5. Preliminary results
 
@@ -62,13 +62,13 @@ The state and web records differ beyond chance in all four regions (Holm-adjuste
 
 \*Observed distance lies just outside its bias-corrected interval; cosine distances between small resampled groups are biased upward.
 
-Distances range from 0.430 in the Northeast to 0.649 in the North, in the same order under prevalence weighting. I do not read this ranking as regional disagreement: it follows the number of web recipes exactly, from 35 to 12, and small samples inflate cosine distance. Central's result rests on a single collection: 13 of its 18 web recipes come from one portal's Chai Nat tag, and without them the difference is no longer significant (p = 0.193, n = 5). Taken site by site, Kapook alone differs from the state record in the Northeast and the South, and MThai alone only in Central. The pooled result therefore needs both sites. Figure 1 shows the underlying ingredient profiles.
+Distances range from 0.430 in the Northeast to 0.649 in the North, in the same order under prevalence weighting. I do not read this ranking as regional disagreement: the region with the most web recipes (35) is closest and the one with the fewest (12) farthest, and small samples inflate cosine distance. Central's result rests on a single collection: 13 of its 18 web recipes come from one portal's Chai Nat tag, and without them the difference is no longer significant (p = 0.193, n = 5). Taken site by site, Kapook alone differs from the state record in the Northeast and the South, and MThai alone only in Central. The pooled result therefore needs both sites. Figure 1 shows the underlying ingredient profiles.
 
 *Figure 1 (appendix). Region × ingredient TF-IDF heatmap, the 60 most variable ingredients, both axes ordered by clustering, faceted by register (official n = 49, 33, 34, 28; web n = 18, 12, 35, 18 for Central, North, Northeast and South).*
 
 ## 6. Creativity: cooking as a research method
 
-Recipes are creative practice, and pipelines flatten them into lists. Cooking from the normalised data is a way of testing a dataset that only someone who cooks can perform: the cook notices what the list has lost, from quantities and order to technique. Home cooks' substitutions and refusals are creative acts that neither the state's list nor the web records. The project treats them as data rather than noise.
+Recipes are creative practice, and pipelines flatten them into lists. Cooking from the normalised data is a way of testing a dataset that only someone who cooks can perform: the cook notices what the list has lost, from quantities and order to technique. Home cooks' substitutions and refusals are creative acts that neither the state's list nor the web records.
 
 ## 7. Limitations and next steps
 
