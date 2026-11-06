@@ -44,3 +44,35 @@ def test_method_prose_and_free_text_rationale_are_not_exported() -> None:
     for column in ("method_text", "rationale", "method_note", "conflict_note",
                    "validation_notes", "missing_ingredients", "notes"):
         assert column not in sql, column
+
+
+# ── T3.6 / T3.7: src/release.py (dry run, local only) ─────────────────────────
+
+def test_release_dry_run_withholds_dcp_and_passes_its_checks(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    import pandas as pd
+
+    from src.ingest.pdpa import find_leaks
+    from src.release import LEXICON_COLUMNS, RECIPE_COLUMNS, build
+    report = build(tmp_path)
+    assert all(ok for _, ok, _ in report.checks), report.checks
+    recipes = pd.read_parquet(tmp_path / "OpenFlavorTH-recipes" / "recipes.parquet")
+    assert list(recipes.columns) == list(RECIPE_COLUMNS)
+    assert recipes["recipe_id"].is_unique
+    assert "food.culture.go.th" not in set(recipes["source_domain"].dropna())
+    assert "official" not in set(recipes["register"])
+    lexicon = pd.read_csv(tmp_path / "OpenFlavorTH-lexicon" / "ingredients_lexicon.csv")
+    assert list(lexicon.columns) == list(LEXICON_COLUMNS)
+    for col in ("variants", "notes", "name_th"):
+        assert not any(find_leaks(v) for v in lexicon[col].dropna().astype(str))
+    text = (tmp_path / "DRYRUN.md").read_text(encoding="utf-8")
+    assert "Not published" in text and "HD-20" in text
+
+
+def test_release_never_writes_outside_its_directory(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    from src.release import build
+    build(tmp_path)
+    written = {p.relative_to(tmp_path).as_posix() for p in tmp_path.rglob("*") if p.is_file()}
+    assert written == {
+        "DRYRUN.md", "OpenFlavorTH-lexicon/ingredients_lexicon.csv",
+        "OpenFlavorTH-recipes/recipes.parquet", "OpenFlavorTH-recipes/fieldwork.csv",
+        "OpenFlavorTH-recipes/cook_along_log.csv", "OpenFlavorTH-recipes/stated_absences.csv"}
