@@ -1,6 +1,6 @@
 # DH2027 Short Paper — Outline
 
-**Working title:** *Three Registers of Thai Regional Cooking: What the State, the Market, and the Kitchen Each Record*
+**Working title:** *Three Dishes per Province: How the Thai State and the Web Record Regional Food Differently*
 
 **Author:** Jenissa (Bo) — International School Bangkok · **Version:** outline v0.2, 5 November 2026 (RQs revised; RQ1 now includes a permutation baseline and bootstrap confidence intervals) · **Deadline:** 20 November 2026, 23:59 AoE
 

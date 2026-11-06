@@ -7,9 +7,9 @@ Section 1's origin story is deliberately left blank: it must come from cooking t
 (T1.9), not from memory or from a draft.
 -->
 
-# Three Registers of Thai Regional Cooking: What the State, the Market, and the Kitchen Each Record
+# Three Dishes per Province: How the Thai State and the Web Record Regional Food Differently
 
-Jenissa (Bo) — International School Bangkok · github.com/tundeeorg-cmd/flavormap
+Jenissa Vichiansin — International School Bangkok · github.com/tundeeorg-cmd/flavormap
 
 ## 1. The kitchen
 
