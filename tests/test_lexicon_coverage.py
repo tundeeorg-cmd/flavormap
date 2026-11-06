@@ -58,7 +58,7 @@ def test_the_committed_snapshot_holds_counts_only(tmp_path: Path) -> None:
     text = path.read_text(encoding="utf-8")
     assert not any("฀" <= ch <= "๿" for ch in text), "Thai text in the snapshot"
     for row in rows[1:]:
-        assert row[1] == "all" or row[1].split(":")[0] in {"register", "source"}
+        assert row[1] in {"all", "rq1_registers"} or row[1].split(":")[0] in {"register", "source"}
         assert all(cell.replace(".", "").isdigit() for cell in row[2:])
 
 
@@ -82,3 +82,15 @@ def test_reviewed_mapping_is_counted_beside_all_entries() -> None:
     total = {c.scope: c for c in coverage(ROWS, INDEX, reviewed=set())}["all"]
     assert total.mapped_reviewed == 0 and total.reviewed_share == 0.0
     assert {c.scope: c for c in coverage(ROWS, INDEX)}["all"].mapped_reviewed == 0
+
+
+def test_rq1_registers_scope_leaves_state_promotional_out() -> None:
+    """HD-6 coverage scope (2026-11-06): the paper's coverage is over RQ1's registers;
+    state-promotional mentions are reported in their own row only."""
+    rows = [*ROWS, ("tat_food", "state_promotional", 9, "แกงทดสอบ"),
+            ("tat_food", "state_promotional", 9, "อื่นทดสอบ")]
+    scopes = {c.scope: c for c in coverage(rows, INDEX)}
+    rq1, base = scopes["rq1_registers"], _by_scope()["all"]
+    assert (rq1.mentions, rq1.mapped) == (base.mentions, base.mapped)
+    assert scopes["all"].mentions == base.mentions + 2
+    assert scopes["register:state_promotional"].mentions == 2

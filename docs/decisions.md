@@ -1804,12 +1804,17 @@ dish-name list; `sources` rows. m-culture's 240 collector-flagged duplicates fol
    - also spaces: 23,747 lines, 8,210 distinct, 16.6%, median 27 lines per recipe.
    Rejected for now: all three splits. `MC_SPLIT` stays None, so no m-culture recipe
    loads; its name-only rows do.
-   **Reasoning:** [not stated in session; to be added by the researcher]
+   **Reasoning (researcher adopted the recommendation of Claude, the claude.ai chat
+   assistant):** not needed for DH; defer the split rule until after 20 Nov rather than
+   decide it under time pressure.
 2. **TAT province attribution: high except restaurant guides.** Tier 1 for the province
    the article lists: `high` for campaign, signature-dish and dessert-guide rows (233),
    `medium` for restaurant-guide rows (238), so a robustness check can drop them.
    Rejected: all high, all medium, no attribution yet.
-   **Reasoning:** [not stated in session; to be added by the researcher]
+   **Reasoning (researcher adopted the recommendation of Claude, the claude.ai chat
+   assistant):** campaign and signature-dish pages claim a province's dish (origin, like
+   DCP); restaurant-guide pages only say where a dish is sold, so they are medium and can
+   be dropped in a robustness check.
 
 **Built and loaded [CC], 2026-11-06:**
 - **Migration 032:**
@@ -1845,6 +1850,14 @@ dish-name list; `sources` rows. m-culture's 240 collector-flagged duplicates fol
   > 0.8), for the researcher's review. Nothing is dropped.
 - **m-culture's 240 collector-flagged duplicates:** all their name-only rows are in
   `state_dish_names` with `duplicate_of` kept; none is among recipes yet.
+- **PDPA check of the bad window (researcher's request, 2026-11-06):**
+  - Every dump in `data/exports/` (20 files, 2026-09-19 to 2026-11-06 22:57) was
+    decompressed and searched for `ถนนสิโรรส`: 0 hits in each. No dump was taken while
+    the 12 URLs were in the database (dumps 22:39 before, 22:57 after the clean reload).
+  - `make backup` copies only those files, so no backup can hold them.
+  - The Parquet export written in that window carries no URLs and had 0 hits; it was
+    regenerated anyway.
+  - Nothing to delete; no ETHICS.md entry needed.
 
 ---
 
@@ -2419,6 +2432,18 @@ the researcher answered "Yes, record all as ok". Recorded as such:
 first, so its transaction was only a savepoint, discarded at close. It now commits before
 writing; `recipe_ingredients` holds 9,141 rows in 1,631 recipes.
 
+
+**Coverage scope for the paper — DECIDED 2026-11-06** (researcher adopted the
+recommendation of Claude, the claude.ai chat assistant). The DH paper reports lexicon
+coverage over **the registers RQ1 uses, official + commercial**. TAT and the other
+state-promotional sources are reported separately, in their own row.
+- **Why it came up:** loading TAT (HD-39) moved the all-register share from 81.4% to
+  79.8%. Official and commercial were unchanged.
+- **Built [CC]:** `scripts/lexicon_coverage.py` writes a scope `rq1_registers`
+  (`rq1_registers.RQ1_REGISTERS`). Today: **11,462 of 14,084 = 81.4%**, both ways (all
+  entries and reviewed only). `register:state_promotional` is 619 of 1,054 = 58.7%.
+**Reasoning:** as stated: coverage describes the lexicon behind RQ1's numbers, so it is
+measured on RQ1's registers; other registers are reported beside it, not pooled in.
 ---
 
 ## HD-44 — Which permutation null does RQ1 report?

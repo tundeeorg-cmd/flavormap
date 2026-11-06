@@ -14,10 +14,10 @@ Fill a line as: `value` · output file · commit · date.
   its Holm family. `run_rq1` writes `below_min_n`. Cells below: Kapook-only Central (4),
   MThai-only North (4), MThai-only South (3), under both weightings. No pooled cell is
   below.
-- **After the HD-39 TAT load (2026-11-06, later):** the all-register mention coverage
-  is 79.8% (state-promotional 58.7% added). The official (78.6%) and commercial (81.6%)
-  figures and every RQ1 number are unchanged. The "all sources" row below is the value
-  at commit 7cedfe2; which scope the paper reports is the researcher's call.
+- **Coverage scope (HD-6, decided 2026-11-06):** the paper reports lexicon coverage over
+  RQ1's registers (official + commercial): the `rq1_registers` row of
+  `lexicon_coverage`. State-promotional (TAT) coverage is reported separately (58.7%).
+  The all-register figure (79.8% after the TAT load) is not the paper's number.
 - **Filled 2026-11-06** from the 9,999/9,999 runs at commit 7cedfe2. Numbers only; no
   interpretation is written here. Commercial-side n per region per source are small
   (as low as 3), and are printed beside each distance.
@@ -66,7 +66,8 @@ Fill a line as: `value` · output file · commit · date.
 | Number | Value |
 |---|---|
 | Lexicon entries at submission (outline: ~150; target ~400) | `492` as of 2026-11-06 · `lexicon_20261106.csv` · commit 7cedfe2 · 2026-11-06 |
-| Ingredient mentions mapped, all sources (%) | `81.4%` (11,462 of 14,084; 1,143 excluded mentions left out of the share) · `lexicon_20261106.csv` · commit 7cedfe2 · 2026-11-06 |
+| Ingredient mentions mapped, RQ1 registers: official + commercial (%) (HD-6 scope) | `81.4%` (11,462 of 14,084; excluded mentions left out of the share) · `rq1_registers` row of `lexicon_20261106.csv` · commit b5f6d85 · 2026-11-06 (same value as the 'all' row at 7cedfe2, before TAT) |
+| State-promotional (TAT), reported separately (%) | `58.7%` (619 of 1,054) · `register:state_promotional` row of `lexicon_20261106.csv` · commit bb94074 · 2026-11-06 |
 | … per source: dcp_food / kapook_cooking / mthai_food (%) | `78.6%` / `81.1%` / `84.9%` · `lexicon_20261106.csv` · commit 7cedfe2 · 2026-11-06 |
 | Aliases (mapping decisions) in the lexicon | `5,864` · `ingredient_aliases` · commit 7cedfe2 · 2026-11-06 |
 | Split strings (HD-6 Q5) | `226` strings (`514` split rows) · `ingredient_alias_splits` · commit 7cedfe2 · 2026-11-06 |

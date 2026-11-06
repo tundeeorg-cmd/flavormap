@@ -52,6 +52,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from scripts.lexicon_worklist import CONFLICT, EXCLUDED, MAPPED_QUERY, QUERY, mapping_index
+from src.analyze.rq1_registers import RQ1_REGISTERS
 from src.clean.lexicon import key
 from src.config import DATA_DIR
 from src.db import get_connection
@@ -147,6 +148,9 @@ def coverage(
                             and status_of(index.get(k)) == "mapped"))
 
     out = [measure("all", mentions)]
+    # HD-6 coverage scope (2026-11-06): the DH paper reports coverage over RQ1's
+    # registers; state-promotional sources are reported separately (their own row).
+    out.append(measure("rq1_registers", {m for m in mentions if m[1] in RQ1_REGISTERS}))
     for register in sorted({m[1] for m in mentions}):
         out.append(measure(f"register:{register}", {m for m in mentions if m[1] == register}))
     for source in sorted({m[0] for m in mentions}):
