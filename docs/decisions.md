@@ -1688,7 +1688,7 @@ collector-flagged rows. Rejected: A (Jaccard > 0.9 alone), C (wait for HD-6).
 ---
 
 ## HD-42 (HD-balance) — Keep every commercial recipe, or cap per source?
-**Date presented:** 2026-10-12 · **Status:** OPEN
+**Date presented:** 2026-10-12 · **Status:** DECIDED 2026-11-06
 **Arises from:** TIMELINE v3 T1.13d. Due 22 Oct.
 
 **Evidence:** Kapook has 1,360 loaded recipes; MThai has 200 collected. If HD-40 admits
@@ -1710,9 +1710,12 @@ deduplication does not change these counts today.
      the weighting is a methods choice.)
 
 **Recommendation:** none.
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** **A, keep all** commercial recipes (Kapook 1,360 + MThai 200 under HD-40).
+Per-source results are reported beside pooled ones (T1.19's robustness split, already
+built in `src/analyze/rq1_registers.py` `per_source_distances`). Rejected: B (cap or
+sample), C (weight by source).
+**Reasoning:** [not stated in session; to be added by the researcher]
+**Date decided:** 2026-11-06, by the researcher in session
 
 ---
 
