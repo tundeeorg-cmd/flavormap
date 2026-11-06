@@ -48,6 +48,14 @@ Unit = Literal["province", "region"]
 Weighting = Literal["prevalence", "tfidf"]
 UNITS: tuple[Unit, ...] = ("province", "region")
 WEIGHTINGS: tuple[Weighting, ...] = ("prevalence", "tfidf")
+# HD-38, decided 2026-11-06: TF-IDF is the primary result (headline table, Figure 1);
+# prevalence is reported beside it as the sensitivity check. Functions still take the
+# weighting as a required argument; these name the decided values for callers.
+PRIMARY_WEIGHTING: Weighting = "tfidf"
+SENSITIVITY_WEIGHTING: Weighting = "prevalence"
+# HD-37, decided 2026-11-06 (option C): analysis at region level; province rows shown
+# where they exist.
+ANALYSIS_UNIT: Unit = "region"
 PROCESSED = DATA_DIR / "processed"
 COLUMN: dict[str, str] = {"province": "province_code", "region": "region"}
 

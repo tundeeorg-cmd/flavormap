@@ -1503,7 +1503,7 @@ needed.
 ---
 
 ## HD-38 — How a register's recipes become one ingredient vector (RQ1)
-**Date presented:** 2026-10-12 · **Status:** OPEN
+**Date presented:** 2026-10-12 · **Status:** DECIDED 2026-11-06
 **Arises from:** T1.19. Bible v4 §6 specifies "cosine distance on normalised ingredient
 vectors" but not how a set of recipes becomes one vector. The choice changes the
 distances, so `src/analyze/rq1_registers.py` takes it as a required input with no default.
@@ -1530,9 +1530,14 @@ Both A and B are implemented; whichever is chosen is passed in. A short sensitiv
 note (running both) is cheap if wanted.
 
 **Recommendation:** none. The weighting is a measurement decision the paper defends.
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** **A and B both, B (TF-IDF) primary.** TF-IDF distances are the headline
+result (table and Figure 1); prevalence distances are reported beside them as the
+sensitivity check. Rejected: C (raw counts), and either weighting alone.
+**Reasoning:** [not stated in session; to be added by the researcher]
+**Date decided:** 2026-11-06, by the researcher in session
+**Implemented:** `src/analyze/rq1_registers.py` `PRIMARY_WEIGHTING = "tfidf"`,
+`SENSITIVITY_WEIGHTING = "prevalence"` (and `ANALYSIS_UNIT = "region"` from HD-37 C);
+`notebooks/01_rq1_prelim.ipynb` reads them.
 
 ---
 
