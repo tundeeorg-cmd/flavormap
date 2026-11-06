@@ -62,4 +62,10 @@ after review reads as damage control.
 
 | # | Limitation | Severity | Statement |
 |---|---|---|---|
-| L20 | Observed RQ1 distance can sit above its bias-corrected interval | [researcher to set] | Small-group cosine distances are biased upward under resampling, so the bias-corrected 95% interval can sit below the observed value. At commit f00ae26 this happens in 3 of 12 TF-IDF cells (pooled North, pooled South, Kapook-only South), exactly those where the bootstrap bias exceeds about 1.96 SE. Percentile, BCa and basic intervals do not contain the observed value there either (`run_rq1 --interval-evidence`). The observed distances are reported, with a footnote (HD-44 amendment, option A) |
+| L20 | Observed RQ1 distance can sit above its bias-corrected interval | **MEDIUM** | Small-group cosine distances are biased upward under resampling, so the bias-corrected 95% interval can sit below the observed value. At commit f00ae26 this happens in 3 of 12 TF-IDF cells (pooled North, pooled South, Kapook-only South), exactly those where the bootstrap bias exceeds about 1.96 SE. Percentile, BCa and basic intervals do not contain the observed value there either (`run_rq1 --interval-evidence`). The observed distances are reported, with a footnote (HD-44 amendment, option A). Severity (researcher, 2026-11-06): it affects the intervals of 3 cells; no reported distance or p-value changes |
+
+## Added 2026-11-06 — consequence of HD-37 (commercial labels)
+
+| # | Limitation | Severity | Statement |
+|---|---|---|---|
+| L21 | Central's commercial side is mostly one tag for one province | [researcher to set] | 13 of the 18 commercial recipes in Central are MThai posts carrying one tag, `อาหารจังหวัดชัยนาท` (Chai Nat). All 13 were labelled from the tag; none names the province in its title. Central's commercial profile is therefore largely one site's one-province collection. A sensitivity run without the 13 (HD-37 amendment, evidence only) leaves 5 commercial recipes in Central, with a distance of 0.6537 vs 0.5678 and a Holm-adjusted register-shuffle p of 0.1930 vs 0.0021 |

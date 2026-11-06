@@ -1595,7 +1595,9 @@ deleted**.
 counts. It decided no minimum, and RQ_PLAYBOOK's step 1 ("below which a unit is dropped")
 was never decided either. This instruction is the first decision on it, and it flags
 rather than drops.
-**Reasoning:** [not stated in session; to be added by the researcher]
+**Reasoning (researcher's, edited from a Claude draft):** "Below 5 recipes a region's
+ingredient profile is driven by individual recipes, so those cells are kept for
+transparency but not interpreted."
 **Built [CC]:**
 - `rq1_registers.COMMERCIAL_MIN_N = 5`.
 - `run_rq1` writes `below_min_n`, prints "below minimum n", and records the rule in its
@@ -1629,6 +1631,39 @@ rather than drops.
 - **Central: 13 of its 18 commercial recipes are the MThai Chai Nat posts.** All 13
   matched the tag `อาหารจังหวัดชัยนาท`. None has ชัยนาท in its title.
 - The same 13 are 13 of MThai-only Central's 14.
+
+**Sensitivity run, evidence only (researcher's request, 2026-11-06): the Chai Nat tag
+excluded.**
+- **What was excluded:** the 13 MThai recipes whose tags contain `อาหารจังหวัดชัยนาท`,
+  listed in `data/interim/chainat_tag.txt` (gitignored). The file was built by the query
+  written at its head.
+- **The run:** `uv run python -m scripts.run_rq1 --exclude-recipes
+  data/interim/chainat_tag.txt` → `rq1_registers_20261106_excl_chainat_tag.csv`, at
+  30fbd78, 9,999/9,999, seed 42, TF-IDF.
+- **Why other regions move too:** removing recipes changes the TF-IDF idf, the region
+  shuffle and the random streams, so every row shifts slightly, not only Central's.
+
+| Scope | Region | Run | n off / com | Distance | 95% CI (BC) | B p Holm | A p Holm | Flags |
+|---|---|---|---|---|---|---|---|---|
+| pooled | Central | original | 49 / 18 | 0.5678 | [0.4529, 0.5918] | 0.0021 | 0.4276 | |
+| pooled | Central | excl. tag | 49 / 5 | 0.6537 | [0.4964, 0.7508] | 0.1930 | 1.0000 | |
+| pooled | North | original | 33 / 12 | 0.6494 | [0.5406, 0.6490] | 0.0198 | 0.4276 | obs outside CI |
+| pooled | North | excl. tag | 33 / 12 | 0.6464 | [0.5139, 0.6470] | 0.0412 | 0.4112 | |
+| pooled | Northeast | original | 34 / 35 | 0.4298 | [0.2861, 0.4854] | 0.0004 | 1.0000 | |
+| pooled | Northeast | excl. tag | 34 / 35 | 0.4286 | [0.3017, 0.4841] | 0.0004 | 1.0000 | |
+| pooled | South | original | 28 / 18 | 0.4943 | [0.3925, 0.4832] | 0.0108 | 1.0000 | obs outside CI |
+| pooled | South | excl. tag | 28 / 18 | 0.4974 | [0.4033, 0.4908] | 0.0096 | 1.0000 | obs outside CI |
+| MThai | Central | original | 49 / 14 | 0.6005 | [0.4645, 0.6465] | 0.0068 | 0.4185 | |
+| MThai | Central | excl. tag | 49 / 1 | 0.6840 | [0.6006, 0.7507] | 1.0000 | 1.0000 | below min n |
+| MThai | North | original | 33 / 4 | 0.8134 | [0.6926, 0.8448] | 0.3465 | 0.4096 | below min n |
+| MThai | North | excl. tag | 33 / 4 | 0.8133 | [0.7158, 0.8407] | 0.4336 | 0.0912 | below min n |
+| MThai | Northeast | original | 34 / 7 | 0.5257 | [0.3466, 0.5680] | 0.4650 | 1.0000 | |
+| MThai | Northeast | excl. tag | 34 / 7 | 0.5171 | [0.3857, 0.5569] | 0.6954 | 1.0000 | |
+| MThai | South | original | 28 / 3 | 0.6430 | [0.4930, 0.6926] | 0.5478 | 1.0000 | below min n |
+| MThai | South | excl. tag | 28 / 3 | 0.6395 | [0.4941, 0.6870] | 1.0000 | 1.0000 | below min n |
+
+Kapook-only rows are in the CSV. The run is not reported in the paper unless the
+researcher decides so; limitations L21 records the concentration.
 
 ## HD-38 — How a register's recipes become one ingredient vector (RQ1)
 **Date presented:** 2026-10-12 · **Status:** DECIDED 2026-11-06
@@ -2443,15 +2478,16 @@ after seeing results would be a second post-hoc change. The observed distances a
 reported with a footnote: small-group cosine distances are biased upward under
 resampling, so the bias-corrected interval can sit below the observed value. Listed in
 limitations.md."
-**Provenance note:** the researcher's message says this "adopted Claude's
-recommendation". No recommendation was given for this amendment: the entry above says
-"Recommendation: none", and the question listed no option as recommended. The choice is
-recorded as the researcher's own.
+**Provenance note (corrected 2026-11-06 at the researcher's instruction):** Researcher
+adopted the recommendation of Claude (claude.ai chat assistant), not the Claude Code
+agent. The Claude Code agent gave no recommendation; the entry above says
+"Recommendation: none" for that reason.
 **Date decided:** 2026-11-06, by the researcher in session
 **Built [CC], 2026-11-06:** `docs/limitations.md` L20 (statement from the researcher's
 reasoning; severity left for the researcher).
-**Still to build [CC]:** an `obs_outside_ci` flag in `run_rq1`'s output, so the
-footnote's cells come from the script, not by hand.
+**Built [CC], 2026-11-06:** `run_rq1` writes `obs_outside_ci` and prints "observed
+outside CI", so the footnote's cells come from the script. At 30fbd78 it marks the same 3
+cells.
 
 ---
 
