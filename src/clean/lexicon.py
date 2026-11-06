@@ -4,7 +4,7 @@ Three CSV files in ``data/reference/lexicon/``, one per table in migration 004:
 
 ``canonical_ingredients.csv``
     ``canonical_id, name_th, name_en, category, is_fermented, regional_note,
-    decision_note``
+    decision_note, drafted_by, reviewed_by_bo``
 ``ingredient_aliases.csv``
     ``alias, canonical_id``
 ``ingredient_conflations.csv``
@@ -47,6 +47,12 @@ culinary role rather than botany. ``is_fermented`` is a separate, required ``tru
 taxonomy then needs revisiting and the fact belongs in ``docs/limitations.md``. The same
 list is a CHECK constraint in migration 023; a test keeps the two in step.
 
+**Provenance (researcher, 2026-11-06).** ``drafted_by`` says who drafted the entry:
+``bo`` (the researcher) or ``claude`` (the agent, at the researcher's request).
+``reviewed_by_bo`` is the date (``YYYY-MM-DD``) the researcher confirmed a drafted entry,
+or empty. An entry is **trusted** (`Canonical.trusted`) when the researcher drafted it or
+has reviewed it; ``--reviewed-only`` analyses use trusted entries alone.
+
 **What this module does not decide.** Strings are compared after NFC normalisation and
 whitespace collapsing only (``key()``), the same comparison
 ``scripts/lexicon_worklist.py`` uses for its ``mapped`` column.
@@ -58,6 +64,7 @@ Free-text fields are refused if they carry personal data, as for cook-along logs
 from __future__ import annotations
 
 import csv
+import datetime
 import re
 import unicodedata
 from collections.abc import Mapping
@@ -74,7 +81,10 @@ SPLITS_FILE = "ingredient_splits.csv"
 EXCLUSIONS_FILE = "ingredient_exclusions.csv"
 
 CANONICAL_COLUMNS = ("canonical_id", "name_th", "name_en", "category", "is_fermented",
-                     "regional_note", "decision_note")
+                     "regional_note", "decision_note", "drafted_by", "reviewed_by_bo")
+# Who drafted an entry (provenance, 2026-11-06).
+DRAFTERS: tuple[str, ...] = ("bo", "claude")
+_ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
 ALIAS_COLUMNS = ("alias", "canonical_id")
 CONFLATION_COLUMNS = ("canonical_id_a", "canonical_id_b", "reason")
 SPLIT_COLUMNS = ("alias", "canonical_id")
@@ -198,6 +208,13 @@ class Canonical:
     is_fermented: bool
     regional_note: str | None
     decision_note: str | None
+    drafted_by: str = "bo"
+    reviewed_by_bo: str | None = None  # ISO date, or None
+
+    @property
+    def trusted(self) -> bool:
+        """Drafted by the researcher, or drafted by the agent and reviewed by them."""
+        return self.drafted_by == "bo" or self.reviewed_by_bo is not None
 
 
 @dataclass(frozen=True)
@@ -269,12 +286,23 @@ def read_lexicon(directory: Path) -> Lexicon:
             errors.append(
                 f"{where}: name_th {row['name_th']} is already {by_name[row['name_th']]}"
             )
+        if row["drafted_by"] not in DRAFTERS:
+            errors.append(f"{where}: drafted_by must be one of {', '.join(DRAFTERS)}")
+        if row["reviewed_by_bo"]:
+            try:
+                ok = bool(_ISO_DATE.fullmatch(row["reviewed_by_bo"])) and bool(
+                    datetime.date.fromisoformat(row["reviewed_by_bo"]))
+            except ValueError:
+                ok = False
+            if not ok:
+                errors.append(f"{where}: reviewed_by_bo must be a date (YYYY-MM-DD) or empty")
         for column in ("regional_note", "decision_note"):
             if classes := personal_data_classes(row[column]):
                 errors.append(f"{where}: {column} contains personal data ({', '.join(classes)})")
         entry = Canonical(cid, row["name_th"], row["name_en"], row["category"],
                           row["is_fermented"] == "true",
-                          _optional(row["regional_note"]), _optional(row["decision_note"]))
+                          _optional(row["regional_note"]), _optional(row["decision_note"]),
+                          row["drafted_by"], _optional(row["reviewed_by_bo"]))
         canonicals.append(entry)
         by_id.setdefault(cid, entry)
         if row["name_th"]:

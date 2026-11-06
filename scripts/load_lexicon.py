@@ -33,13 +33,14 @@ LEXICON_DIR = REFERENCE_DIR / "lexicon"
 UPSERT_CANONICAL = """
 INSERT INTO canonical_ingredients
     (canonical_id, name_th, name_en, category, is_fermented, regional_note,
-     decision_note, approved_by_human)
-VALUES (%s, %s, %s, %s, %s, %s, %s, true)
+     decision_note, drafted_by, reviewed_by_bo, approved_by_human)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, true)
 ON CONFLICT (canonical_id) DO UPDATE SET
     name_th = EXCLUDED.name_th, name_en = EXCLUDED.name_en,
     category = EXCLUDED.category, is_fermented = EXCLUDED.is_fermented,
     regional_note = EXCLUDED.regional_note,
-    decision_note = EXCLUDED.decision_note, approved_by_human = true
+    decision_note = EXCLUDED.decision_note, drafted_by = EXCLUDED.drafted_by,
+    reviewed_by_bo = EXCLUDED.reviewed_by_bo, approved_by_human = true
 """
 
 UPSERT_ALIAS = """
@@ -95,7 +96,8 @@ def load(lexicon: Lexicon) -> dict[str, list[str]]:
                 conn.execute(UPSERT_CANONICAL, (c.canonical_id, c.name_th, c.name_en,
                                                 c.category, c.is_fermented,
                                                 c.regional_note,
-                                                c.decision_note))
+                                                c.decision_note, c.drafted_by,
+                                                c.reviewed_by_bo))
             for alias, cid in lexicon.aliases.items():
                 conn.execute(UPSERT_ALIAS, (alias, cid))
             for alias, parts in lexicon.splits.items():

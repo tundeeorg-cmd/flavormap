@@ -39,6 +39,7 @@ ENTRIES = [
     "ING_0002,ปลาเค็ม,salted fish,protein_fish,false,,",
     "ING_0003,เกลือ,salt,other,false,,",
 ] + [f"ING_{i:04d},ผักทดสอบ{i},test veg {i},vegetable,false,," for i in range(4, 40)]
+ENTRIES = [e + ",bo," for e in ENTRIES]  # provenance columns (2026-11-06)
 
 
 def _write(tmp: Path, aliases: list[str] = (), splits: list[str] | None = None,

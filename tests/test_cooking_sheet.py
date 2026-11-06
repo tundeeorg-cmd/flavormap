@@ -92,8 +92,8 @@ def recipe_id() -> Iterator[int]:
         ).fetchone()[0]
         conn.execute(
             """INSERT INTO canonical_ingredients
-                   (canonical_id, name_th, name_en, category, is_fermented)
-               VALUES (%s, 'ข่าทดสอบ', 'test galangal', 'aromatic', false)""",
+                   (canonical_id, name_th, name_en, category, is_fermented, drafted_by)
+               VALUES (%s, 'ข่าทดสอบ', 'test galangal', 'aromatic', false, 'bo')""",
             (_CANONICAL,),
         )
         conn.execute(

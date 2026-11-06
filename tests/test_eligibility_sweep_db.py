@@ -61,8 +61,8 @@ def fixture_recipes() -> Iterator[None]:
         for i, canonical_id in enumerate(_CANONICAL_IDS):
             conn.execute(
                 """INSERT INTO canonical_ingredients
-                   (canonical_id, name_th, name_en, category, is_fermented)
-                   VALUES (%s, %s, 'test', 'other', false)""",
+                   (canonical_id, name_th, name_en, category, is_fermented, drafted_by)
+                   VALUES (%s, %s, 'test', 'other', false, 'bo')""",
                 (canonical_id, f"ทดสอบ{i}"),
             )
         for n, (register, province_code, confidence) in enumerate(_CASES):

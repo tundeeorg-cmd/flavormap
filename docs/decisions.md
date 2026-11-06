@@ -2115,6 +2115,14 @@ presented, with the recommended option chosen each time):
   - 22 official recipes have no ingredient lines at all. That is a DCP extraction gap,
     not a lexicon one.
 
+**Provenance columns (researcher, 2026-11-06).** `canonical_ingredients.csv` gains
+`drafted_by` (`bo` / `claude`) and `reviewed_by_bo` (date or empty), with migration 030.
+- The 302 entries in `data/interim/new_entries_drafted_by_claude.csv` are `claude`; the
+  other 190 are `bo`. None is reviewed yet.
+- An entry is *trusted* if `bo` drafted it or it carries a review date.
+- Alias- and split-level provenance is not stored per row; the batch records in
+  `data/interim/` keep it.
+
 **Fix, same day:** `scripts/canonicalise.py` had been rolling back its writes. It read
 first, so its transaction was only a savepoint, discarded at close. It now commits before
 writing; `recipe_ingredients` holds 9,141 rows in 1,631 recipes.

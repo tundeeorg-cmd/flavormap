@@ -289,8 +289,8 @@ def three_entries() -> Iterator[None]:
         ):
             conn.execute(
                 """INSERT INTO canonical_ingredients
-                       (canonical_id, name_th, name_en, category, is_fermented)
-                   VALUES (%s, %s, 'test', %s, %s)""",
+                       (canonical_id, name_th, name_en, category, is_fermented, drafted_by)
+                   VALUES (%s, %s, 'test', %s, %s, 'bo')""",
                 (cid, name, cat, fermented),
             )
         conn.commit()

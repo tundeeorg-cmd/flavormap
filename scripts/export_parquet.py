@@ -80,7 +80,8 @@ QUERIES: dict[str, str] = {
                acquisition_raw, acquisition_mode, extraction_method, human_validated
           FROM recipe_ingredients ORDER BY recipe_id""",
     "canonical_ingredients": """
-        SELECT canonical_id, name_th, name_en, category, is_fermented, approved_by_human
+        SELECT canonical_id, name_th, name_en, category, is_fermented, approved_by_human,
+               drafted_by, reviewed_by_bo
           FROM canonical_ingredients ORDER BY canonical_id""",
     "ingredient_aliases": """
         SELECT alias, canonical_id, match_method, approved_by_human

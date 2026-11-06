@@ -53,8 +53,8 @@ def low_confidence_recipe() -> Iterator[int]:
         for i, canonical_id in enumerate(canonical_ids):
             conn.execute(
                 """INSERT INTO canonical_ingredients
-                   (canonical_id, name_th, name_en, category, is_fermented)
-                   VALUES (%s, %s, 'test', 'other', false)""",
+                   (canonical_id, name_th, name_en, category, is_fermented, drafted_by)
+                   VALUES (%s, %s, 'test', 'other', false, 'bo')""",
                 (canonical_id, f"ทดสอบ{i}"),
             )
             conn.execute(

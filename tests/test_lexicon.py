@@ -42,11 +42,19 @@ GOOD = {
 }
 
 
+def _with_provenance(line: str) -> str:
+    """Entry rows written before the provenance columns get ``drafted_by = bo``."""
+    return line + ",bo," if line.count(",") == 6 else line
+
+
 def _write(tmp: Path, files: dict[str, list[str]]) -> Path:
     headers = {CANONICAL_FILE: CANONICAL_COLUMNS, ALIASES_FILE: ALIAS_COLUMNS,
                CONFLATIONS_FILE: CONFLATION_COLUMNS}
     for name, columns in headers.items():
-        lines = [",".join(columns), *files.get(name, [])]
+        rows = files.get(name, [])
+        if name == CANONICAL_FILE:
+            rows = [_with_provenance(r) for r in rows]
+        lines = [",".join(columns), *rows]
         (tmp / name).write_text("\n".join(lines) + "\n", encoding="utf-8")
     return tmp
 
@@ -270,3 +278,43 @@ def test_check_categories_is_hd27_ordered_and_counts_other() -> None:
     assert not check.over_ceiling
     assert check_categories({"other": 2, "herb": 18}).over_ceiling
     assert check_categories({}).other_share == 0.0
+
+
+# ── provenance (2026-11-06) ────────────────────────────────────────────────────
+
+def test_provenance_columns_and_trusted(tmp_path: Path) -> None:
+    lex = read_lexicon(_write(tmp_path, {CANONICAL_FILE: [
+        "ING_0001,พริก,chilli,chilli,false,,,bo,",
+        "ING_0002,ข่า,galangal,aromatic,false,,,claude,",
+        "ING_0003,ตะไคร้,lemongrass,aromatic,false,,,claude,2026-11-07",
+    ]}))
+    by_id = {c.canonical_id: c for c in lex.canonicals}
+    assert [by_id[i].drafted_by for i in ("ING_0001", "ING_0002")] == ["bo", "claude"]
+    assert by_id["ING_0003"].reviewed_by_bo == "2026-11-07"
+    assert [by_id[i].trusted for i in ("ING_0001", "ING_0002", "ING_0003")] == [
+        True, False, True]
+
+
+@pytest.mark.parametrize(("line", "message"), [
+    ("ING_0001,พริก,chilli,chilli,false,,,,", "drafted_by must be"),
+    ("ING_0001,พริก,chilli,chilli,false,,,agent,", "drafted_by must be"),
+    ("ING_0001,พริก,chilli,chilli,false,,,claude,yesterday", "reviewed_by_bo must be"),
+    ("ING_0001,พริก,chilli,chilli,false,,,claude,2026-13-01", "reviewed_by_bo must be"),
+])
+def test_bad_provenance_is_refused(tmp_path: Path, line: str, message: str) -> None:
+    with pytest.raises(LexiconError, match=message):
+        read_lexicon(_write(tmp_path, {CANONICAL_FILE: [line]}))
+
+
+def test_committed_lexicon_marks_every_entry_with_provenance() -> None:
+    lex = read_lexicon(LEXICON_DIR)
+    assert {c.drafted_by for c in lex.canonicals} <= {"bo", "claude"}
+    assert all(c.reviewed_by_bo is None or c.drafted_by == "claude" for c in lex.canonicals)
+
+
+def test_database_has_the_provenance_columns() -> None:
+    assert _db(
+        "SELECT column_name, is_nullable FROM information_schema.columns "
+        "WHERE table_name = 'canonical_ingredients' "
+        "AND column_name IN ('drafted_by', 'reviewed_by_bo') ORDER BY 1"
+    ) == [("drafted_by", "NO"), ("reviewed_by_bo", "YES")]
