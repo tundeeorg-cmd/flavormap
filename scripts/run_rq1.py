@@ -58,7 +58,8 @@ from src.config import DATA_DIR, RANDOM_SEED
 OUT_DIR = DATA_DIR / "coverage"
 COLUMNS = ("weighting", "role", "scope", "unit_type", "unit", "n_official",
            "n_commercial_side", "distance", "ci_low", "ci_high", "p_register_shuffle",
-           "p_register_holm", "p_unit_shuffle", "p_unit_holm", "below_min_n")
+           "p_register_holm", "p_unit_shuffle", "p_unit_holm", "below_min_n",
+           "obs_outside_ci")
 
 
 def run(data: pd.DataFrame, unit: str, n_perm: int, n_boot: int, seed: int) -> list[dict]:
@@ -88,6 +89,9 @@ def run(data: pd.DataFrame, unit: str, n_perm: int, n_boot: int, seed: int) -> l
                     "p_unit_shuffle": r.p_unit, "p_unit_holm": p_holm,
                     # HD-37 amendment (2026-11-06): flagged, never dropped.
                     "below_min_n": r.n_b < COMMERCIAL_MIN_N,
+                    # HD-44 amendment (A): the footnote's cells, from the script.
+                    "obs_outside_ci": (not math.isnan(r.ci_low)
+                                       and not r.ci_low <= r.distance <= r.ci_high),
                 })
     return rows
 
@@ -133,7 +137,8 @@ def print_table(rows: list[dict]) -> None:
         print(f"  {r['unit']:<14}{r['n_official']:>6}{r['n_commercial_side']:>6}  "
               f"{_fmt(r['distance']):>8}  {ci:<17}{_fmt(r['p_register_shuffle']):>8}"
               f"{_fmt(r['p_register_holm']):>8}{_fmt(r['p_unit_holm']):>9}"
-              f"{'  below minimum n' if r['below_min_n'] else ''}")
+              f"{'  below minimum n' if r['below_min_n'] else ''}"
+              f"{'  observed outside CI' if r['obs_outside_ci'] else ''}")
 
 
 INTERVAL_COLUMNS = ("scope", "unit", "n_official", "n_commercial_side", "distance",
@@ -178,6 +183,12 @@ def _interval_evidence(data: pd.DataFrame, args: argparse.Namespace) -> int:
     return 0
 
 
+def _read_ids(path: Path) -> set[int]:
+    """recipe_ids from `path`: one per line; blank lines and '#' comments ignored."""
+    lines = path.read_text(encoding="utf-8").splitlines()
+    return {int(x) for ln in lines if (x := ln.split("#", 1)[0].strip())}
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--unit", choices=UNITS, default=ANALYSIS_UNIT)
@@ -187,6 +198,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out-dir", type=Path, default=OUT_DIR)
     ap.add_argument("--reviewed-only", action="store_true",
                     help="use only entries drafted or reviewed by the researcher")
+    ap.add_argument("--exclude-recipes", type=Path, default=None,
+                    help="sensitivity run, evidence only: a file of recipe_ids (one per "
+                         "line, '#' comments) to leave out; output gets the file's stem "
+                         "as a suffix")
     ap.add_argument("--interval-evidence", action="store_true",
                     help="HD-44 open amendment: compare interval types per cell (primary "
                          "weighting) from the same bootstrap draws; writes "
@@ -197,6 +212,9 @@ def main(argv: list[str] | None = None) -> int:
         if data.empty:
             raise InputError("no recipe in v_recipes_clean has mapped ingredients yet: "
                              "author the lexicon, then `make lexicon` and `make parquet`")
+        excluded = _read_ids(args.exclude_recipes) if args.exclude_recipes else set()
+        if excluded:
+            data = data[~data["recipe_id"].isin(excluded)]
         if args.interval_evidence:
             return _interval_evidence(data, args)
         rows = run(data, args.unit, args.permutations, args.bootstrap, RANDOM_SEED)
@@ -219,6 +237,10 @@ def main(argv: list[str] | None = None) -> int:
         "min_n_commercial": COMMERCIAL_MIN_N,
         "below_min_n": "n_commercial_side < min_n_commercial; flagged, not dropped, and "
                        "still inside its Holm family (HD-37 amendment, 2026-11-06)",
+        "obs_outside_ci": "observed distance outside its own CI (HD-44 amendment A: "
+                          "footnoted, see limitations L20)",
+        "excluded_recipes": (f"{len(excluded)} from {args.exclude_recipes.name} "
+                             "(sensitivity run, evidence only)") if excluded else None,
         "lexicon": "reviewed-only" if args.reviewed_only else "all entries",
         "lexicon_entries": len(entries),
         "lexicon_entries_used": int(data["canonical_id"].nunique()),
@@ -226,7 +248,9 @@ def main(argv: list[str] | None = None) -> int:
         "recipes_by_register": {k: int(v) for k, v in
                                 data.groupby("register")["recipe_id"].nunique().items()},
     }
-    path = write(rows, meta, args.out_dir, day, "_reviewed" if args.reviewed_only else "")
+    suffix = ("_reviewed" if args.reviewed_only else "") + \
+        (f"_excl_{args.exclude_recipes.stem}" if excluded else "")
+    path = write(rows, meta, args.out_dir, day, suffix)
     print_table(rows)
     print(f"\nwrote {path} and {path.with_suffix('.json').name}")
     return 0

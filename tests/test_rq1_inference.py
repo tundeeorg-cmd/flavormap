@@ -267,7 +267,7 @@ def test_run_rq1_flags_cells_below_minimum_n_without_dropping_them(tmp_path: Pat
                          "--permutations", "9", "--bootstrap", "9"]) == 0
     out = next(tmp_path.glob("rq1_registers_*.csv"))
     rows = list(csv.DictReader(out.open(encoding="utf-8")))
-    assert list(rows[0])[-1] == "below_min_n"
+    assert list(rows[0])[-2:] == ["below_min_n", "obs_outside_ci"]
     for r in rows:
         assert (r["below_min_n"] == "True") == (int(r["n_commercial_side"]) < COMMERCIAL_MIN_N)
     meta = json.loads(out.with_suffix(".json").read_text(encoding="utf-8"))
@@ -291,3 +291,33 @@ def test_interval_evidence_matches_the_reported_bias_corrected_interval(tmp_path
     symmetric = np.array([0.4, 0.5, 0.6])  # acceleration 0
     assert bca_interval(boot, 0.52, symmetric, 0.05) == pytest.approx(
         bias_corrected_interval(boot, 0.52, 0.05))
+
+
+def test_run_rq1_flags_observed_outside_ci_and_excludes_listed_recipes(tmp_path: Path) -> None:
+    """HD-44 amendment A: `obs_outside_ci` comes from the script. `--exclude-recipes`
+    drops the listed recipes and suffixes the output."""
+    import pandas as pd
+    processed = _processed(tmp_path)
+    assert run_rq1.main(["--processed", str(processed), "--out-dir", str(tmp_path),
+                         "--permutations", "9", "--bootstrap", "49"]) == 0
+    rows = list(csv.DictReader(next(tmp_path.glob("rq1_registers_*.csv")).open(encoding="utf-8")))
+    for r in rows:
+        if r["ci_low"] and r["ci_low"] != "nan":
+            inside = float(r["ci_low"]) <= float(r["distance"]) <= float(r["ci_high"])
+            assert (r["obs_outside_ci"] == "True") == (not inside)
+    clean = pd.read_parquet(processed / "v_recipes_clean.parquet")
+    drop = clean.loc[clean["register"] == "commercial", "recipe_id"].iloc[:1].tolist()
+    ids = tmp_path / "drop_one.txt"
+    ids.write_text("# test\n" + "\n".join(map(str, drop)) + "\n", encoding="utf-8")
+    out_dir = tmp_path / "excl"
+    assert run_rq1.main(["--processed", str(processed), "--out-dir", str(out_dir),
+                         "--permutations", "9", "--bootstrap", "9",
+                         "--exclude-recipes", str(ids)]) == 0
+    out = next(out_dir.glob("rq1_registers_*_excl_drop_one.csv"))
+    meta = json.loads(out.with_suffix(".json").read_text(encoding="utf-8"))
+    assert meta["excluded_recipes"].startswith("1 from drop_one.txt")
+    full = sum(int(r["n_commercial_side"]) for r in rows
+               if r["role"] == "primary" and r["scope"] == "pooled")
+    rows2 = list(csv.DictReader(out.open(encoding="utf-8")))
+    assert sum(int(r["n_commercial_side"]) for r in rows2
+               if r["role"] == "primary" and r["scope"] == "pooled") == full - 1
