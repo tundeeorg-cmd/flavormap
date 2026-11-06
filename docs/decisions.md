@@ -1591,7 +1591,7 @@ dish-name list; `sources` rows. m-culture's 240 collector-flagged duplicates fol
 ---
 
 ## HD-40 (HD-sources) — Which sources make up the commercial register this cycle?
-**Date presented:** 2026-10-12 · **Status:** OPEN
+**Date presented:** 2026-10-12 · **Status:** DECIDED 2026-11-06
 **Arises from:** TIMELINE v3 T1.13d. Due 22 Oct. The Bible asks for at least four web
 sources.
 
@@ -1630,9 +1630,14 @@ method and credited source are never read.
      paper only.
 
 **Recommendation:** none.
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** **C + D.** The commercial register is **Kapook + MThai** now (for DH,
+ICWSM and JCSSE); MThai loads with ingredient lists only. **Sanook:** the permission letter
+(`docs/sanook_permission_request.md`) is sent, and Sanook loads only after a written yes
+(`ETHICS.md` stays no-go until then). **After the 13 Dec freeze:** a new source (Wongnai or
+Cookpad, not yet chosen) is added for the full paper. The shortfall against the Bible's four
+sources until then is a limitation. Rejected: A alone, B (Kapook only).
+**Reasoning:** [not stated in session; to be added by the researcher]
+**Date decided:** 2026-11-06, by the researcher in session
 
 ---
 
