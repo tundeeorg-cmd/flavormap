@@ -2437,14 +2437,22 @@ the bootstrap bias exceeds about 1.96 SE (3 of 12 TF-IDF cells at f00ae26). Chos
 researcher from the four options asked (A–D; E offered via "Other").
 Rejected: B (BC point estimate), C (switch interval type), D (normal interval around the
 BC point), E (bias-reduced estimator).
-**Reasoning:** [not stated in session; to be added by the researcher]
+**Reasoning (researcher's, 2026-11-06):** "None of B–D removes the 3 cells except D,
+which does so only by construction under a symmetry assumption; switching method again
+after seeing results would be a second post-hoc change. The observed distances are
+reported with a footnote: small-group cosine distances are biased upward under
+resampling, so the bias-corrected interval can sit below the observed value. Listed in
+limitations.md."
+**Provenance note:** the researcher's message says this "adopted Claude's
+recommendation". No recommendation was given for this amendment: the entry above says
+"Recommendation: none", and the question listed no option as recommended. The choice is
+recorded as the researcher's own.
 **Date decided:** 2026-11-06, by the researcher in session
-**To build [CC]:**
-- a `docs/limitations.md` row;
-- an `obs_outside_ci` flag in `run_rq1`'s output, so the footnote's cells come from the
-  script, not by hand.
+**Built [CC], 2026-11-06:** `docs/limitations.md` L20 (statement from the researcher's
+reasoning; severity left for the researcher).
+**Still to build [CC]:** an `obs_outside_ci` flag in `run_rq1`'s output, so the
+footnote's cells come from the script, not by hand.
 
-Not built yet; the session stopped here at the researcher's instruction.
 ---
 
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds

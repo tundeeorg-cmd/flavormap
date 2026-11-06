@@ -58,3 +58,8 @@ after review reads as damage control.
 |---|---|---|---|
 | L19 | The domestic register is two adjacent Isaan provinces | **HIGH** | Fieldwork is in Nakhon Ratchasima and Buri Ram (HD-32), neighbouring provinces in one region. The domestic register can support within-Isaan contrasts (centre versus periphery, across a dialect boundary) and existence claims about those two provinces. **No North/South, cross-regional or national claim can be made from it.** The official and commercial registers cover more of the country, but any three-register comparison (RQ1) exists only for these two provinces |
 
+## Added 2026-11-06 — consequence of HD-44 (amendment, interval reporting)
+
+| # | Limitation | Severity | Statement |
+|---|---|---|---|
+| L20 | Observed RQ1 distance can sit above its bias-corrected interval | [researcher to set] | Small-group cosine distances are biased upward under resampling, so the bias-corrected 95% interval can sit below the observed value. At commit f00ae26 this happens in 3 of 12 TF-IDF cells (pooled North, pooled South, Kapook-only South), exactly those where the bootstrap bias exceeds about 1.96 SE. Percentile, BCa and basic intervals do not contain the observed value there either (`run_rq1 --interval-evidence`). The observed distances are reported, with a footnote (HD-44 amendment, option A) |
