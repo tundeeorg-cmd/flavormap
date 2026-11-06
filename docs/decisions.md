@@ -2173,6 +2173,16 @@ regions (and sources) compared, and how (code applies none); (ii) the bootstrap 
 side is about 3 × its provinces, and the commercial side is
 HD-37's labelled count, so intervals will be wide; the counts are printed beside each.
 
+**Evidence added 2026-11-06 (real data; trial runs, 99 resamples, so indicative only).**
+- **All entries:** A gives p = 0.19–0.97 across the four regions; B gives p = 0.01–0.06.
+  Reviewed-only gives the same pattern.
+- **The bootstrap percentile interval sits at or above the observed distance** in several
+  regions (e.g. North 0.572, interval [0.574, 0.827]). Resampling small groups inflates a
+  cosine distance, so a plain percentile interval is biased upward. This bears on (ii).
+
+**Asked 2026-11-06, question 1 (A / B / C):** the researcher answered "no preference". Not
+recorded as a decision; the gate stays OPEN.
+
 **Recommendation:** none.
 **Decision:**
 **Reasoning:**
