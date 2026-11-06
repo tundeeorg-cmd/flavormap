@@ -161,6 +161,32 @@ def load(interviews: list[Interview], directory: Path) -> dict[str, list[str]]:
                          dish.stated_absence, dish.stated_substitutions,
                          dish.differs_from_bangkok, dish.validation_notes),
                     )
+                # HD-43 option A: Q10 answers go to their own table and never create a
+                # recipe, so a state dish the cook does not make adds nothing to the
+                # domestic register.
+                for answer in iv.q10:
+                    row = conn.execute(
+                        "SELECT register FROM recipes WHERE recipe_id = %s",
+                        (answer.official_recipe_id,),
+                    ).fetchone()
+                    if row is None or row[0] != "official":
+                        raise InterviewError(
+                            f"{iv.q10_key(answer)}: official_recipe_id "
+                            f"{answer.official_recipe_id} is not an official recipe")
+                    conn.execute(
+                        """INSERT INTO dish_status_reports (report_key, informant_id,
+                               official_recipe_id, still_made, who_makes,
+                               young_people_know, notes)
+                           VALUES (%s,%s,%s,%s,%s,%s,%s)
+                           ON CONFLICT (report_key) DO UPDATE SET
+                               still_made = EXCLUDED.still_made,
+                               who_makes = EXCLUDED.who_makes,
+                               young_people_know = EXCLUDED.young_people_know,
+                               notes = EXCLUDED.notes""",
+                        (iv.q10_key(answer), iv.informant_id, answer.official_recipe_id,
+                         answer.still_made, answer.who_makes, answer.young_people_know,
+                         answer.notes),
+                    )
 
         in_files = {iv.dish_key(d) for iv in interviews for d in iv.dishes}
         notes["not_in_files"] = sorted(

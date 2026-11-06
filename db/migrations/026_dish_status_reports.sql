@@ -1,6 +1,4 @@
--- DRAFT, NOT APPLIED. HD-43 (HD-Q10) option A: a separate table for Q10 answers.
--- To adopt: copy to db/migrations/026_dish_status_reports.sql, then
---   git apply db/drafts/hd43/A_loader.patch && make migrate && make test
+-- 026  dish_status_reports — HD-43 (HD-Q10), decided 2026-11-06: option A, verbatim only.
 --
 -- Q10 is asked about each of the three dishes the state listed for the province,
 -- whether or not the cook makes them. These rows never create a `recipes` row, so a
@@ -20,9 +18,6 @@ CREATE TABLE dish_status_reports (
   young_people_know   TEXT,
   notes               TEXT,
   UNIQUE (informant_id, official_recipe_id)
-  -- Part 2 B (coded at write-up) would add, e.g.:
-  --   , still_made_code TEXT CHECK (still_made_code IN ('yes', 'no', 'unsure'))
-  --   , young_people_know_code TEXT CHECK (young_people_know_code IN ('yes', 'no', 'unsure'))
 );
 
 CREATE INDEX dish_status_reports_official_idx ON dish_status_reports (official_recipe_id);

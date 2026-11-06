@@ -42,7 +42,7 @@ committed.
 5. **Green before commit:** `pytest -q`, `ruff check`, `mypy` all pass. New behaviour gets a test.
 6. **Small, honest commits.** One logical change per commit, conventional-commit prefixes
    (`feat:`, `fix:`, `docs:`, `data:`, `test:`). No work left on side branches — merge or delete within the week.
-7. **Migrations are append-only** (next is `026`; `025` is `recipes.extraction_method`). Never edit an applied migration.
+7. **Migrations are append-only** (next is `027`; `026` is `dish_status_reports`, HD-43). Never edit an applied migration.
 8. **Raw data stays raw.** `data/raw/` is read-only to pipelines and never committed or published.
 9. **Back up after any data change:** `make db-dump`, then `make backup TO=<off-laptop path>`.
 10. **Repo-relative paths only.** No `~/Desktop/...` in code.
@@ -181,7 +181,7 @@ and Phase 3 compresses by one week (ICWSM is then the first thing dropped).
 | T1.1 ✅ | [CC] | Verify the CFP items in §1.1 from the official sites | `docs/venues.md` | Every bullet answered with source URL and date checked |
 | T1.2 | [BO] | Finalise the interview protocol: reconcile Q1, Q2, Q4–Q7 with v2 (locate the v2 protocol in `docs/archive/` or past chats); keep Q3, Q8, Q9, Q10 as written in the Bible | `docs/fieldwork/protocol_v4.md` (Thai + English) | Committed; marked FINAL; dated |
 | T1.3 | [BO] | Fix the Thai consent form: remove the real-name option (or move named credit outside the database, decided in HD-consent); fix the grade (ม.4 vs ม.5) to match the permission letter | `docs/fieldwork/consent_th.md` | Form promises only what the system does; committed |
-| T1.4 | [BO→CC] | **Q10 storage.** Bo decides (HD-Q10); Claude Code adds a separate table, e.g. `dish_status_reports(informant_id, official_recipe_id, still_made, who_makes, young_people_know, notes)`, so Q10 answers about government dishes never create a `domestic` recipe. Loader + tests | migration `026_dish_status_reports.sql`, `src/ingest/interview.py`, `tests/test_interview.py` | A Q10 answer about a dish the cook does not make produces zero `recipes` rows (test); PDPA scan passes |
+| T1.4 ✅ | [BO→CC] | **Q10 storage.** Bo decides (HD-Q10); Claude Code adds a separate table, e.g. `dish_status_reports(informant_id, official_recipe_id, still_made, who_makes, young_people_know, notes)`, so Q10 answers about government dishes never create a `domestic` recipe. Loader + tests | migration `026_dish_status_reports.sql`, `src/ingest/interview.py`, `tests/test_interview.py` | A Q10 answer about a dish the cook does not make produces zero `recipes` rows (test); PDPA scan passes |
 | T1.5 | [BO+FAM] | Book interview dates: 6 Korat interviews on weekends 31 Oct – 6 Dec; Buri Ram weekend (28–29 Nov or 5–6 Dec). Arrange introductions | `docs/fieldwork/schedule.md` (no names, roles only) | All 12 slots dated; transport confirmed |
 | T1.6 | [BO] | Mentor outreach: email Assoc. Prof. Attapol Rutherford (Chula Linguistics) and Dr. Chulanee Thianthai (Chula Sociology & Anthropology); attach the 2-page summary and GitHub link; ask for a 30-min review of the DH draft ~10 Nov | email | Sent; replies logged in `CREDITS.md` draft (role, hours) |
 | T1.7 ✅ | [CC] | Write the dated interview write-up template + cook-along log template check; one dry-run load with a fake, PII-free interview | `data/interviews/TEMPLATE.toml`, `data/cook_along/TEMPLATE` | Dry run loads, then is deleted; tests green |

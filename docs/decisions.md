@@ -1584,8 +1584,7 @@ rows, "ingredient rows only" and "all rows with empty lists".
 **Reasoning:** [not stated in session; to be added by the researcher]
 **Date decided:** 2026-11-06, by the researcher in session. This also settles
 **HD-register-MC**.
-**To build [CC]:** migration 026 widens the `register` CHECK (the HD-43 drafts then move to
-027); parsers for both sources with parse-time PDPA stripping and fixtures; the
+**To build [CC]:** migration 027 widens the `register` CHECK (026 went to HD-43); parsers for both sources with parse-time PDPA stripping and fixtures; the
 dish-name list; `sources` rows. m-culture's 240 collector-flagged duplicates follow HD-41.
 
 ---
@@ -1720,7 +1719,7 @@ sample), C (weight by source).
 ---
 
 ## HD-43 (HD-Q10) — Where do Q10 answers about the state's dishes go?
-**Date presented:** 2026-11-06 · **Status:** OPEN
+**Date presented:** 2026-11-06 · **Status:** DECIDED 2026-11-06
 **Arises from:** TIMELINE v4 T1.4 (due 19 Oct; it blocks interviews). No entry existed
 before this one.
 
@@ -1782,9 +1781,15 @@ To adopt A or B: copy the SQL to `db/migrations/026_….sql`, run `git apply` on
 patch, then `make migrate` and `make test`. Both patches currently apply cleanly to `main`.
 
 **Recommendation:** none.
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** **Part 1: A**, a separate `dish_status_reports` table, one `[[q10]]` block per
+state dish asked about, never creating a recipe. **Part 2: A**, verbatim only; any coding
+happens later under HD-11. Rejected: B (flag on `interview_dishes`), C (no change), and
+coded fields at write-up.
+**Reasoning:** [not stated in session; to be added by the researcher]
+**Date decided:** 2026-11-06, by the researcher in session
+**Implemented:** migration `026_dish_status_reports.sql` (from draft A; the coded-column
+comment removed), draft `A_loader.patch` applied. Drafts B and C deleted; they remain in
+git history at `587426d`.
 
 ---
 

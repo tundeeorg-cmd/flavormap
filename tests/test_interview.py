@@ -428,3 +428,58 @@ def test_the_committed_directory_holds_only_the_template() -> None:
     ).stdout.split()
     assert tracked in ([], ["data/interviews/_template.toml"])
     assert read_all(INTERVIEWS_DIR) is not None
+
+
+# ── HD-43 option A: Q10 answers ───────────────────────────────────────────────
+
+def _with_q10(q10: list[dict[str, object]]) -> dict[str, object]:
+    return _valid(q10=q10)
+
+
+def test_q10_answers_parse_and_never_add_a_dish() -> None:
+    iv = parse_interview("INT_BRM_001", _with_q10([
+        {"official_recipe_id": 7, "still_made": "ยังทำอยู่", "who_makes": "ยาย"}]))
+    assert len(iv.q10) == 1 and iv.q10[0].official_recipe_id == 7
+    assert len(iv.dishes) == 1
+    assert iv.q10_key(iv.q10[0]).endswith("/q10/7")
+
+
+@pytest.mark.parametrize("q10", [
+    [{"still_made": "ยังทำ"}],                                   # no official dish
+    [{"official_recipe_id": 7}, {"official_recipe_id": 7}],      # asked twice
+    [{"official_recipe_id": 7, "name": "x"}],                    # name-shaped key
+    [{"official_recipe_id": 7, "who_makes": "โทร 081-234-5678"}],  # personal data
+])
+def test_bad_q10_blocks_are_refused(q10: list[dict[str, object]]) -> None:
+    with pytest.raises(InterviewError):
+        parse_interview("INT_BRM_001", _with_q10(q10))
+
+
+def test_q10_answers_write_no_recipe(db_refs: dict[str, int], tmp_path: Path) -> None:
+    """T1.4's done-when: a Q10 answer about a dish the cook does not make produces zero
+    recipes rows. It lands in dish_status_reports only."""
+    iv = parse_interview(IID, _valid(
+        informant_id=IID,
+        dishes=[{"dish_no": 1, "name_th": "ยำลูกผึ้ง", "ingredients": ["ลูกผึ้ง"]}],
+        q10=[{"official_recipe_id": db_refs["brm"], "still_made": "ไม่มีใครทำแล้ว",
+              "who_makes": "ยาย"}]))
+    try:
+        load([iv], tmp_path)
+        assert _q("SELECT count(*) FROM raw_recipes WHERE source_url LIKE %s",
+                  f"interview:{IID}/%") == [(1,)]
+        assert _q("SELECT official_recipe_id, still_made FROM dish_status_reports "
+                  "WHERE informant_id = %s", IID) == [(db_refs["brm"], "ไม่มีใครทำแล้ว")]
+    finally:
+        conn = get_connection()
+        conn.execute("DELETE FROM dish_status_reports WHERE informant_id = %s", (IID,))
+        conn.commit()
+        conn.close()
+
+
+def test_a_q10_answer_about_a_non_official_recipe_aborts(
+    db_refs: dict[str, int], tmp_path: Path
+) -> None:
+    iv = parse_interview(IID, _valid(
+        informant_id=IID, q10=[{"official_recipe_id": db_refs["com"]}]))
+    with pytest.raises(InterviewError, match="not an official recipe"):
+        load([iv], tmp_path)

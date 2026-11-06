@@ -40,3 +40,13 @@ ingredients = [                  # as recorded, one line each, in the cook's wor
 # stated_substitutions = ""      # what they substitute, and why
 # differs_from_bangkok = ""
 # validation_notes = ""          # their reaction to the recipes from their province
+
+# HD-43 option A — Q10, once for each of the THREE dishes the state listed for this
+# province, whether or not the cook makes them. Never creates a recipe.
+# จานนี้ยังมีคนทำอยู่ไหม? ใครทำ? คนรุ่นใหม่ทำเป็นหรือเปล่า?
+# [[q10]]
+# official_recipe_id = 0         # the state's dish asked about (recipes.recipe_id)
+# still_made = ""                # the cook's words
+# who_makes = ""                 # a role only: ยาย, แม่ค้า. Never a name
+# young_people_know = ""
+# notes = ""

@@ -64,13 +64,18 @@ FORBIDDEN_KEY = re.compile(
 
 INFORMANT_KEYS = frozenset({
     "informant_id", "province_code", "district", "age_bracket", "role",
-    "acquisition_mode", "consent_form", "consent_date", "interview_date", "dishes",
+    "acquisition_mode", "consent_form", "consent_date", "interview_date", "dishes", "q10",
 })
 DISH_KEYS = frozenset({
     "dish_no", "name_th", "ingredients", "official_recipe_id", "cook_status_verbatim",
     "cook_status_level", "distinctiveness_claim", "stated_absence",
     "stated_substitutions", "differs_from_bangkok", "validation_notes",
 })
+# HD-43 option A: Q10 answers about the state's dishes, one [[q10]] block per official
+# dish asked about. Verbatim only (Part 2 A); never creates a recipe.
+Q10_KEYS = frozenset({"official_recipe_id", "still_made", "who_makes",
+                      "young_people_know", "notes"})
+Q10_TEXT = ("still_made", "who_makes", "young_people_know", "notes")
 DISH_TEXT = ("name_th", "cook_status_verbatim", "distinctiveness_claim", "stated_absence",
              "stated_substitutions", "differs_from_bangkok", "validation_notes")
 
@@ -95,6 +100,18 @@ class Dish:
 
 
 @dataclass(frozen=True)
+class Q10Answer:
+    """Q10 about one official dish: จานนี้ยังมีคนทำอยู่ไหม? ใครทำ? คนรุ่นใหม่ทำเป็นหรือเปล่า?
+    In the cook's words. "Who" is a role, never a name (the PDPA check refuses names)."""
+
+    official_recipe_id: int
+    still_made: str | None = None
+    who_makes: str | None = None
+    young_people_know: str | None = None
+    notes: str | None = None
+
+
+@dataclass(frozen=True)
 class Interview:
     informant_id: str
     province_code: str
@@ -106,6 +123,10 @@ class Interview:
     consent_date: datetime.date
     interview_date: datetime.date
     dishes: list[Dish] = field(default_factory=list)
+    q10: list[Q10Answer] = field(default_factory=list)
+
+    def q10_key(self, answer: Q10Answer) -> str:
+        return f"{self.informant_id}/q10/{answer.official_recipe_id}"
 
     def dish_key(self, dish: Dish) -> str:
         return f"{self.informant_id}/{dish.dish_no}"
@@ -233,6 +254,28 @@ def parse_interview(stem: str, data: dict[str, object]) -> Interview:
             validation_notes=texts["validation_notes"],
         ))
 
+    q10: list[Q10Answer] = []
+    raw_q10 = data.get("q10", [])
+    if not isinstance(raw_q10, list):
+        errors.append(f"{stem}: q10 must be a list of [[q10]] tables")
+        raw_q10 = []
+    asked: set[int] = set()
+    for i, q in enumerate(raw_q10, 1):
+        where = f"{stem}: q10 {i}"
+        if not isinstance(q, dict):
+            errors.append(f"{where} is not a table")
+            continue
+        _check_keys(where, q, Q10_KEYS, errors)
+        rid = q.get("official_recipe_id")
+        if not isinstance(rid, int) or isinstance(rid, bool):
+            errors.append(f"{where}: official_recipe_id is required (the state's dish asked about)")
+            continue
+        if rid in asked:
+            errors.append(f"{where}: official_recipe_id {rid} is asked about twice")
+        asked.add(rid)
+        qt = {k: _check_text(f"{where}: {k}", q.get(k), errors) for k in Q10_TEXT}
+        q10.append(Q10Answer(official_recipe_id=rid, **qt))
+
     if errors:
         raise InterviewError("\n".join(errors))
     return Interview(
@@ -244,6 +287,7 @@ def parse_interview(stem: str, data: dict[str, object]) -> Interview:
         consent_date=consent,  # type: ignore[arg-type]
         interview_date=interview,  # type: ignore[arg-type]
         dishes=sorted(dishes, key=lambda x: x.dish_no),
+        q10=sorted(q10, key=lambda x: x.official_recipe_id),
     )
 
 
