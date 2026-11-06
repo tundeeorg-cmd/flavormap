@@ -950,6 +950,45 @@ the rule's wording against `data/reference/lexicon/canonical_ingredients.csv` as
   `acid`. HD-27 kept `acid` separate because sour separates regions (rejected option C).
   Whether the rule yields to `acid` and `sweetener`, or absorbs them, is open.
 
+**Seasoning review — DECIDED 2026-11-06** (researcher adopted the recommendation of Claude,
+the claude.ai chat assistant, not the Claude Code agent). The list above is kept as
+presented.
+1. **The rule gives way to `acid` and `sweetener`.** Both stay their own categories. The
+   amended rule text, which supersedes the one above: "`seasoning` = condiments and
+   seasoning agents added mainly to adjust saltiness, umami, sweetness or sourness at the
+   table or during cooking, not as a base or bulk ingredient of the dish, **excluding acids
+   and sweeteners, which have their own categories (HD-27).**"
+2. **Fermented pastes stay where they are, with `is_fermented` = true:** กะปิ, น้ำปลาร้า,
+   ปลาร้า, ปลาเค็ม and น้ำปู stay `protein_fish`; เต้าเจี้ยว stays `protein_other`.
+   *Reason (researcher's):* they are base ingredients in many regional dishes, not just
+   adjusters.
+   **Treated differently on purpose:** น้ำปลา (ING_0002) is `seasoning`; กะปิ (ING_0041) is
+   `protein_fish`.
+   *Change applied:* ปลาเค็ม (ING_0413) was `is_fermented` = false and is now true, per
+   the instruction. The other five were already true.
+3. **Section A:**
+   - กิมจิ → `vegetable` (+fermented), like ผักดอง.
+   - มิโสะ → `protein_other` (+fermented).
+   - โคชูจัง → `chilli`, with the curry pastes.
+   - มัสตาร์ด → `spice`.
+   - เหล้าจีน, ไวน์ขาว, เหล้ารัม, สาเก → `other` (`is_fermented` unchanged, true).
+   - Kept `seasoning`: ผงดาชิ, ซุปก้อน, ซอสเทอริยากิ, น้ำสลัด, ตั้งฉ่าย, มิริน.
+4. **Mis-files:** มะขามเปียก (ING_0125) `spice` → `acid`; ซอสพริก (ING_0135) `spice` →
+   `seasoning`.
+
+**Reasoning:** as given in 2 above; for 1, 3 and 4, [not stated beyond the decision itself;
+to be added by the researcher if wanted].
+**Applied [CC], 2026-11-06:**
+- 11 rows of `canonical_ingredients.csv` changed: 10 categories and 1 `is_fermented`.
+- Loaded with `make lexicon`; the database matches.
+- Categories now: seasoning 31, other 15 of 492 (3.0%, under the 5% ceiling), acid 17,
+  spice 29, chilli 19, vegetable 75, protein_other 43.
+- `tests/test_lexicon.py` checks the ceiling and every placement above on the committed
+  file.
+- Mention coverage is unchanged (81.4%); categories do not affect mapping.
+- Figure 6 regenerated; it plots ingredients, not categories, so it is unchanged in
+  content.
+
 **How it is enforced.** Migration 029 replaces 023's CHECK with the same list plus
 `seasoning`; `src/clean/lexicon.py` `CATEGORIES` matches it (a test keeps them in step).
 

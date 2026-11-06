@@ -24,6 +24,7 @@ from src.clean.lexicon import (
     CONFLATION_COLUMNS,
     CONFLATION_VIOLATIONS,
     CONFLATIONS_FILE,
+    OTHER_CEILING,
     Canonical,
     Conflation,
     Lexicon,
@@ -164,6 +165,28 @@ def test_a_wrong_header_is_refused(tmp_path: Path) -> None:
 
 def test_the_committed_lexicon_files_are_valid() -> None:
     read_lexicon(LEXICON_DIR)
+
+
+def test_the_committed_lexicon_keeps_other_under_the_ceiling_and_hd27_placements() -> None:
+    """HD-27 seasoning review (2026-11-06): `other` stays under 5% after the moves, and
+    each placement the researcher decided holds."""
+    lex = read_lexicon(LEXICON_DIR)
+    n_other = sum(c.category == "other" for c in lex.canonicals)
+    assert n_other / len(lex.canonicals) < OTHER_CEILING == 0.05
+    by_id = {c.canonical_id: c for c in lex.canonicals}
+    expected = {
+        "ING_0193": ("vegetable", True), "ING_0431": ("protein_other", True),
+        "ING_0373": ("chilli", True), "ING_0398": ("spice", False),
+        "ING_0155": ("other", True), "ING_0380": ("other", True),
+        "ING_0456": ("other", True), "ING_0457": ("other", True),
+        "ING_0125": ("acid", False), "ING_0135": ("seasoning", False),
+        "ING_0002": ("seasoning", True),
+        "ING_0041": ("protein_fish", True), "ING_0095": ("protein_fish", True),
+        "ING_0228": ("protein_fish", True), "ING_0413": ("protein_fish", True),
+        "ING_0406": ("protein_fish", True), "ING_0191": ("protein_other", True),
+    }
+    for cid, (category, fermented) in expected.items():
+        assert (by_id[cid].category, by_id[cid].is_fermented) == (category, fermented), cid
 
 
 # ── database ──────────────────────────────────────────────────────────────────

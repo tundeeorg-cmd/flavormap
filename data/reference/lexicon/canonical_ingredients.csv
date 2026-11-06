@@ -112,7 +112,7 @@ ING_0121,ถั่วฝักยาว,Yardlong beans,vegetable,false,,,bo,
 ING_0122,น้ำซุป,Broth,other,false,,,bo,
 ING_0123,พริกไทยอ่อน,Fresh green peppercorns,spice,false,,,bo,
 ING_0124,ถั่วลิสงคั่ว,Roasted peanuts,protein_other,false,,,bo,
-ING_0125,มะขามเปียก,Tamarind pulp,spice,false,,,bo,
+ING_0125,มะขามเปียก,Tamarind pulp,acid,false,,,bo,
 ING_0126,มะเขือพวง,Pea eggplants,vegetable,false,,,bo,
 ING_0127,มายองเนส,Mayonnaise,fat,false,,,bo,
 ING_0128,เนยเค็ม,Salted butter,fat,false,,,bo,
@@ -122,7 +122,7 @@ ING_0131,พาร์สลีย์,Parsley,herb,false,,,bo,
 ING_0132,มอสซาเรลล่าชีส,Mozzarella cheese,protein_other,false,,,bo,
 ING_0133,มันฝรั่ง,Potatoes,starch,false,,,bo,
 ING_0134,แป้งมันสำปะหลัง,Tapioca starch,starch,false,,,bo,
-ING_0135,ซอสพริก,Chili sauce,spice,false,,,bo,
+ING_0135,ซอสพริก,Chili sauce,seasoning,false,,,bo,
 ING_0136,มะพร้าว,Coconut,coconut,false,,,bo,
 ING_0137,เนื้อไก่,Chicken meat,protein_meat,false,,,bo,
 ING_0138,แป้งข้าวเหนียว,Glutinous rice flour,starch,false,,,bo,
@@ -140,7 +140,7 @@ ING_0151,พริกแกงเผ็ด,Red curry paste,spice,false,,,bo,
 ING_0152,มะเขือเปราะ,Thai apple eggplant,vegetable,false,,,bo,
 ING_0153,อกไก่,Chicken breast,protein_meat,false,,,bo,
 ING_0154,เนยละลาย,Melted butter,fat,false,,,bo,
-ING_0155,เหล้าจีน,Chinese cooking wine,seasoning,true,,,bo,
+ING_0155,เหล้าจีน,Chinese cooking wine,other,true,,,bo,
 ING_0156,ใบชะพลู,Wild betel leaves,herb,false,,,bo,
 ING_0157,ไก่,Chicken,protein_meat,false,,,bo,
 ING_0158,ข้าวสวยหุงสุก,Cooked jasmine rice,starch,false,,,bo,
@@ -176,7 +176,7 @@ ING_0189,ผงชูรส,Monosodium glutamate,seasoning,false,,,bo,
 ING_0190,หอยแมลงภู่,Mussels,protein_fish,false,,,bo,
 ING_0191,เต้าเจี้ยว,Fermented soybean paste,protein_other,true,,,bo,
 ING_0192,กะทิสำเร็จรูป,Coconut milk (pre-packaged),coconut,false,,,bo,
-ING_0193,กิมจิ,Kimchi,seasoning,true,,,bo,
+ING_0193,กิมจิ,Kimchi,vegetable,true,,,bo,
 ING_0194,คะน้า,Chinese kale,vegetable,false,,,bo,
 ING_0195,ชะอม,Acacia pennata,vegetable,false,,,bo,
 ING_0196,ดาร์กช็อกโกแลต %,Dark chocolate,sweetener,false,,,bo,
@@ -355,14 +355,14 @@ ING_0369,เห็ดหูหนูขาว,White fungus,vegetable,false,,,cla
 ING_0370,แคบหมู,Pork cracklings,protein_meat,false,,,claude,2026-11-06
 ING_0371,แผ่นเปาะเปี๊ยะ,Spring roll wrappers,starch,false,,,claude,2026-11-06
 ING_0372,แหนม,Fermented pork sausage (naem),protein_meat,true,,,claude,2026-11-06
-ING_0373,โคชูจัง,Gochujang,seasoning,true,,,claude,2026-11-06
+ING_0373,โคชูจัง,Gochujang,chilli,true,,,claude,2026-11-06
 ING_0374,โรสแมรี่,Rosemary,herb,false,,,claude,2026-11-06
 ING_0375,ใบยี่หร่า,Tree basil leaves,herb,false,,,claude,2026-11-06
 ING_0376,ใบหม่อน,Mulberry leaves,herb,false,,,claude,2026-11-06
 ING_0377,ไข่กุ้ง,Shrimp roe,protein_fish,false,,,claude,2026-11-06
 ING_0378,ไข่ผำ,Wolffia (water meal),vegetable,false,,,claude,2026-11-06
 ING_0379,ไข่มดแดง,Red ant eggs,protein_other,false,,,claude,2026-11-06
-ING_0380,ไวน์ขาว,White wine,seasoning,true,,,claude,2026-11-06
+ING_0380,ไวน์ขาว,White wine,other,true,,,claude,2026-11-06
 ING_0381,ไอศกรีมวานิลลา,Vanilla ice cream,sweetener,false,,,claude,2026-11-06
 ING_0382,กบ,Frog,protein_meat,false,,,claude,2026-11-06
 ING_0383,กระเพาะปลา,Fish maw,protein_fish,false,,,claude,2026-11-06
@@ -380,7 +380,7 @@ ING_0394,คอร์นเฟลก,Cornflakes,starch,false,,,claude,2026-11-06
 ING_0395,นูเทลล่า,Chocolate hazelnut spread,sweetener,false,,,claude,2026-11-06
 ING_0396,ซอสเย็นตาโฟ,Yentafo sauce,seasoning,true,,,claude,2026-11-06
 ING_0397,ดอกขจร,Cowslip creeper flowers,vegetable,false,,,claude,2026-11-06
-ING_0398,มัสตาร์ด,Mustard,seasoning,false,,,claude,2026-11-06
+ING_0398,มัสตาร์ด,Mustard,spice,false,,,claude,2026-11-06
 ING_0399,ตั้งโอ๋,Crown daisy,vegetable,false,,,claude,2026-11-06
 ING_0400,ตีนไก่,Chicken feet,protein_meat,false,,,claude,2026-11-06
 ING_0401,ถั่วเขียว,Mung beans,protein_other,false,,,claude,2026-11-06
@@ -395,7 +395,7 @@ ING_0409,น้ำสลัด,Salad dressing,seasoning,false,,,claude,2026-11-0
 ING_0410,น้ำส้มสายชูบัลซามิก,Balsamic vinegar,acid,true,,,claude,2026-11-06
 ING_0411,น้ำหวาน,Flavoured syrup,sweetener,false,,,claude,2026-11-06
 ING_0412,ปลาตะเพียน,Silver barb fish,protein_fish,false,,,claude,2026-11-06
-ING_0413,ปลาเค็ม,Salted fish,protein_fish,false,,,claude,2026-11-06
+ING_0413,ปลาเค็ม,Salted fish,protein_fish,true,,,claude,2026-11-06
 ING_0414,ปลาโอ,Bonito,protein_fish,false,,,claude,2026-11-06
 ING_0415,ปูเค็ม,Salted crab,protein_fish,true,,,claude,2026-11-06
 ING_0416,ผงดาชิ,Dashi powder,seasoning,false,,,claude,2026-11-06
@@ -413,7 +413,7 @@ ING_0427,มะระ,Bitter gourd,vegetable,false,,,claude,2026-11-06
 ING_0428,มะเขือยาว,Eggplant,vegetable,false,,,claude,2026-11-06
 ING_0429,มันม่วง,Purple sweet potato,starch,false,,,claude,2026-11-06
 ING_0430,มันเชื่อม,Candied sweet potato,sweetener,false,,,claude,2026-11-06
-ING_0431,มิโสะ,Miso,seasoning,true,,,claude,2026-11-06
+ING_0431,มิโสะ,Miso,protein_other,true,,,claude,2026-11-06
 ING_0432,ยอดกระถิน,Lead tree shoots,vegetable,false,,,claude,2026-11-06
 ING_0433,ยอดฟักทอง,Pumpkin shoots,vegetable,false,,,claude,2026-11-06
 ING_0434,รากบัว,Lotus root,vegetable,false,,,claude,2026-11-06
@@ -438,8 +438,8 @@ ING_0452,เป็ด,Duck,protein_meat,false,,,claude,2026-11-06
 ING_0453,เลือดหมู,Pork blood,protein_meat,false,,,claude,2026-11-06
 ING_0454,พาสต้า,Pasta,starch,false,,,claude,2026-11-06
 ING_0455,เส้นหมี่,Thin rice noodles (sen mi),starch,false,,,claude,2026-11-06
-ING_0456,เหล้ารัม,Rum,seasoning,true,,,claude,2026-11-06
-ING_0457,สาเก,Sake,seasoning,true,,,claude,2026-11-06
+ING_0456,เหล้ารัม,Rum,other,true,,,claude,2026-11-06
+ING_0457,สาเก,Sake,other,true,,,claude,2026-11-06
 ING_0458,เอ็นข้อไก่,Chicken knee cartilage,protein_meat,false,,,claude,2026-11-06
 ING_0459,แก้วมังกร,Dragon fruit,fruit,false,,,claude,2026-11-06
 ING_0460,แบล็กเบอร์รี,Blackberries,fruit,false,,,claude,2026-11-06
