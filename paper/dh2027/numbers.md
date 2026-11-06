@@ -66,7 +66,7 @@ Fill a line as: `value` · output file · commit · date.
 | Number | Value |
 |---|---|
 | Lexicon entries at submission (outline: ~150; target ~400) | `492` as of 2026-11-06 · `lexicon_20261106.csv` · commit 7cedfe2 · 2026-11-06 |
-| Ingredient mentions mapped, RQ1 registers: official + commercial (%) (HD-6 scope) | `81.4%` (11,462 of 14,084; excluded mentions left out of the share) · `rq1_registers` row of `lexicon_20261106.csv` · commit b5f6d85 · 2026-11-06 (same value as the 'all' row at 7cedfe2, before TAT) |
+| Ingredient mentions mapped, RQ1 registers: official + commercial (%) (HD-6 scope) | `81.4%` (11,462 of 14,084; excluded mentions left out of the share) · `rq1_registers` row of `lexicon_20261106.csv` · commit 945e18c · 2026-11-06 (same value as the 'all' row at 7cedfe2, before TAT) |
 | State-promotional (TAT), reported separately (%) | `58.7%` (619 of 1,054) · `register:state_promotional` row of `lexicon_20261106.csv` · commit bb94074 · 2026-11-06 |
 | … per source: dcp_food / kapook_cooking / mthai_food (%) | `78.6%` / `81.1%` / `84.9%` · `lexicon_20261106.csv` · commit 7cedfe2 · 2026-11-06 |
 | Aliases (mapping decisions) in the lexicon | `5,864` · `ingredient_aliases` · commit 7cedfe2 · 2026-11-06 |
