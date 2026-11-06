@@ -1,4 +1,4 @@
-.PHONY: lexicon-groups lexicon-apply rq1 setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai load-mthai labels status status-snapshot clean analyze vision figures api web export test all verify
+.PHONY: labels-body lexicon-groups lexicon-apply rq1 setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai load-mthai labels status status-snapshot clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -98,6 +98,11 @@ load-mthai:
 # register into province_attribution. Body-text labels wait for the hand reading.
 labels:
 	uv run python -m scripts.apply_labels
+
+# HD-37 rule 3: region labels from body text read by hand (data/interim/hd37d_body_text_reading.csv).
+# Run after `make labels`; title/category labels win.
+labels-body:
+	uv run python -m scripts.apply_body_text_labels
 
 # HD-29/HD-30 — fieldwork interview files (data/interviews/*.toml, gitignored) into
 # informants, interview_dishes and the domestic register. All-or-nothing; refuses any

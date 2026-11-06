@@ -1533,6 +1533,16 @@ needed.
 - **Pages without loaded recipes:** 88 of the 137 have none (only 1,360 of 2,521 pages are
   loaded). A claim confirmed on such a page labels nothing until its recipes are loaded.
 
+**Read 2026-11-06 (bulk confirmation; see HD-6's provenance notes):** all 137 pages
+recorded as genuine dish claims.
+- **Labels written** by `scripts/apply_body_text_labels.py` (`make labels-body`) as
+  HD-37 rule 3: tier 2, `medium`, region only, `method_note` "HD-37 body …".
+- **Counts:** the 137 pages hold 49 loaded recipes. 16 already had a title/category label,
+  which wins, so **33** new labels were written: Northeast 17, South 8, North 5,
+  Central 3.
+- **Still open:** item (3), mapping the August province audit's confirmed claims to loaded
+  recipes.
+
 ---
 
 ## HD-38 — How a register's recipes become one ingredient vector (RQ1)
@@ -2137,6 +2147,18 @@ presented, with the recommended option chosen each time):
   entry and 6 are exclusions.
 - The researcher marks each group `correct` (yes/no), with `should_be` for any that are
   wrong.
+
+**Researcher review, 2026-11-06 (bulk confirmation).** The researcher reported that they
+had reviewed all three sheets and found them correct. On disk the review columns were
+still empty, so the agent asked whether every row should be recorded as confirmed, and
+the researcher answered "Yes, record all as ok". Recorded as such:
+- **Entries:** `reviewed_by_bo = 2026-11-06` for all 302 agent-drafted entries, so all 492
+  are trusted. `verdict` in `REVIEW_drafted_entries.csv` reads "ok (bulk confirmation
+  2026-11-06)".
+- **Error-rate sample:** all 50 groups `correct = yes`, i.e. **0 of 50 wrong**. Exact 95%
+  interval (Clopper–Pearson): 0% to 7.1% for the Batch 2 decision error rate.
+- **For the methods section:** these are bulk confirmations, not row-by-row verdicts, and
+  should be described that way.
 - An entry is *trusted* if `bo` drafted it or it carries a review date.
 - Alias- and split-level provenance is not stored per row; the batch records in
   `data/interim/` keep it.
