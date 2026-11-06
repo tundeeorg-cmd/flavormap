@@ -1417,7 +1417,7 @@ paper defends.
 ---
 
 ## HD-37 (HD-Kapook) — What unit, if any, can the commercial register be labelled at?
-**Date presented:** 2026-10-12 · **Status:** OPEN
+**Date presented:** 2026-10-12 · **Status:** DECIDED 2026-11-06 (confidence levels per rule still to set)
 **Arises from:** TIMELINE T1.14, written up as T1.19 (preliminary RQ1) needs it. No
 commercial recipe has a province or region label today (`province_attribution` holds the
 203 official rows only), so the commercial side of RQ1 has nothing to compare.
@@ -1482,9 +1482,18 @@ single-source this cycle. It is not written up here.
 
 **Recommendation:** none. What counts as a province claim is an attribution rule the
 paper defends.
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** **C + D.** Both units, each at its own confidence: analysis at region
+level, with province rows shown where they exist. **Body text is admitted** (D), and every
+body-text claim is read by hand before it counts, as the August audit did. Rejected: A
+(province only), B (region only without province rows) and E (no labels).
+**Reasoning:** [not stated in session; to be added by the researcher]
+**Date decided:** 2026-11-06, by the researcher in session
+
+**Before T1.15 can write labels:** (1) the confidence level for each rule (asked
+separately); (2) the 137 body-text region pages not yet read must be read by hand; (3) the
+August audit counted pages, so its confirmed claims must be mapped to loaded recipe units
+(HD-22) [CC]. `province_attribution` already holds `region` at tier 2; no migration is
+needed.
 
 ---
 
