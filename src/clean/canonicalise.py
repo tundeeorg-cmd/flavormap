@@ -35,6 +35,7 @@ EXTRACTION_METHOD: dict[str, str] = {
     "official": "institutional_pdf",
     "domestic": "interview",
     "commercial": "rule",
+    "state_promotional": "rule",   # HD-39: parsed from the collectors' exports
 }
 
 

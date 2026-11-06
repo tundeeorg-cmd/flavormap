@@ -38,7 +38,7 @@ from src.clean.lexicon import OTHER_CEILING, check_categories
 from src.config import DOCS_DIR, EXPORTS_DIR, MIGRATIONS_DIR, REPO_ROOT
 
 TOTAL_PROVINCES = 77
-REGISTERS = ("official", "commercial", "domestic")
+REGISTERS = ("official", "commercial", "domestic", "state_promotional")  # HD-39
 BACKUP_MAX_AGE_DAYS = 7
 RQ4_PLANNED_DISHES = 8  # CLAUDE.md §7.4
 

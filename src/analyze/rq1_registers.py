@@ -60,6 +60,9 @@ ANALYSIS_UNIT: Unit = "region"
 # recipes is marked "below minimum n" in every RQ1 table. It is flagged, never dropped.
 COMMERCIAL_MIN_N = 5
 PROCESSED = DATA_DIR / "processed"
+# The registers RQ1 compares (CLAUDE.md §4). HD-39's state_promotional register is kept
+# out until a decision brings it in.
+RQ1_REGISTERS: tuple[str, ...] = ("official", "commercial", "domestic")
 # v_recipes_clean's bounds on mapped ingredients per recipe (migration 015). Re-applied in
 # Python when a run is restricted to reviewed entries (`restrict_to_trusted`).
 MIN_INGREDIENTS, MAX_INGREDIENTS = 3, 25
@@ -124,7 +127,10 @@ def load_inputs(processed: Path = PROCESSED, reviewed_only: bool = False) -> pd.
 def assemble(
     clean: pd.DataFrame, ingredients: pd.DataFrame, provinces: pd.DataFrame
 ) -> pd.DataFrame:
-    """Join the three tables; resolve each recipe's region (see the module docstring)."""
+    """Join the three tables; resolve each recipe's region (see the module docstring).
+    Only RQ1's registers (``RQ1_REGISTERS``) are kept: HD-39's state-promotional register
+    is not part of RQ1 or Figure 6, and leaving it in would change the TF-IDF weights."""
+    clean = clean[clean["register"].isin(RQ1_REGISTERS)]
     region4 = dict(zip(provinces["province_code"], provinces["region4"], strict=True))
     keep = ["recipe_id", "register", "province_code", "region"]
     keep += ["source_id"] if "source_id" in clean.columns else []

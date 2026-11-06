@@ -1,4 +1,4 @@
-.PHONY: acquisition-sheet acquisition paper-audit labels-body lexicon-groups lexicon-apply rq1 setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai load-mthai labels status status-snapshot clean analyze vision figures api web export test all verify
+.PHONY: parse-state load-state dedup-state acquisition-sheet acquisition paper-audit labels-body lexicon-groups lexicon-apply rq1 setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai load-mthai labels status status-snapshot clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -135,6 +135,16 @@ acquisition-sheet:
 
 acquisition:
 	uv run python -m scripts.acquisition
+
+# HD-39: state-promotional register (TAT now; m-culture's ingredient rows await MC_SPLIT).
+parse-state:
+	uv run python -m scripts.parse_state_promo
+
+load-state:
+	uv run python -m scripts.parse_state_promo --load
+
+dedup-state:
+	uv run python -m scripts.parse_state_promo --dedup
 
 paper-audit:
 	uv run python -m scripts.paper_audit $(if $(DRAFT),--draft $(DRAFT),) $(if $(WRITE),--write,)

@@ -137,7 +137,8 @@ def test_runs_clean_on_a_migrated_empty_database(
     status = collect(dsn=scratch_db, today=TODAY, check_container=False)
     text = render(status)
     assert "raw_recipes            0" in text
-    assert "recipes                0  (official 0, commercial 0, domestic 0)" in text
+    assert ("recipes                0  (official 0, commercial 0, domestic 0, "
+            "state_promotional 0)") in text
     assert f"{status.migrations_present} applied of {status.migrations_present} files" in text
     assert "RQ4 no — 0 of 8" in text
     assert "n/a" not in text.split("Lexicon")[1].split("Pipeline")[0]

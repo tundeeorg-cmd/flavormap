@@ -1794,6 +1794,58 @@ rows, "ingredient rows only" and "all rows with empty lists".
 **To build [CC]:** migration 028 widens the `register` CHECK (026 went to HD-43, 027 to the MThai source row); parsers for both sources with parse-time PDPA stripping and fixtures; the
 dish-name list; `sources` rows. m-culture's 240 collector-flagged duplicates follow HD-41.
 
+**Loader questions, asked and decided 2026-11-06** (researcher, in session; evidence from
+`make parse-state` and the split measurement below):
+1. **m-culture line splitting: skip m-culture's ingredient rows for now.** The 565 pages
+   hold free text, not one ingredient per line. The options measured (same 565 recipes,
+   212 PDPA redactions, 0 leaks under each, because redaction runs before splitting):
+   - newline only: 7,250 lines, 5,713 distinct, 1.8% already in the lexicon;
+   - also `,` `;`: 7,500 lines, 5,860 distinct, 3.0%;
+   - also spaces: 23,747 lines, 8,210 distinct, 16.6%, median 27 lines per recipe.
+   Rejected for now: all three splits. `MC_SPLIT` stays None, so no m-culture recipe
+   loads; its name-only rows do.
+   **Reasoning:** [not stated in session; to be added by the researcher]
+2. **TAT province attribution: high except restaurant guides.** Tier 1 for the province
+   the article lists: `high` for campaign, signature-dish and dessert-guide rows (233),
+   `medium` for restaurant-guide rows (238), so a robustness check can drop them.
+   Rejected: all high, all medium, no attribution yet.
+   **Reasoning:** [not stated in session; to be added by the researcher]
+
+**Built and loaded [CC], 2026-11-06:**
+- **Migration 032:**
+  - `register` CHECK widened to `state_promotional`;
+  - `sources` rows for `tat_food` and `m_culture` (`institutional`, audited 2026-10-12);
+  - table `state_dish_names`.
+- **Code:** `src/ingest/state_promotional.py` (parsers) and `scripts/parse_state_promo.py`
+  (`make parse-state`, `make load-state`, `make dedup-state`).
+- **Fields kept:**
+  - TAT: dish names, ingredients, list kind, campaign, province, date and URL. Never
+    read: venue and note.
+  - m-culture: dish name, province, date, URL, ingredient text and the duplicate flag.
+    Never read: page and PDF text, districts, office.
+  - Every kept text is redacted. m-culture ingredient text is redacted whole, before
+    any split; splitting first had hidden 67 of 212 hits.
+- **URLs:** `redact` would blank every URL. A URL instead loses only the substrings
+  `find_leaks` flags: one TAT slug names a road (ถนนสิโรรส), in 12 rows. The first load
+  stored those 12 URLs unredacted, and the database PDPA scan failed. That load, never
+  committed or dumped, was deleted in one transaction (471 raw/recipe/attribution rows,
+  2,266 names) and reloaded; the scan now passes.
+- **Loaded:**
+  - **471 TAT recipes** (`state_promotional`), with 471 attributions (233 high, 238
+    medium); 74 enter `v_recipes_clean` (3–25 mapped ingredients).
+  - **2,266 dish names:** 247 TAT and 2,019 m-culture (46 m-culture name redactions).
+  - 565 m-culture ingredient rows not loaded.
+- **Kept out of RQ1 and Figure 6:** `rq1_registers.RQ1_REGISTERS`. A re-run of
+  `make rq1` gives byte-identical distances, CIs and p-values.
+- **Lexicon coverage:** state-promotional lines are 619 of 1,054 mapped (58.7%). The
+  all-register figure moves from 81.4% to **79.8%**; official (78.6%) and commercial
+  (81.6%) are unchanged.
+- **HD-41 B:** `make dedup-state` writes `data/coverage/dedup_state_20261106.csv`
+  (gitignored) with 35 candidate pairs, all within TAT (Jaccard > 0.85 and title
+  > 0.8), for the researcher's review. Nothing is dropped.
+- **m-culture's 240 collector-flagged duplicates:** all their name-only rows are in
+  `state_dish_names` with `duplicate_of` kept; none is among recipes yet.
+
 ---
 
 ## HD-40 (HD-sources) — Which sources make up the commercial register this cycle?

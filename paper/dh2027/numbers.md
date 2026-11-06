@@ -14,6 +14,10 @@ Fill a line as: `value` · output file · commit · date.
   its Holm family. `run_rq1` writes `below_min_n`. Cells below: Kapook-only Central (4),
   MThai-only North (4), MThai-only South (3), under both weightings. No pooled cell is
   below.
+- **After the HD-39 TAT load (2026-11-06, later):** the all-register mention coverage
+  is 79.8% (state-promotional 58.7% added). The official (78.6%) and commercial (81.6%)
+  figures and every RQ1 number are unchanged. The "all sources" row below is the value
+  at commit 7cedfe2; which scope the paper reports is the researcher's call.
 - **Filled 2026-11-06** from the 9,999/9,999 runs at commit 7cedfe2. Numbers only; no
   interpretation is written here. Commercial-side n per region per source are small
   (as low as 3), and are printed beside each distance.

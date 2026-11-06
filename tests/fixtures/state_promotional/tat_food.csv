@@ -1,0 +1,4 @@
+﻿record_id,source_slug,register,province_th,province_en,region,dish_th,dish_en,dish_type,ingredients_listed,venue,list_kind,campaign,note,source_lang,article_id,article_id_en,article_title,page_date,page_updated,source_url,source_url_en,publisher,captured_on
+tat_food_9001,tat_food,,น่าน,Nan,North,แกงทดสอบ,Test Curry,curry,ข่า; ตะไคร้; พริก,VENUE-FIXTURE,campaign,Fixture Campaign,NOTE-FIXTURE,,,,,2023-10-12,,https://thai.tourismthailand.org/fixture/1,,FIXTURE,2026-10-06
+tat_food_9002,tat_food,,ชลบุรี,Chon Buri,East,,Fixture Noodles,noodle_soup,เส้นหมี่; กุ้ง,VENUE-FIXTURE,restaurant_guide,,,,,,,2019-10-08,,https://thai.tourismthailand.org/fixture/2,,FIXTURE,2026-10-06
+tat_food_9003,tat_food,,น่าน,Nan,North,ขนมทดสอบ,,dessert,,VENUE-FIXTURE,dessert_guide,,,,,,,2025-01-01,,https://thai.tourismthailand.org/fixture/3,,FIXTURE,2026-10-06

@@ -84,7 +84,7 @@ SELECT rr.source_id, r.register, r.recipe_id, item #>> '{}'
   CROSS JOIN LATERAL jsonb_array_elements(COALESCE(sec -> 'items', '[]'::jsonb)) AS item
 """
 
-REGISTERS = ("official", "commercial", "domestic")
+REGISTERS = ("official", "commercial", "domestic", "state_promotional")  # HD-39
 
 # HD-33 (2026-09-29): which strings are shown side by side. Display only.
 SIMILARITY_THRESHOLD = 0.8

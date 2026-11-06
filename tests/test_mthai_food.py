@@ -7,6 +7,7 @@ that must never be read carry FIXTURE markers, so a leak is a substring check.
 from __future__ import annotations
 
 import dataclasses
+import json
 import re
 from datetime import date
 from pathlib import Path
@@ -108,3 +109,76 @@ def test_province_names_are_found_inside_compound_tags() -> None:
     names = {"เชียงใหม่", "ชัยนาท"}
     assert provinces_named(second, names) == {"เชียงใหม่"}
     assert provinces_named(first, names) == set()
+
+
+# ── HD-39: the state-promotional parsers (src/ingest/state_promotional.py) ─────────
+
+_STATE = Path(__file__).parent / "fixtures" / "state_promotional"
+
+
+def test_state_parsers_read_only_their_fields_and_drop_venue_and_page_text() -> None:
+    from src.ingest.state_promotional import payload, read_mc, read_tat
+    tat = read_tat(_STATE / "tat_food.csv")
+    mc = read_mc("newline", _STATE / "dishes.csv")
+    for rec in [*tat, *mc]:
+        dumped = json.dumps(payload(rec), ensure_ascii=False)
+        for marker in ("VENUE-FIXTURE", "NOTE-FIXTURE", "DISTRICT-FIXTURE", "OFFICE-FIXTURE"):
+            assert marker not in dumped
+
+
+def test_tat_rows_split_on_semicolons_and_fall_back_to_the_english_name() -> None:
+    from src.ingest.state_promotional import read_tat
+    a, b, c = read_tat(_STATE / "tat_food.csv")
+    assert a.ingredient_lines == ["ข่า", "ตะไคร้", "พริก"] and a.list_kind == "campaign"
+    assert b.name == "Fixture Noodles" and b.dish_th == "" and b.has_ingredients
+    assert not c.has_ingredients and c.listed_province_th == "น่าน"
+
+
+def test_mculture_redacts_before_splitting_so_a_phone_number_is_never_cut() -> None:
+    from src.ingest.pdpa import find_leaks
+    from src.ingest.state_promotional import SPLITS, read_mc
+    for how in SPLITS:
+        rec = read_mc(how, _STATE / "dishes.csv")[0]
+        assert rec.redaction.n_phone_numbers == 1, how
+        assert not any(find_leaks(x) for x in rec.ingredient_lines), how
+        assert not any("089" in x for x in rec.ingredient_lines), how
+    assert read_mc("delimiters", _STATE / "dishes.csv")[0].ingredient_lines[:3] == [
+        "วัตถุดิบการทำอาหาร", "ประกอบด้วย ผักหวาน", "ไข่มดแดง ใบแมงลัก"]
+    rows = read_mc("newline", _STATE / "dishes.csv")
+    assert rows[2].duplicate_of == "9:2" and rows[0].key == "9:1"
+
+
+def test_mculture_split_is_undecided_so_no_mculture_recipe_loads() -> None:
+    from src.ingest import state_promotional
+    assert state_promotional.MC_SPLIT is None
+
+
+def test_tat_confidence_follows_the_researchers_rule() -> None:
+    from scripts.parse_state_promo import confidence
+    assert confidence("restaurant_guide") == "medium"
+    for kind in ("campaign", "signature_dish", "dessert_guide"):
+        assert confidence(kind) == "high"
+
+
+def test_hd41_candidates_need_both_thresholds_strictly() -> None:
+    from scripts.parse_state_promo import candidates
+    s = frozenset
+    sets = {1: s("abcdefg"), 2: s("abcdefg"), 3: s("abcdefg"), 4: s("abcdefgh")}
+    titles = {1: "แกงส้มปลา", 2: "แกงส้มปลา", 3: "ขนมครก", 4: "แกงส้มปลา"}
+    pairs = candidates(sets, titles, focus={1})
+    assert [(a, b) for a, b, _, _ in pairs] == [(1, 2), (1, 4)]   # 3: title too far
+    assert all(j > 0.85 and t > 0.8 for _, _, j, t in pairs)
+
+
+def test_state_urls_keep_their_text_and_lose_only_flagged_substrings() -> None:
+    """`redact` would blank every URL; a URL keeps its text and loses only what
+    `find_leaks` (the database scan's check) flags."""
+    from src.ingest.pdpa import RedactionReport, find_leaks
+    from src.ingest.state_promotional import _clean_url
+    r = RedactionReport()
+    plain = "https://thai.tourismthailand.org/Articles/explore-thai-taste"
+    assert _clean_url(plain, r) == plain and r.total == 0
+    flagged = "https://thai.tourismthailand.org/Articles/ร้านอร่อย-ย่านถนนสิโรรส"
+    out = _clean_url(flagged, r)
+    assert out.startswith("https://thai.tourismthailand.org/Articles/ร้านอร่อย-ย่าน")
+    assert "[REDACTED]" in out and not find_leaks(out) and r.n_addresses == 1

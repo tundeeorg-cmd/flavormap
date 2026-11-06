@@ -141,6 +141,7 @@ needs changing gets a new forward migration, never an edit to an applied one.
 | 029 | `seasoning` category + `ingredient_exclusions` | HD-27 amendment: the sixteenth category; strings the researcher excludes as not ingredients |
 | 030 | lexicon provenance | `drafted_by` (`bo` \| `claude`) and `reviewed_by_bo` on `canonical_ingredients` |
 | 031 | `recipe_ingredients.acquisition_modes` + `acquisition_map` | HD-15: every mode the ที่มา text names (`grown \| foraged \| market \| packaged \| local`), hand-coded only; the single `acquisition_mode` column retired (CHECK NULL) |
+| 032 | `register` + `state_promotional`, `state_dish_names`, seed `tat_food` / `m_culture` | HD-39: the state-promotional register (TAT now); name-only state dishes for RQ3/RQ5 matching, never recipes |
 
 **Ordering correction (2026-08-16).** The v2 plan numbered `province_attribution` 006 and
 `provinces` 007, with a foreign key pointing from the earlier to the later. That cannot
