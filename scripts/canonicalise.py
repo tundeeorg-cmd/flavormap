@@ -71,6 +71,10 @@ def main() -> int:
         if args.dry_run:
             print("dry run: nothing written")
             return 0
+        # The reads above opened an implicit transaction, inside which conn.transaction()
+        # is only a savepoint and closing the connection would roll everything back. End
+        # it so the block below is the real, committed transaction (as apply_labels does).
+        conn.commit()
         with conn.transaction():
             deleted = conn.execute(DELETE).rowcount
             skipped = 0

@@ -36,13 +36,25 @@ entry ids).
 ``group_rank``, ``suggested_group`` (the key), ``group_mentions``, ``group_cum_share``
 (running share of all (recipe, string) pairs after this group), ``group_strings``,
 ``name_th`` (the raw string, exactly the alias you would map), ``n_recipes``, per-source
-counts, ``mapped`` (``yes`` / ``split`` / ``conflict`` / blank), ``current_entry``,
-``multi_parts``, then the two columns **you** fill:
+counts, ``mapped`` (``yes`` / ``split`` / ``excluded`` / ``conflict`` / blank), ``current_entry``,
+``multi_parts``, ``suggested_entry``, then the two columns **you** fill.
+
+``suggested_entry`` (first row of a group, groups with unmapped strings only): the entry
+id whose Thai name, or one of whose existing aliases, is exactly the group's key, or
+``exclude`` when the key is an excluded string. Added at the researcher's request
+(2026-11-06) to speed confirmation. **It is a suggestion and maps nothing:**
+`scripts/lexicon_apply.py` never reads it. A group is mapped only when you copy the id
+into ``group_decision`` (after checking the group's strings, since a key can collect a
+string that belongs elsewhere). Blank when no entry matches the key; nothing is fuzzy-
+matched.
+
+The two columns you fill:
 
 - ``group_decision`` (first row of a group only): one entry id applies to every string
   in the group whose ``decision`` is blank.
 - ``decision``: per string. ``ING_0001`` maps it; ``ING_0001|ING_0002`` splits it (Q5);
-  ``skip`` leaves it unmapped even when ``group_decision`` is filled.
+  ``skip`` leaves it unmapped even when ``group_decision`` is filled; ``exclude``
+  lists it in ``ingredient_exclusions.csv`` as not an ingredient.
 
 The output is DCP-derived (HD-3), so it goes to ``data/interim/`` (gitignored).
 """
@@ -57,7 +69,9 @@ from pathlib import Path
 
 from scripts.lexicon_worklist import (
     CONFLICT,
+    EXCLUDED,
     MAPPED_QUERY,
+    MARKERS,
     QUERY,
     SPLIT,
     WorklistRow,
@@ -172,7 +186,19 @@ def groups_to_reach(groups: list[Group], share: float) -> int:
     return len(groups)
 
 
-def write_csv(groups: list[Group], out: Path) -> None:
+def suggested_entry(group: Group, index: dict[str, tuple[str, str]]) -> str:
+    """The entry id (or ``exclude``) whose name or alias is exactly the group's key,
+    for a group with unmapped strings; else "". Display only (module docstring)."""
+    if all(m.mapped for m in group.members):
+        return ""
+    hit = index.get(key(group.key))
+    if not hit or hit[0] in (CONFLICT, SPLIT):
+        return ""
+    return "exclude" if hit[0] == EXCLUDED else hit[0]
+
+
+def write_csv(groups: list[Group], out: Path,
+              index: dict[str, tuple[str, str]] | None = None) -> None:
     sources = sorted({s for g in groups for m in g.members for s in m.by_source})
     total = sum(g.mentions for g in groups) or 1
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -182,18 +208,20 @@ def write_csv(groups: list[Group], out: Path) -> None:
         w.writerow(["group_rank", "suggested_group", "group_mentions", "group_cum_share",
                     "group_strings", "name_th", "n_recipes",
                     *(f"n_{s}" for s in sources), "mapped", "current_entry",
-                    "multi_parts", "group_decision", "decision"])
+                    "multi_parts", "suggested_entry", "group_decision", "decision"])
         for rank, g in enumerate(groups, start=1):
             covered += g.mentions
             parts = " | ".join(multi_parts(g.key))
+            suggestion = suggested_entry(g, index or {})
             for i, m in enumerate(g.members):
-                status = (m.category if m.category in (CONFLICT, SPLIT) else "yes") \
+                status = (m.category if m.category in MARKERS else "yes") \
                     if m.mapped else ""
                 w.writerow([rank, g.key, g.mentions, f"{covered / total:.4f}",
                             len(g.members), m.name_th, m.n_recipes,
                             *(m.by_source.get(s, 0) for s in sources), status,
-                            "" if m.category in (CONFLICT, SPLIT) else (m.canonical_id or ""),
-                            parts if i == 0 else "", "", ""])
+                            "" if m.category in MARKERS else (m.canonical_id or ""),
+                            parts if i == 0 else "", suggestion if i == 0 else "",
+                            "", ""])
 
 
 def summary(groups: list[Group]) -> list[str]:
@@ -210,6 +238,14 @@ def summary(groups: list[Group]) -> list[str]:
     return lines
 
 
+def suggestion_summary(groups: list[Group], index: dict[str, tuple[str, str]]) -> str:
+    total = sum(g.mentions for g in groups) or 1
+    hits = [g for g in groups if suggested_entry(g, index)]
+    unmapped = sum(m.n_recipes for g in hits for m in g.members if not m.mapped)
+    return (f"  suggested_entry filled for {len(hits)} groups; confirming them all would "
+            f"cover {unmapped} more mentions ({unmapped / total:.1%})")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", type=Path, default=OUT)
@@ -222,10 +258,11 @@ def main() -> int:
     # comparison. Raw strings, as the lexicon maps them (HD-6 Q6 = (a)).
     worklist = build_worklist(rows, mapped, strip_quantities=False, with_similar=False)
     groups = group_worklist(worklist)
-    write_csv(groups, args.out)
+    write_csv(groups, args.out, mapped)
     print(f"wrote {args.out}")
     for line in summary(groups):
         print(line)
+    print(suggestion_summary(groups, mapped))
     return 0
 
 

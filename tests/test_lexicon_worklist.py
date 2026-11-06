@@ -120,9 +120,9 @@ def test_category_check_lists_hd27_order_and_the_other_share() -> None:
 
 
 def test_category_check_flags_other_over_the_ceiling_and_unknown_categories() -> None:
-    lines = category_check({"aromatic": 18, "other": 2, "seasoning": 1}, [])
+    lines = category_check({"aromatic": 18, "other": 2, "condiment": 1}, [])
     text = "\n".join(lines)
-    assert "not in HD-27's list: seasoning" in text
+    assert "not in HD-27's list: condiment" in text
     assert "(9.5%)" in text and "over HD-27's 5% ceiling" in text
 
 

@@ -34,7 +34,8 @@ it. What a worklist can do honestly is put them in front of the researcher, rank
     those above it.
   - ``mapped``: ``yes`` when the string is already an ``ingredient_aliases`` alias or a
     ``canonical_ingredients`` Thai name, so it can be skipped; ``split`` when the
-    researcher split it into several entries (HD-6 Q5); ``conflict`` when it maps
+    researcher split it into several entries (HD-6 Q5); ``excluded`` when the researcher
+    listed it as not an ingredient; ``conflict`` when it maps
     to more than one entry, which the lexicon loader should have refused.
   - ``canonical_id``, ``category``: the entry a mapped string belongs to, and that
     entry's HD-27 category, read from the researcher's own lexicon. Blank for unmapped
@@ -95,6 +96,8 @@ UNION
 SELECT name_th, canonical_id, category FROM canonical_ingredients
 UNION
 SELECT DISTINCT alias, 'split', 'split' FROM ingredient_alias_splits
+UNION
+SELECT alias, 'excluded', 'excluded' FROM ingredient_exclusions
 """
 
 CATEGORY_QUERY = "SELECT category, count(*) FROM canonical_ingredients GROUP BY category"
@@ -103,6 +106,11 @@ CONFLICT = "conflict"
 # HD-6 Q5: a string the researcher split into several entries (ingredient_splits.csv).
 # Counts as mapped; its entries are in ingredient_alias_splits.
 SPLIT = "split"
+# A string the researcher excluded as not a flavour ingredient (ingredient_exclusions.csv).
+# Maps to nothing; the coverage report counts it apart from mapped and unmapped.
+EXCLUDED = "excluded"
+# Statuses that are not an entry id: shown in the `mapped` column, never as an entry.
+MARKERS = (CONFLICT, SPLIT, EXCLUDED)
 
 
 @dataclass(frozen=True)
@@ -262,7 +270,7 @@ def category_check(
     pairs = sum(r.n_recipes for r in worklist)
     by_category: Counter[str] = Counter()
     for r in worklist:
-        if r.category:
+        if r.category and r.category != EXCLUDED:
             by_category[r.category] += r.n_recipes
     if pairs and by_category:
         mapped_share = sum(by_category.values()) / pairs
@@ -290,10 +298,10 @@ def write_csv(worklist: list[WorklistRow], out: Path) -> None:
                         *(r.by_register.get(g, 0) for g in REGISTERS),
                         *(r.by_source.get(s, 0) for s in sources),
                         f"{r.cum_share:.4f}",
-                        (r.category if r.category in (CONFLICT, SPLIT) else "yes")
+                        (r.category if r.category in MARKERS else "yes")
                         if r.mapped else "",
-                        "" if r.category in (CONFLICT, SPLIT) else (r.canonical_id or ""),
-                        "" if r.category in (CONFLICT, SPLIT) else (r.category or ""),
+                        "" if r.category in MARKERS else (r.canonical_id or ""),
+                        "" if r.category in MARKERS else (r.category or ""),
                         " | ".join(f"{name} ({ratio:.2f}, {counts[name]})"
                                    for name, ratio in r.similar)])
 

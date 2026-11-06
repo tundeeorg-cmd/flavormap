@@ -1,0 +1,7 @@
+snapshot_date,scope,mentions,mapped,conflicting,excluded,mapped_share,strings,strings_mapped
+2026-11-06,all,15153,11425,0,1141,0.8154,9289,5956
+2026-11-06,register:commercial,14090,10601,0,1102,0.8162,8825,5726
+2026-11-06,register:official,1063,824,0,39,0.8047,604,367
+2026-11-06,source:dcp_food,1063,824,0,39,0.8047,604,367
+2026-11-06,source:kapook_cooking,12143,9158,0,854,0.8112,7692,5059
+2026-11-06,source:mthai_food,1947,1443,0,248,0.8493,1492,1000

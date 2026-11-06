@@ -60,3 +60,15 @@ def test_the_committed_snapshot_holds_counts_only(tmp_path: Path) -> None:
     for row in rows[1:]:
         assert row[1] == "all" or row[1].split(":")[0] in {"register", "source"}
         assert all(cell.replace(".", "").isdigit() for cell in row[2:])
+
+
+def test_excluded_mentions_are_left_out_of_the_share() -> None:
+    """Strings the researcher excluded (water, equipment) are neither mapped nor gaps."""
+    from scripts.lexicon_worklist import EXCLUDED
+
+    index = dict(INDEX)
+    index.update(mapping_index([("ข้าวทดสอบ", EXCLUDED, EXCLUDED)]))
+    total = {c.scope: c for c in coverage(ROWS, index)}["all"]
+    assert (total.mentions, total.mapped, total.excluded) == (5, 2, 1)
+    assert total.share == 2 / 4
+    assert total.strings_mapped == 1  # แกงทดสอบ; the excluded string is not "mapped"

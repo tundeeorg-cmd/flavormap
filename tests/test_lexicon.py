@@ -76,10 +76,12 @@ def test_strings_are_nfc_and_whitespace_normalised(tmp_path: Path) -> None:
     assert lex.canonicals[0].is_fermented is True
 
 
-def test_categories_are_hd27s_fifteen() -> None:
-    assert len(CATEGORIES) == len(set(CATEGORIES)) == 15
-    assert "seasoning" not in CATEGORIES and "fermented" not in CATEGORIES
+def test_categories_are_hd27s_sixteen() -> None:
+    """HD-27's fifteen, plus `seasoning` (HD-27 amendment, 2026-11-06)."""
+    assert len(CATEGORIES) == len(set(CATEGORIES)) == 16
+    assert "seasoning" in CATEGORIES and "fermented" not in CATEGORIES
     assert {"coconut", "acid", "other"} <= set(CATEGORIES)
+    assert CATEGORIES[-1] == "other"
 
 
 def _entries(n: int, n_other: int) -> list[str]:
@@ -121,7 +123,7 @@ def test_other_over_five_percent_stops_the_load(tmp_path: Path) -> None:
           CONFLATIONS_FILE: ["ING_0001,ING_0002,"]}, "reason is required"),
         ({CANONICAL_FILE: ["ING_0001,พริก,chilli,chilli,false,,นางสมหญิง ทดสอบ said so"]},
          "personal data"),
-        ({CANONICAL_FILE: ["ING_0001,กะปิ,shrimp paste,seasoning,true,,"]},
+        ({CANONICAL_FILE: ["ING_0001,กะปิ,shrimp paste,condiment,true,,"]},
          "not in HD-27's list"),
         ({CANONICAL_FILE: ["ING_0001,ปลาร้า,fermented fish,fermented,true,,"]},
          "not in HD-27's list"),
@@ -235,7 +237,8 @@ def test_conflation_guard_aborts_a_load_and_writes_nothing(cleanup: None) -> Non
 
 
 def test_code_and_database_agree_on_the_categories() -> None:
-    """The list lives in two places, src/clean/lexicon.py and migration 023's CHECK."""
+    """The list lives in two places, src/clean/lexicon.py and the CHECK constraint
+    (migration 023, replaced by 029)."""
     [(definition,)] = _db(
         "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
         "WHERE conname = 'canonical_ingredients_category_check'"
@@ -258,11 +261,11 @@ def test_conflation_guard() -> None:
 def test_check_categories_is_hd27_ordered_and_counts_other() -> None:
     from src.clean.lexicon import check_categories
 
-    check = check_categories({"other": 1, "aromatic": 19, "seasoning": 2})
+    check = check_categories({"other": 1, "aromatic": 19, "condiment": 2})
     assert list(check.by_category) == list(CATEGORIES)
     assert check.by_category["chilli"] == 0
     assert check.total == 22 and check.other == 1
-    assert check.unknown == ["seasoning"]
+    assert check.unknown == ["condiment"]
     assert round(check.other_share, 4) == round(1 / 22, 4)
     assert not check.over_ceiling
     assert check_categories({"other": 2, "herb": 18}).over_ceiling

@@ -2,10 +2,11 @@
 
     uv run python -m scripts.load_lexicon [--dir data/reference/lexicon]
 
-Reads the three CSV files ``src.clean.lexicon`` documents, validates them, and upserts
-``canonical_ingredients``, ``ingredient_aliases`` and ``ingredient_conflations`` in one
-transaction. Every row is ``approved_by_human``; every alias is ``match_method =
-'manual'``. The files are the researcher's approval (rule 4).
+Reads the CSV files ``src.clean.lexicon`` documents, validates them, and upserts
+``canonical_ingredients``, ``ingredient_aliases``, ``ingredient_alias_splits``,
+``ingredient_exclusions`` and ``ingredient_conflations`` in one transaction. Every row
+is ``approved_by_human``; every alias is ``match_method = 'manual'``.
+The files are the researcher's approval (rule 4).
 
 All-or-nothing. File problems are all listed before anything is written. After the
 writes, and before commit, the conflation guard runs against the whole database, so an
@@ -63,6 +64,20 @@ SELECT DISTINCT s.alias FROM ingredient_alias_splits s
   JOIN ingredient_aliases a ON a.alias = s.alias
 """
 
+UPSERT_EXCLUSION = """
+INSERT INTO ingredient_exclusions (alias, reason, approved_by_human)
+VALUES (%s, %s, true)
+ON CONFLICT (alias) DO UPDATE SET reason = EXCLUDED.reason, approved_by_human = true
+"""
+
+# An excluded string may not also be mapped (src.clean.lexicon refuses it in the files;
+# this catches one that reached the database by another route).
+EXCLUSION_OVERLAP = """
+SELECT e.alias FROM ingredient_exclusions e
+ WHERE e.alias IN (SELECT alias FROM ingredient_aliases
+                   UNION SELECT alias FROM ingredient_alias_splits)
+"""
+
 UPSERT_CONFLATION = """
 INSERT INTO ingredient_conflations (canonical_id_a, canonical_id_b, reason)
 VALUES (%s, %s, %s)
@@ -86,12 +101,17 @@ def load(lexicon: Lexicon) -> dict[str, list[str]]:
             for alias, parts in lexicon.splits.items():
                 for cid in parts:
                     conn.execute(UPSERT_SPLIT, (alias, cid))
+            for alias, reason in lexicon.exclusions.items():
+                conn.execute(UPSERT_EXCLUSION, (alias, reason or None))
             for p in lexicon.conflations:
                 conn.execute(UPSERT_CONFLATION, (p.canonical_id_a, p.canonical_id_b,
                                                  p.reason))
             overlap = [r[0] for r in conn.execute(SPLIT_ALIAS_OVERLAP).fetchall()]
             if overlap:
                 raise LexiconError("both an alias and a split: " + ", ".join(overlap))
+            excluded = [r[0] for r in conn.execute(EXCLUSION_OVERLAP).fetchall()]
+            if excluded:
+                raise LexiconError("both mapped and excluded: " + ", ".join(excluded))
             violations = conn.execute(CONFLATION_VIOLATIONS).fetchall()
             if violations:
                 raise LexiconError("\n".join(
@@ -114,6 +134,9 @@ def load(lexicon: Lexicon) -> dict[str, list[str]]:
                 f"{a}→{c}" for a, c in conn.execute(
                     "SELECT alias, canonical_id FROM ingredient_alias_splits")
                 if c not in lexicon.splits.get(a, ())),
+            "ingredient_exclusions": sorted(
+                r[0] for r in conn.execute("SELECT alias FROM ingredient_exclusions")
+                if r[0] not in lexicon.exclusions),
             "ingredient_conflations": sorted(
                 f"{a}/{b}" for a, b in conn.execute(
                     "SELECT canonical_id_a, canonical_id_b FROM ingredient_conflations")
@@ -137,7 +160,7 @@ def main() -> int:
 
     print(f"loaded {len(lexicon.canonicals)} entries, {len(lexicon.aliases)} aliases "
           f"(entry names included), {len(lexicon.conflations)} conflation pairs, "
-          f"{len(lexicon.splits)} split strings")
+          f"{len(lexicon.splits)} split strings, {len(lexicon.exclusions)} excluded strings")
     for table, keys in not_in_files.items():
         if keys:
             print(f"in {table} but not in the files (not removed): {', '.join(keys)}")

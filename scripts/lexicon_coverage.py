@@ -9,8 +9,14 @@ ingredient mentions mapped.
 **A mention** is one distinct ingredient string in one recipe: a (recipe, string) pair,
 counted exactly as `scripts.lexicon_worklist` counts them (the same query, the same
 `key()` comparison, the same mapping index). A mention is **mapped** when its string is a
-lexicon Thai name or an approved alias, and **conflicting** when it maps to two entries,
-which the loader should have refused.
+lexicon Thai name or an approved alias, **excluded** when the researcher listed its
+string in ``ingredient_exclusions.csv`` as not a flavour ingredient, and **conflicting**
+when it maps to two entries, which the loader should have refused.
+
+**The share leaves excluded mentions out of the denominator:** ``mapped / (mentions −
+excluded)``. Water, ice and equipment are not gaps in the lexicon, so they neither help
+nor hurt the T1.16 target. ``mentions`` and ``excluded`` are both reported, so the
+unadjusted share can always be recomputed.
 
 **Read the per-register rows, not only the total.** Kapook strings are whole lines with
 quantities (``พริกแห้ง 5 เม็ด``), because stripping quantities is the unbuilt §7.2
@@ -38,7 +44,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-from scripts.lexicon_worklist import CONFLICT, MAPPED_QUERY, QUERY, mapping_index
+from scripts.lexicon_worklist import CONFLICT, EXCLUDED, MAPPED_QUERY, QUERY, mapping_index
 from src.clean.lexicon import key
 from src.config import DATA_DIR
 from src.db import get_connection
@@ -46,8 +52,8 @@ from src.db import get_connection
 COVERAGE_DIR = DATA_DIR / "coverage"
 TARGET_ENTRIES = 150
 TARGET_SHARE = 0.80
-COLUMNS = ("snapshot_date", "scope", "mentions", "mapped", "conflicting", "mapped_share",
-           "strings", "strings_mapped")
+COLUMNS = ("snapshot_date", "scope", "mentions", "mapped", "conflicting", "excluded",
+           "mapped_share", "strings", "strings_mapped")
 
 
 @dataclass(frozen=True)
@@ -58,10 +64,13 @@ class Coverage:
     conflicting: int
     strings: int
     strings_mapped: int
+    excluded: int = 0
 
     @property
     def share(self) -> float:
-        return self.mapped / self.mentions if self.mentions else 0.0
+        """Mapped share of the mentions that are ingredients (excluded ones left out)."""
+        base = self.mentions - self.excluded
+        return self.mapped / base if base else 0.0
 
 
 def coverage(
@@ -75,13 +84,16 @@ def coverage(
     def measure(scope: str, subset: set[tuple[str, str, int, str]]) -> Coverage:
         status = Counter(
             "conflict" if (hit := index.get(k)) and hit[0] == CONFLICT
+            else "excluded" if hit and hit[0] == EXCLUDED
             else "mapped" if hit else "unmapped"
             for *_, k in subset
         )
         strings = {k for *_, k in subset}
         return Coverage(scope, len(subset), status["mapped"], status["conflict"],
-                        len(strings), sum(1 for k in strings
-                                          if (h := index.get(k)) and h[0] != CONFLICT))
+                        len(strings),
+                        sum(1 for k in strings if (h := index.get(k))
+                            and h[0] not in (CONFLICT, EXCLUDED)),
+                        status["excluded"])
 
     out = [measure("all", mentions)]
     for register in sorted({m[1] for m in mentions}):
@@ -99,19 +111,21 @@ def write_snapshot(results: list[Coverage], day: datetime.date, out_dir: Path) -
         w.writerow(COLUMNS)
         for c in results:
             w.writerow((day.isoformat(), c.scope, c.mentions, c.mapped, c.conflicting,
-                        f"{c.share:.4f}", c.strings, c.strings_mapped))
+                        c.excluded, f"{c.share:.4f}", c.strings, c.strings_mapped))
     return path
 
 
 def previous_snapshot(out_dir: Path, before: datetime.date) -> dict[str, tuple[int, int]]:
-    """``{scope: (mapped, mentions)}`` from the newest snapshot dated before `before`,
-    so each batch's report shows what the batch moved. Empty when there is none."""
+    """``{scope: (mapped, mentions − excluded)}`` from the newest snapshot dated before
+    `before`, so each batch's report shows what the batch moved. Empty when there is
+    none. Snapshots written before exclusions existed have no ``excluded`` column (0)."""
     older = sorted(p for p in out_dir.glob("lexicon_*.csv")
                    if p.stem.removeprefix("lexicon_") < f"{before:%Y%m%d}")
     if not older:
         return {}
     with older[-1].open(encoding="utf-8", newline="") as handle:
-        return {r["scope"]: (int(r["mapped"]), int(r["mentions"]))
+        return {r["scope"]: (int(r["mapped"]),
+                             int(r["mentions"]) - int(r.get("excluded") or 0))
                 for r in csv.DictReader(handle)}
 
 
@@ -139,12 +153,15 @@ def main() -> int:
 
     total = results[0]
     print(f"lexicon entries     {entries}  (T1.16 target ≥ {TARGET_ENTRIES})")
-    print(f"mentions mapped     {total.mapped} of {total.mentions} = {total.share:.1%}  "
-          f"(T1.16 target ≥ {TARGET_SHARE:.0%}){_delta(total, before)}")
+    print(f"mentions mapped     {total.mapped} of {total.mentions - total.excluded} = "
+          f"{total.share:.1%}  (T1.16 target ≥ {TARGET_SHARE:.0%}){_delta(total, before)}")
+    if total.excluded:
+        print(f"excluded            {total.excluded} mentions (not ingredients; left out "
+              "of the share)")
     if total.conflicting:
         print(f"CONFLICTING         {total.conflicting} mentions map to two entries")
     for c in results[1:]:
-        print(f"  {c.scope:<28} {c.mapped:>6} / {c.mentions:<6} {c.share:6.1%}"
+        print(f"  {c.scope:<28} {c.mapped:>6} / {c.mentions - c.excluded:<6} {c.share:6.1%}"
               f"{_delta(c, before)}")
     print(f"wrote {path}")
     return 0

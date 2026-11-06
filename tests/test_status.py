@@ -272,8 +272,8 @@ def test_category_lines_empty_populated_and_off_list() -> None:
     [line] = _category_lines({"other": 1, "aromatic": 3, "coconut": 2})
     # HD-27's order, zero categories omitted for readability.
     assert line == "  by category (HD-27)    aromatic 3, coconut 2, other 1"
-    lines = _category_lines({"aromatic": 3, "seasoning": 1})
-    assert lines[1] == "  ⚠ not in HD-27's list  seasoning"
+    lines = _category_lines({"aromatic": 3, "condiment": 1})
+    assert lines[1] == "  ⚠ not in HD-27's list  condiment"
 
 
 _LEX_IDS = ("_TEST_STATUS_A", "_TEST_STATUS_B", "_TEST_STATUS_C")

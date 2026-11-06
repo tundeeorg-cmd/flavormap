@@ -10,8 +10,15 @@ from pathlib import Path
 import pytest
 
 from scripts.lexicon_apply import append, decisions, plan
-from scripts.lexicon_groups import group_worklist, groups_to_reach, multi_parts, suggestion_key
-from scripts.lexicon_worklist import build_worklist
+from scripts.lexicon_groups import (
+    group_worklist,
+    groups_to_reach,
+    multi_parts,
+    suggested_entry,
+    suggestion_key,
+    write_csv,
+)
+from scripts.lexicon_worklist import EXCLUDED, build_worklist, mapping_index
 from src.clean.lexicon import (
     ALIAS_COLUMNS,
     ALIASES_FILE,
@@ -19,6 +26,8 @@ from src.clean.lexicon import (
     CANONICAL_FILE,
     CONFLATION_COLUMNS,
     CONFLATIONS_FILE,
+    EXCLUSION_COLUMNS,
+    EXCLUSIONS_FILE,
     SPLIT_COLUMNS,
     SPLITS_FILE,
     LexiconError,
@@ -32,12 +41,15 @@ ENTRIES = [
 ] + [f"ING_{i:04d},ผักทดสอบ{i},test veg {i},vegetable,false,," for i in range(4, 40)]
 
 
-def _write(tmp: Path, aliases: list[str] = (), splits: list[str] | None = None) -> Path:
+def _write(tmp: Path, aliases: list[str] = (), splits: list[str] | None = None,
+           exclusions: list[str] | None = None) -> Path:
     files = {CANONICAL_FILE: (CANONICAL_COLUMNS, ENTRIES),
              ALIASES_FILE: (ALIAS_COLUMNS, list(aliases)),
              CONFLATIONS_FILE: (CONFLATION_COLUMNS, [])}
     if splits is not None:
         files[SPLITS_FILE] = (SPLIT_COLUMNS, splits)
+    if exclusions is not None:
+        files[EXCLUSIONS_FILE] = (EXCLUSION_COLUMNS, exclusions)
     for name, (cols, lines) in files.items():
         (tmp / name).write_text("\n".join([",".join(cols), *lines]) + "\n", encoding="utf-8")
     return tmp
@@ -66,6 +78,31 @@ def test_the_splits_file_is_optional(tmp_path: Path) -> None:
 def test_bad_splits_are_refused(tmp_path: Path, splits: list[str], message: str) -> None:
     with pytest.raises(LexiconError, match=message):
         read_lexicon(_write(tmp_path, splits=splits))
+
+
+# --- exclusions ---------------------------------------------------------------------
+
+def test_an_excluded_string_maps_to_nothing(tmp_path: Path) -> None:
+    lex = read_lexicon(_write(tmp_path, exclusions=["น้ำเปล่า,not an ingredient",
+                                                    "อุปกรณ์,"]))
+    assert lex.exclusions == {"น้ำเปล่า": "not an ingredient", "อุปกรณ์": ""}
+    assert lex.is_excluded(" น้ำเปล่า ") and lex.entries_for("น้ำเปล่า") == ()
+    other = tmp_path / "without"
+    other.mkdir()
+    assert read_lexicon(_write(other)).exclusions == {}
+
+
+@pytest.mark.parametrize("aliases, splits, exclusions, message", [
+    ([], None, ["ปลาร้า,"], "already mapped"),
+    (["เกลือป่น,ING_0003"], None, ["เกลือป่น,"], "already mapped"),
+    ([], ["x,ING_0001", "x,ING_0002"], ["x,"], "is a split"),
+    ([], None, ["น้ำ,", "น้ำ,"], "listed twice"),
+])
+def test_bad_exclusions_are_refused(tmp_path: Path, aliases: list[str],
+                                    splits: list[str] | None, exclusions: list[str],
+                                    message: str) -> None:
+    with pytest.raises(LexiconError, match=message):
+        read_lexicon(_write(tmp_path, aliases, splits, exclusions))
 
 
 # --- grouped worksheet --------------------------------------------------------------
@@ -140,3 +177,47 @@ def test_append_writes_files_that_validate(tmp_path: Path) -> None:
     assert lex.entries_for("ปลาร้าหรือปลาเค็ม") == ("ING_0001", "ING_0002")
     with (d / ALIASES_FILE).open(encoding="utf-8") as f:
         assert list(csv.reader(f))[-1] == ["เกลือป่น", "ING_0003"]
+
+
+def test_exclude_decisions_are_planned_and_appended(tmp_path: Path) -> None:
+    d = _write(tmp_path, exclusions=["น้ำแข็ง,"])
+    planned = plan(_sheet([("1", "น้ำเปล่า", "exclude", ""), ("1", "น้ำร้อน", "", ""),
+                           ("2", "น้ำแข็ง", "", "Exclude"),
+                           ("3", "ปลาร้า", "", "exclude")]), d)
+    assert planned.exclusions == ["น้ำเปล่า", "น้ำร้อน"]
+    assert planned.already == 1                       # น้ำแข็ง is already excluded
+    assert len(planned.errors) == 1                   # ปลาร้า is an entry name
+    planned = plan(_sheet([("1", "น้ำเปล่า", "exclude", ""), ("1", "น้ำร้อน", "", "")]), d)
+    append(d, planned)
+    lex = read_lexicon(d)
+    assert set(lex.exclusions) == {"น้ำแข็ง", "น้ำเปล่า", "น้ำร้อน"}
+
+
+def test_exclusions_file_is_created_with_its_header(tmp_path: Path) -> None:
+    d = _write(tmp_path)
+    append(d, plan(_sheet([("1", "อุปกรณ์", "", "exclude")]), d))
+    with (d / EXCLUSIONS_FILE).open(encoding="utf-8") as f:
+        assert list(csv.reader(f)) == [list(EXCLUSION_COLUMNS), ["อุปกรณ์", ""]]
+
+
+def test_suggested_entry_is_exact_key_match_only_and_never_applied(tmp_path: Path) -> None:
+    rows = [("kapook_cooking", "commercial", 1, "เกลือ 1 ช้อนชา"),
+            ("kapook_cooking", "commercial", 2, "เกลือป่น"),
+            ("kapook_cooking", "commercial", 3, "น้ำเปล่า 2 ถ้วย"),
+            ("kapook_cooking", "commercial", 4, "ผักทดสอบใหม่"),
+            ("dcp_food", "official", 5, "ปลาร้า")]
+    index = mapping_index([("เกลือ", "ING_0003", "other"), ("ปลาร้า", "ING_0001", "x"),
+                           ("น้ำเปล่า", EXCLUDED, EXCLUDED)])
+    groups = {g.key: g for g in group_worklist(build_worklist(rows, index,
+                                                               with_similar=False))}
+    assert suggested_entry(groups["เกลือ"], index) == "ING_0003"
+    assert suggested_entry(groups["น้ำเปล่า"], index) == "exclude"
+    assert suggested_entry(groups["ผักทดสอบใหม่"], index) == ""  # no fuzzy match
+    assert suggested_entry(groups["ปลาร้า"], index) == ""      # already fully mapped
+    out = tmp_path / "sheet.csv"
+    write_csv(list(groups.values()), out, index)
+    with out.open(encoding="utf-8") as f:
+        sheet = list(csv.DictReader(f))
+    assert {r["suggested_entry"] for r in sheet} >= {"ING_0003", "exclude"}
+    assert all(not r["group_decision"] and not r["decision"] for r in sheet)
+    assert decisions(sheet) == []  # a suggestion alone is never applied

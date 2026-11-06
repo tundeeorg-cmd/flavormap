@@ -895,6 +895,30 @@ and a CHECK constraint on `category` listing exactly these 15 values.
 and points at `docs/limitations.md`. Changing the list means a new migration and an
 amendment here, never an edit to 023.
 
+### HD-27 amendment — `seasoning` added (2026-11-06)
+**Context:** the first 200 candidate entries put about 35 (≈17%) in `other`, over the 5%
+ceiling. Most were sauces, salt, MSG and seasoning powders. The agent suggested merging
+state variants into aliases, excluding non-ingredients, and a seasoning category.
+
+**Decision:** **Add a sixteenth category, `seasoning`.** Instructed by the researcher in
+session, 2026-11-06 ("add … the new category seasoning to the loader"). This reverses
+rejected option C above; the original reasoning against a generic bin is kept on record.
+**Reasoning:** [not stated in session; to be added by the researcher]
+**Open:** what belongs in `seasoning` and what does not (e.g. fish sauce and shrimp paste
+are `protein_fish` under the original rule; soy sauce could be `protein_other`). An
+inclusion rule written here would stop the category absorbing "everything ambiguous".
+
+**How it is enforced.** Migration 029 replaces 023's CHECK with the same list plus
+`seasoning`; `src/clean/lexicon.py` `CATEGORIES` matches it (a test keeps them in step).
+
+**Also built with it (tooling, not a category decision): `ingredient_exclusions.csv`.**
+`alias, reason`. Strings the researcher lists as not flavour ingredients (water, ice,
+equipment) map to nothing, may not also be aliases or splits, load into
+`ingredient_exclusions` (migration 029), and are counted apart in `make lexicon`'s
+coverage report: the mapped share is `mapped / (mentions − excluded)`, and both counts
+are written so the unadjusted share can be recomputed. The worksheet accepts `exclude`
+as a decision (`make lexicon-apply`). Which strings to exclude is the researcher's call.
+
 ---
 
 ## HD-28 — Progress visibility: `make status` and committed status snapshots
@@ -1989,6 +2013,111 @@ unmapped; Q6 (b).
 `scripts/lexicon_groups.py` writes a grouped worksheet (suggestions only, at the
 researcher's request) and `scripts/lexicon_apply.py` copies the researcher's filled
 decisions into the alias and split files.
+
+**Provenance of the first mapping batch (2026-11-06). Needed for the methods section.**
+- **Entries (186):** names, glosses, categories and `is_fermented` are the researcher's.
+  The agent suggested categories in chat at the researcher's request, and the researcher
+  entered and changed them by hand.
+- **Exclusions (16 entry-level strings):** marked `exclude` by the researcher.
+- **Worksheet decisions:** at the researcher's request ("fill out group_decision and
+  decision as much as you can for me"), the agent pre-filled `lexicon_groups.csv`.
+  The researcher approved applying them ("Yes, apply it"). They were not reviewed row by
+  row before applying. Rules the agent used:
+  - **202 groups:** group key exactly equal to an entry name, alias or excluded string.
+  - **118 multi groups:** splits where every part is an entry. 7 of these collapsed to one
+    entry after excluded or duplicate parts were dropped.
+  - **106 rows** map a dried or ground form to its base entry under Q2 (`พริกแห้ง`,
+    `พริกป่น` → `พริก`; `กุ้งแห้ง` → `กุ้ง`). This is a Q2/Q3 boundary for the
+    researcher to confirm.
+  - **81 rows naming an alternative ingredient** were set to `skip`.
+- **Result:** 3,666 aliases, 136 splits and 361 exclusions appended (0 refused).
+  Coverage went from 15.0% to 63.0% of non-excluded mentions.
+- **Record:** the `filled_by` column of `data/interim/lexicon_groups_batch1.csv`
+  (gitignored, HD-3; renamed from `lexicon_groups.csv`) marks every pre-filled row
+  (`claude`, `claude-check`, `claude-skip`, and the Q5 rows below).
+
+**Researcher decisions on the batch, 2026-11-06** (chosen from options the agent
+presented, with the recommended option chosen each time):
+- **Dried chilli is `spice`:** new entry `ING_0203 พริกแห้ง`. **Ground chilli** is its own
+  `spice` entry, `ING_0204 พริกป่น` (Q3: processed forms are their own entries). All 43
+  chilli aliases containing แห้ง/ป่น were moved off the fresh-chilli entries.
+- **Dried shrimp is `protein_fish`,** consistent with กะปิ and ปลาร้า: new entry
+  `ING_0205 กุ้งแห้ง`, with 17 aliases moved from กุ้ง.
+- **Coconut:** มะพร้าว, หางกะทิ and กะทิสำเร็จรูป moved to `coconut`. Coconut water was
+  added as a new `coconut` entry, `ING_0206 น้ำมะพร้าว`, with 9 aliases.
+- **`น้ำปลาดี` is `seasoning`,** fermented. `น้ำปลา` (ING_0002) is still `protein_fish`,
+  as in HD-27's original example. Whether the two should agree is open.
+- **Kimchi (กิมจิ) is `seasoning`,** fermented. (HD-27's original example put ผักดอง
+  under `vegetable` + fermented.)
+- **The 81 skipped "or" rows were resolved by Q5 split-all:**
+  - 34 split, where the alternative is an entry.
+  - 44 mapped to one entry, where the alternative is not an entry yet or the text is a
+    preparation note, e.g. "แยกไข่แดงและไข่ขาว".
+  - 3 excluded, where the main part is excluded and nothing else is an entry.
+- **Five database split rows** still pointing at the old fresh-chilli and shrimp entries
+  were deleted, because the loader never deletes. That brings the database in line with
+  the remapped files.
+- **Coverage:** 63.6% of non-excluded mentions; `recipe_ingredients` holds 9,273 rows.
+
+**Batch 2 — entries drafted by the agent (2026-11-06). Needed for the methods section.**
+- **Researcher's instruction:** "suggest new entries and work for me", to get from 63.6% to
+  the 80% target (T1.16).
+- **What this departs from:** the 29 Sep boundary and rule 4 (the researcher authors every
+  entry and mapping) are **not** what happened for this batch. The agent drafted the
+  entries and decisions, and they were applied without row-by-row review. **Every entry
+  added in this batch is the agent's draft until the researcher confirms it.**
+- **Fish sauce:** `น้ำปลา` (ING_0002) moved to `seasoning` (researcher).
+- **265 new entries** (ING_0207–ING_0471): Thai name, English gloss, HD-27 category and
+  `is_fermented`, all drafted by the agent. Listed for review in
+  `data/interim/new_entries_drafted_by_claude.csv`.
+- **About 690 top unmapped groups decided by the agent:**
+  - Each group was mapped to an existing entry, made a new entry, split, excluded, or left
+    alone when ambiguous (e.g. `น้ำส้ม`, `หอม`, `แป้ง`, `เนื้อสัตว์`).
+  - The researcher's rules were applied throughout: HD-6 Q1–Q5, dried/ground chilli →
+    ING_0203/ING_0204, and the categories chosen earlier in the session.
+- **Pattern rules applied across all remaining strings:**
+  - **Excluded:** section headers (`## ส่วนผสม…`), photo credits (`ภาพจาก …`) and
+    health-claim text from DCP PDFs (`ช่วย…`, `…สรรพคุณ…`), as not ingredients.
+  - **Mapped:** bulleted variants (`◇ ต้นหอม`), and OCR-damaged DCP strings (`น้ ามะนาว`,
+    `ปลำร้ำ`), but only where the repaired text exactly matches an existing entry or alias.
+- **Result:**
+  - 455 entries, 5,770 aliases, 206 splits, 746 exclusions; `other` 2.4%.
+  - Coverage 80.8% of non-excluded mentions: commercial 81.6% (Kapook 81.1%, MThai 84.9%),
+    official (DCP) 70.5%.
+  - `recipe_ingredients` holds 11,408 rows in 1,686 recipes.
+- **Record:** `data/interim/mapping_batch2_3_record.tsv` lists every string and the decision
+  applied to it (gitignored, HD-3).
+- **Still the researcher's to do:**
+  - Confirm or correct the 265 drafted entries, especially categories and `is_fermented`.
+    Cheeses were kept non-fermented to match the researcher's earlier choice.
+  - Decide the ambiguous groups.
+  - Decide the remaining DCP tail, mostly regional fish and plants (กระทือ, ปลาคัง, บูดู).
+
+**Batch 3 — DCP worksheet (2026-11-06), also drafted by the agent.**
+- **Why this batch:** RQ1 admits a recipe only with 3–25 mapped ingredients. The agent
+  built `data/interim/dcp_worksheet.csv` from the 106 unmapped strings in the 57 official
+  recipes below that bar.
+- **How it was decided:** at the researcher's request ("fill out … as much as possible")
+  the agent filled every row, and the researcher approved applying it ("Yes, apply it").
+  - 42 rows map to an existing entry, 20 are splits, 35 add new entries, 7 are excluded
+    (charcoal, health text, lye water, generic lists) and 2 are skipped.
+- **Regional readings the agent relied on (to confirm):**
+  - เคย and เคยฉลู → กะปิ.
+  - กุ้งนาง → กุ้ง.
+  - Rice varieties (เจ๊กเชย, เล็บนก, กข. 6) → rice or glutinous rice, under Q1.
+  - มะกูด → มะกรูด.
+- **37 new entries** (ING_0472–ING_0508), appended to
+  `data/interim/new_entries_drafted_by_claude.csv`.
+- **Result:**
+  - Official (DCP) coverage went from 70.5% to 80.5%; overall coverage is 81.5%.
+  - Official recipes in `v_recipes_clean` went from 111 to 139; commercial is 53, limited
+    by region labels rather than the lexicon.
+  - 22 official recipes have no ingredient lines at all. That is a DCP extraction gap,
+    not a lexicon one.
+
+**Fix, same day:** `scripts/canonicalise.py` had been rolling back its writes. It read
+first, so its transaction was only a savepoint, discarded at close. It now commits before
+writing; `recipe_ingredients` holds 9,141 rows in 1,631 recipes.
 
 ---
 

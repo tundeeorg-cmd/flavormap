@@ -111,7 +111,9 @@ def test_every_real_sheet_obeys_hd26() -> None:
         # No source text, except where the canonical fields account for it. "Explained"
         # comes straight from the lexicon tables, never from what fetch() returned: if
         # source text leaked into those fields, it must not be able to explain itself.
-        explained = " ".join(
+        # The dish name is printed as the heading by design (HD-26 A), so an ingredient
+        # line that also occurs in it ("หมูสับ" in "ผัดมะเขือยาวหมูสับ") is not a leak.
+        explained = str(dish) + " " + " ".join(
             " ".join(str(v) for v in row if v)
             for row in _query(
                 """SELECT ci.name_th, ci.name_en, ci.category, ri.acquisition_mode

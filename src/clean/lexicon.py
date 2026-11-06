@@ -14,6 +14,11 @@ Three CSV files in ``data/reference/lexicon/``, one per table in migration 004:
     "split all"): a string naming several ingredients or alternatives ("A หรือ B",
     "A+B") becomes one mention per named ingredient. Such a string is listed here once
     per entry it names, at least twice, and never in ``ingredient_aliases.csv``.
+``ingredient_exclusions.csv`` (optional; migration 029)
+    ``alias, reason``. A raw string the researcher decided is not a flavour ingredient
+    (equipment, water, ice, food colouring …). It maps to no entry and is counted apart
+    from "unmapped" in the coverage report, so a deliberate exclusion is not shown as a
+    gap. A string is an alias, a split or an exclusion, never two of these.
 
 Every row is written by the researcher, so every row loads as ``approved_by_human =
 true`` and every alias as ``match_method = 'manual'``. The file is the approval, which is
@@ -66,21 +71,23 @@ CANONICAL_FILE = "canonical_ingredients.csv"
 ALIASES_FILE = "ingredient_aliases.csv"
 CONFLATIONS_FILE = "ingredient_conflations.csv"
 SPLITS_FILE = "ingredient_splits.csv"
+EXCLUSIONS_FILE = "ingredient_exclusions.csv"
 
 CANONICAL_COLUMNS = ("canonical_id", "name_th", "name_en", "category", "is_fermented",
                      "regional_note", "decision_note")
 ALIAS_COLUMNS = ("alias", "canonical_id")
 CONFLATION_COLUMNS = ("canonical_id_a", "canonical_id_b", "reason")
 SPLIT_COLUMNS = ("alias", "canonical_id")
+EXCLUSION_COLUMNS = ("alias", "reason")
 
 CANONICAL_ID = re.compile(r"ING_\d{4}")
 
-# HD-27 (docs/decisions.md, 2026-09-28), in the decision's order. Mirrored by the CHECK
-# constraint in db/migrations/023_ingredient_category_taxonomy.sql.
+# HD-27 (docs/decisions.md, 2026-09-28; `seasoning` added 2026-11-06), in the decision's
+# order. Mirrored by the CHECK constraint in db/migrations/029_seasoning_and_exclusions.sql.
 CATEGORIES: tuple[str, ...] = (
     "aromatic", "chilli", "herb", "spice", "vegetable", "fruit", "protein_meat",
     "protein_fish", "protein_other", "coconut", "acid", "fat", "starch", "sweetener",
-    "other",
+    "seasoning", "other",
 )
 
 # HD-27: `other` stays under 5% of the lexicon.
@@ -207,6 +214,11 @@ class Lexicon:
     conflations: list[Conflation]
     # alias -> the entries it names, in file order (HD-6 Q5). Never overlaps `aliases`.
     splits: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    # alias -> reason (may be empty). Not an ingredient; maps to nothing.
+    exclusions: dict[str, str] = field(default_factory=dict)
+
+    def is_excluded(self, text: str) -> bool:
+        return key(text) in self.exclusions
 
     def entries_for(self, text: str) -> tuple[str, ...]:
         """Every entry a raw string maps to: one for an alias, several for a split,
@@ -342,7 +354,30 @@ def read_lexicon(directory: Path) -> Lexicon:
                           "two or more entries (one entry belongs in "
                           f"{ALIASES_FILE})")
 
+    exclusions: dict[str, str] = {}
+    excl_path = directory / EXCLUSIONS_FILE
+    rows = _read(excl_path, EXCLUSION_COLUMNS) if excl_path.exists() else []
+    for line, row in enumerate(rows, 2):
+        where = f"{EXCLUSIONS_FILE}:{line}"
+        alias = row["alias"]
+        if not alias:
+            errors.append(f"{where}: alias is required")
+            continue
+        if alias in aliases:
+            errors.append(f"{where}: {alias} is already mapped to {aliases[alias]} "
+                          "(an alias or entry name), so it cannot also be excluded")
+            continue
+        if alias in splits:
+            errors.append(f"{where}: {alias} is a split, so it cannot also be excluded")
+            continue
+        if alias in exclusions:
+            errors.append(f"{where}: {alias} is listed twice")
+            continue
+        if classes := personal_data_classes(row["reason"]):
+            errors.append(f"{where}: reason contains personal data ({', '.join(classes)})")
+        exclusions[alias] = row["reason"]
+
     if errors:
         raise LexiconError("\n".join(errors))
     return Lexicon(canonicals, aliases, conflations,
-                   {a: tuple(p) for a, p in splits.items()})
+                   {a: tuple(p) for a, p in splits.items()}, exclusions)
