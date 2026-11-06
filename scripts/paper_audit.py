@@ -12,8 +12,11 @@ headings and figure/table captions. Not counted: Markdown table rows (lines star
 ``|``; the outline says counts in table cells do not count), the reference section (the
 heading named ``References`` or ``Bibliography`` to the next heading of the same or higher
 level), fenced code, HTML comments and the YAML front matter. Words are whitespace tokens
-holding a letter or digit; a Thai run is split with PyThaiNLP ``newmm`` and each Thai word
-counts once, so a quoted Thai question is not one "word". Both totals are printed.
+holding a letter or digit; author placeholders (``[TBD: …]``, ``[ORIGIN STORY …]``: a
+bracket opening with a capitalised tag) are left out and listed, here and in the
+reference count. A Thai run is split with PyThaiNLP ``newmm`` and each Thai word counts
+once, so a quoted Thai question is not one "word". Both totals are printed. Numbers
+spelled out in words ("three", "twelve") are not audited.
 
 **References**: one per non-empty list item, or per non-empty paragraph when the section
 has no list, inside the reference section.
@@ -56,7 +59,10 @@ _THAI = re.compile(r"[฀-๿]+")
 _WORD = re.compile(r"[^\s]*[^\W_][^\s]*", re.U)
 _NUMBER = re.compile(r"(?<![\w.])(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?(%?)(?![\w.]\w)")
 _LABEL_BEFORE = re.compile(
-    r"(?:\b(?:figure|fig\.|table|section|rq|q|gate|g|t|l)|§|\bhd-)\s*$", re.I)
+    r"(?:\b(?:figure|fig\.|table|section|question|rq|q|gate|g|t|l)|§|\bhd-)\s*$", re.I)
+# An author placeholder: a bracket opening with a capitalised tag, e.g. "[TBD: …]",
+# "[ORIGIN STORY — …]", "[AUTHOR: …]". Not prose: left out of words and numbers, listed.
+_PLACEHOLDER = re.compile(r"\[[A-Z][A-Z ]{2,}[^\]]*\]")
 
 
 @dataclass
@@ -64,18 +70,21 @@ class Draft:
     counted: list[str]                      # lines whose words count
     references: list[str]                   # lines of the reference section
     excluded_tables: int = 0
+    counted_at: list[int] = field(default_factory=list)   # file line of each counted line
+    placeholders: list[tuple[int, str]] = field(default_factory=list)
 
 
 def split(text: str) -> Draft:
     """Separate counted prose from tables, code, comments, front matter and references."""
-    text = re.sub(r"<!--.*?-->", "", text, flags=re.S)
+    # Comments become blank lines, so reported line numbers stay the file's own.
+    text = re.sub(r"<!--.*?-->", lambda m: "\n" * m.group(0).count("\n"), text, flags=re.S)
     lines = text.splitlines()
+    start = 0
     if lines and lines[0].strip() == "---":           # YAML front matter
-        end = next((i for i, ln in enumerate(lines[1:], 1) if ln.strip() == "---"), 0)
-        lines = lines[end + 1:]
+        start = next((i for i, ln in enumerate(lines[1:], 1) if ln.strip() == "---"), 0) + 1
     out = Draft([], [])
     in_code, ref_level = False, 0
-    for ln in lines:
+    for lineno, ln in enumerate(lines[start:], start + 1):
         if ln.strip().startswith("```"):
             in_code = not in_code
             continue
@@ -90,11 +99,18 @@ def split(text: str) -> Draft:
             if ref_level and level <= ref_level:
                 ref_level = 0
         if ref_level:
-            out.references.append(ln)
+            for m in _PLACEHOLDER.finditer(ln):
+                out.placeholders.append((lineno, m.group(0)[:60]))
+            out.references.append(_PLACEHOLDER.sub("", ln))
         elif ln.lstrip().startswith("|"):
             out.excluded_tables += 1
         else:
-            out.counted.append(ln)
+            for m in _PLACEHOLDER.finditer(ln):
+                out.placeholders.append((lineno, m.group(0)[:60]))
+            ln = _PLACEHOLDER.sub(" ", ln)
+            if ln.strip():
+                out.counted.append(ln)
+                out.counted_at.append(lineno)
     return out
 
 
@@ -182,15 +198,19 @@ def matches(token: str, known: set[Decimal]) -> bool:
                for k in known if _places(k) > places)
 
 
-def audit_numbers(lines: list[str], known: set[Decimal]) -> NumberAudit:
+def audit_numbers(lines: list[str], known: set[Decimal],
+                  at: list[int] | None = None) -> NumberAudit:
+    """`at`: the file line of each entry of `lines`, for the report."""
     out = NumberAudit()
-    for i, ln in enumerate(lines, 1):
+    for idx, ln in enumerate(lines):
+        i = at[idx] if at else idx + 1
         plain = _plain(ln)
         for m in _NUMBER.finditer(plain):
             token = m.group(0)
             before, after = plain[:m.start()], plain[m.end():]
+            numbering = not before.strip() and after.startswith(". ")   # "5. Results"
             if (before and before[-1].isalpha()) or (after and after[:1].isalpha()) \
-                    or _LABEL_BEFORE.search(before):
+                    or _LABEL_BEFORE.search(before) or numbering:
                 out.labels.append(token)
                 continue
             if re.fullmatch(r"(19|20)\d\d", token) and (
@@ -244,12 +264,16 @@ def main(argv: list[str] | None = None) -> int:
     draft = split(args.draft.read_text(encoding="utf-8"))
     words, thai = count_words(draft.counted)
     refs = count_references(draft.references)
-    audit = audit_numbers(draft.counted, known_values(args.numbers.read_text(encoding="utf-8")))
+    audit = audit_numbers(draft.counted, known_values(args.numbers.read_text(encoding="utf-8")),
+                          draft.counted_at)
     lo, hi = WORD_RANGE
     status = "within" if lo <= words <= hi else "OUTSIDE"
     print(f"words: {words:,} ({thai} Thai, newmm) — {status} {lo:,}–{hi:,}; "
           f"table rows excluded: {draft.excluded_tables}")
     print(f"references: {refs}")
+    print(f"placeholders (not counted): {len(draft.placeholders)}")
+    for line, text in draft.placeholders:
+        print(f"  line {line}: {text}")
     print(f"numbers: {len(audit.traced)} traced, {len(audit.untraced)} untraced; "
           f"not checked: {len(audit.labels)} labels, {len(audit.years)} citation years")
     for line, token, context in audit.untraced:

@@ -396,3 +396,19 @@ def test_paper_audit_writes_only_the_two_submission_rows(tmp_path: Path) -> None
     lines = numbers.read_text(encoding="utf-8").splitlines()
     assert "`2`" in lines[0] and "draft.md" in lines[0] and "[TBD" not in lines[0]
     assert "`0` counted" in lines[1] and lines[2] == "| Other | [TBD: x] |"
+
+
+def test_paper_audit_leaves_placeholders_out_and_reports_file_lines() -> None:
+    from scripts import paper_audit as pa
+    text = ("<!--\ncomment 999\n-->\n## 5. Results\n\n"
+            "[ORIGIN STORY — about 80 words, written later.]\n"
+            "We kept 203 recipes; see interview question 9. [TBD: a source.]\n\n"
+            "## References\n\n- Real, A. (2011). One.\n\n[TBD: two more sources.]\n")
+    draft = pa.split(text)
+    assert [ln for ln, _ in draft.placeholders] == [6, 7, 13]
+    assert pa.count_references(draft.references) == 1
+    words, _ = pa.count_words(draft.counted)
+    assert words == len("5. Results We kept 203 recipes; see interview question 9.".split())
+    audit = pa.audit_numbers(draft.counted, set(), draft.counted_at)
+    assert [(line, tok) for line, tok, _ in audit.untraced] == [(7, "203")]
+    assert "5" in audit.labels and "9" in audit.labels
