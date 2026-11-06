@@ -373,6 +373,110 @@ def _parse_ingredients(doc: Document) -> list[Ingredient]:
     return out
 
 
+# ── fallback reader for layouts the row parser cannot read ─────────────────────────
+# Used only when `_parse_ingredients` returns nothing, so it can never change a document
+# the row parser already reads. Twenty official recipes had no ingredient lines because
+# their §4 table breaks the row parser's assumptions: rows without numbers (central_10_3),
+# a benefits column with its own numbered list taken for the index column (north_12_3),
+# numbers fused to names ("๑.ใบมะกรูด", northeast_14_3), number and name sharing one x
+# (south_14_1), the number on its own line below the name (north_3_1), a 3-column
+# index | name | quantity layout (central_13_2).
+#
+# What they share: ingredient names sit in one column, the leftmost column holding Thai
+# text. The fallback finds that column's x and reads one ingredient per line in it.
+_SECTION_STOP = re.compile(r"^\s*(?:[5๕]\s*\.|[0-9๐-๙.\s]*(?:วิธี|ขั้นตอน))")
+# A name longer than this is a sentence (a method step or a note), not an ingredient.
+_MAX_NAME_CHARS = 40
+# Benefits-column (สรรพคุณ) vocabulary. A fallback result where this many of the lines
+# read like health claims came from the wrong column and is discarded: an empty result
+# is reported, a wrong one would be mapped.
+_BENEFIT_WORDS = re.compile(r"ช่วย|ป้องกัน|บำรุง|วิตามิน|สาร|โรค|ร่างกาย|เลือด|ลดความ|ลดอาการ|"
+                            r"อุดม|ประโยชน์|สรรพคุณ|ต้าน|ระบบ")
+_MAX_BENEFIT_SHARE = 0.3
+_LEADING_INDEX = re.compile(r"^\s*[0-9๐-๙]{1,2}\s*[.)]?\s*")
+_THAI_LETTER = re.compile(r"[\u0E01-\u0E2E]")
+_MAX_FALLBACK_LINES = 60
+
+
+def _fallback_lines(doc: Document) -> tuple[list[list[TextRun]], float | None]:
+    """Lines between the §4 header and the first stop marker, page artefacts removed,
+    and the x of the header cell that names the ingredient column (ชื่อวัตถุดิบ…)."""
+    lines = group_lines(doc.runs)
+    header = next((i for i, line in enumerate(lines)
+                   if any(h in "".join(r.text for r in line) for h in _TABLE_HEADER)), None)
+    if header is None:
+        return [], None
+    head_cell = next((r for r in sorted(lines[header], key=lambda r: r.x)
+                      if "วัตถ" in normalize_thai(r.text)[0]), None)
+    header_x = head_cell.x if head_cell else None
+    out: list[list[TextRun]] = []
+    for line in lines[header + 1:]:
+        text = normalize_thai("".join(r.text for r in line))[0].strip()
+        if any(m in text for m in _TABLE_END) or _SECTION_STOP.match(text):
+            break
+        if out and (any(m in text for m in _TABLE_END_AFTER_ROWS) or _opens_with_box(line)):
+            break
+        body = [r for r in line if r.y > _PAGE_ARTEFACT_Y and not r.is_box]
+        if body:
+            out.append(body)
+        if len(out) >= _MAX_FALLBACK_LINES:
+            break
+    return out, header_x
+
+
+def _name_column_x(lines: list[list[TextRun]], header_x: float | None = None) -> float | None:
+    """The ingredient-name column: among x positions where at least two lines' leftmost
+    Thai-text run starts, the one nearest the header's ingredient cell. Taking the most
+    frequent one instead picked the benefits column, whose wrapped prose has more lines
+    (north_11_2, east_4_2). Without a header cell, the most frequent is used."""
+    tally: dict[float, int] = {}
+    for line in lines:
+        thai = [r for r in sorted(line, key=lambda r: r.x)
+                if _THAI_LETTER.search(_LEADING_INDEX.sub("", r.text))]
+        if not thai:
+            continue
+        x = thai[0].x
+        k = next((k for k in tally if abs(k - x) <= COLUMN_TOLERANCE), x)
+        tally[k] = tally.get(k, 0) + 1
+    columns = [k for k in tally if tally[k] >= 2]
+    if not columns:
+        return None
+    if header_x is not None:
+        return min(columns, key=lambda k: (abs(k - header_x), -tally[k]))
+    return max(columns, key=lambda k: (tally[k], -k))
+
+
+def _parse_ingredients_fallback(doc: Document) -> list[Ingredient]:
+    lines, header_x = _fallback_lines(doc)
+    name_x = _name_column_x(lines, header_x)
+    if name_x is None:
+        return []
+    out: list[Ingredient] = []
+    for line in lines:
+        cell = " ".join(r.text.strip() for r in sorted(line, key=lambda r: r.x)
+                        if abs(r.x - name_x) <= COLUMN_TOLERANCE)
+        name = _LEADING_INDEX.sub("", cell)
+        quantity = _QUANTITY.search(name)
+        if quantity:
+            name = _QUANTITY.sub(" ", name)
+        name = re.sub(r"\s{2,}", " ", name).strip(" .")
+        if (not _THAI_LETTER.search(name) or any(h in name for h in _TABLE_HEADER)
+                or len(name) > _MAX_NAME_CHARS):
+            continue
+        out.append(Ingredient(
+            position=len(out) + 1,
+            name_th=normalize_thai(name)[0],
+            quantity_value=thai_digits_to_arabic(quantity.group(1)) if quantity else None,
+            quantity_unit=quantity.group(2) if quantity else None,
+            acquisition_raw=None,
+            acquisition_mode=None,
+        ))
+    if out and sum(bool(_BENEFIT_WORDS.search(i.name_th)) for i in out) / len(out) \
+            >= _MAX_BENEFIT_SHARE:
+        return []
+    return out
+
+
 def _scrub(record: DCPRecord) -> None:
     """Final redaction pass over every string the record carries.
 
@@ -440,6 +544,10 @@ def parse_document(doc: Document) -> DCPRecord:
         record.notes.append("no checkbox glyphs — category/occasion/endangerment unknown")
 
     record.ingredients = _parse_ingredients(doc)
+    if not record.ingredients:
+        record.ingredients = _parse_ingredients_fallback(doc)
+        if record.ingredients:
+            record.notes.append("ingredients read by the fallback name-column reader")
     _scrub(record)
     if not record.ingredients:
         record.notes.append("no ingredient rows matched")
