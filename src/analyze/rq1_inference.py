@@ -19,16 +19,17 @@ the observed value; the correction shifts the percentiles by the bootstrap's own
 one recipe has no sampling variation to show; its interval collapses to the point, and the
 recipe count beside it says why.
 
-**Permutation: two nulls, both computed** (HD-44, decided 2026-11-06: **``unit``** is the
-one reported, Holm-adjusted across the regions of each scope by `holm`):
+**Permutation: two nulls, both computed** (HD-44, revised 2026-11-06: **``register`` is
+primary**, ``unit`` secondary; each is Holm-adjusted across the regions of a scope by
+`holm`):
 
-``unit``
-    The outline's wording: "shuffle province labels" (here: region labels). Within each
+``unit`` (secondary)
+    The outline v0.2 wording: "shuffle province labels" (here: region labels). Within each
     register, unit labels are permuted across that register's recipes, group sizes kept.
     The null is the distance between same-sized random official and commercial recipe
     sets, so a small p says *this unit's* gap is larger than the registers' gap in
     general.
-``register``
+``register`` (primary)
     Within the unit, the official / commercial labels are permuted across the unit's
     pooled recipes, sizes kept; every other group fixed. A small p says the two registers
     differ in this unit by more than chance allocation of its recipes would produce.

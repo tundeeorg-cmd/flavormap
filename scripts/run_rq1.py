@@ -10,10 +10,11 @@ writes, as soon as ``recipe_ingredients`` has rows (i.e. after `make lexicon`):
 - **Unit:** region (HD-37 C, ``rq1_registers.ANALYSIS_UNIT``); ``--unit province`` shows
   the province rows where they exist.
 - **Weighting:** TF-IDF primary, prevalence as the sensitivity check (HD-38).
-- **Uncertainty (HD-44, decided 2026-11-06):** bias-corrected percentile bootstrap CI
-  (9,999 resamples, 95%); the region-label shuffle p (``p_unit_shuffle``) and its
-  Holm-adjusted value across the regions of each scope (``p_unit_holm``), which is the
-  one reported. The register-shuffle p is still written, unreported, for transparency.
+- **Uncertainty (HD-44, revised 2026-11-06):** bias-corrected percentile bootstrap CI
+  (9,999 resamples, 95%). **Primary:** the register-label shuffle, ``p_register_shuffle``
+  and its Holm-adjusted value across the regions of each scope, ``p_register_holm`` (the
+  reported p). **Secondary:** the region-label shuffle, ``p_unit_shuffle`` /
+  ``p_unit_holm``. Each null is its own Holm family.
 - **Per source:** pooled commercial, then each commercial source alone (T1.19; HD-42 A).
 - **Counts:** the recipe count of each side beside every distance.
 - **Lexicon:** all entries by default. ``--reviewed-only`` uses only entries the
@@ -55,8 +56,8 @@ from src.config import DATA_DIR, RANDOM_SEED
 
 OUT_DIR = DATA_DIR / "coverage"
 COLUMNS = ("weighting", "role", "scope", "unit_type", "unit", "n_official",
-           "n_commercial_side", "distance", "ci_low", "ci_high", "p_unit_shuffle",
-           "p_unit_holm", "p_register_shuffle")
+           "n_commercial_side", "distance", "ci_low", "ci_high", "p_register_shuffle",
+           "p_register_holm", "p_unit_shuffle", "p_unit_holm")
 
 
 def run(data: pd.DataFrame, unit: str, n_perm: int, n_boot: int, seed: int) -> list[dict]:
@@ -73,16 +74,17 @@ def run(data: pd.DataFrame, unit: str, n_perm: int, n_boot: int, seed: int) -> l
         for scope, frame, pair in scopes:
             results = infer(frame, unit, weighting, pair,  # type: ignore[arg-type]
                             n_boot=n_boot, n_perm=n_perm, seed=seed)
-            # HD-44: Holm across the units of this scope (one family per scope).
-            adjusted = holm([r.p_unit for r in results])
-            for r, p_holm in zip(results, adjusted, strict=True):
+            # HD-44: Holm across the units of this scope, one family per null.
+            adj_reg = holm([r.p_register for r in results])
+            adj_unit = holm([r.p_unit for r in results])
+            for r, p_reg_holm, p_holm in zip(results, adj_reg, adj_unit, strict=True):
                 rows.append({
                     "weighting": weighting, "role": role, "scope": scope,
                     "unit_type": unit, "unit": r.unit, "n_official": r.n_a,
                     "n_commercial_side": r.n_b, "distance": r.distance,
                     "ci_low": r.ci_low, "ci_high": r.ci_high,
+                    "p_register_shuffle": r.p_register, "p_register_holm": p_reg_holm,
                     "p_unit_shuffle": r.p_unit, "p_unit_holm": p_holm,
-                    "p_register_shuffle": r.p_register,
                 })
     return rows
 
@@ -122,12 +124,12 @@ def print_table(rows: list[dict]) -> None:
             current = head
             print(f"\n{r['role']} ({r['weighting']}), commercial = {r['scope']}")
             print(f"  {'unit':<14}{'n_off':>6}{'n_com':>6}  {'distance':>8}  "
-                  f"{'95% CI (BC)':<17}{'p_unit':>8}{'p_holm':>8}")
+                  f"{'95% CI (BC)':<17}{'p_reg':>8}{'p_reg_H':>8}{'p_unit_H':>9}")
         ci = (f"[{r['ci_low']:.3f}, {r['ci_high']:.3f}]"
               if not math.isnan(r["ci_low"]) else "")
         print(f"  {r['unit']:<14}{r['n_official']:>6}{r['n_commercial_side']:>6}  "
-              f"{_fmt(r['distance']):>8}  {ci:<17}{_fmt(r['p_unit_shuffle']):>8}"
-              f"{_fmt(r['p_unit_holm']):>8}")
+              f"{_fmt(r['distance']):>8}  {ci:<17}{_fmt(r['p_register_shuffle']):>8}"
+              f"{_fmt(r['p_register_holm']):>8}{_fmt(r['p_unit_holm']):>9}")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -158,9 +160,10 @@ def main(argv: list[str] | None = None) -> int:
         "sensitivity_weighting": SENSITIVITY_WEIGHTING,
         "permutations": args.permutations, "bootstrap": args.bootstrap,
         "seed": RANDOM_SEED, "ci": "bias-corrected percentile, 95% (HD-44)",
-        "p_value": "region-label shuffle, one-sided, (1 + #null >= obs) / (1 + n); "
-                   "reported value p_unit_holm = Holm across units within each scope "
-                   "(HD-44)",
+        "p_value": "one-sided, (1 + #null >= obs) / (1 + n). Primary (reported): "
+                   "register-label shuffle, p_register_holm = Holm across units within "
+                   "each scope. Secondary: region-label shuffle, p_unit_holm. "
+                   "(HD-44, revised 2026-11-06)",
         "lexicon": "reviewed-only" if args.reviewed_only else "all entries",
         "lexicon_entries": len(entries),
         "lexicon_entries_used": int(data["canonical_id"].nunique()),

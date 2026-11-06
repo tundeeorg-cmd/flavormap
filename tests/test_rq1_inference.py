@@ -236,13 +236,23 @@ def test_bias_corrected_interval_removes_an_upward_bootstrap_bias() -> None:
 
 
 def test_run_rq1_writes_the_holm_adjusted_p(tmp_path: Path) -> None:
+    """HD-44 (revised): register shuffle primary, region shuffle secondary, each Holm-
+    adjusted as its own family within a scope."""
+    from src.analyze.rq1_inference import holm
     processed = _processed(tmp_path)
     assert run_rq1.main(["--processed", str(processed), "--out-dir", str(tmp_path),
                          "--permutations", "49", "--bootstrap", "49"]) == 0
     out = next(tmp_path.glob("rq1_registers_*.csv"))
     rows = list(csv.DictReader(out.open(encoding="utf-8")))
+    assert list(rows[0])[10:14] == ["p_register_shuffle", "p_register_holm",
+                                   "p_unit_shuffle", "p_unit_holm"]
     family = [r for r in rows if r["role"] == "primary" and r["scope"] == "pooled"
-              and r["p_unit_shuffle"]]
-    assert family and all(float(r["p_unit_holm"]) >= float(r["p_unit_shuffle"]) for r in family)
+              and r["p_register_shuffle"]]
+    assert family
+    for raw, adj in (("p_register_shuffle", "p_register_holm"),
+                     ("p_unit_shuffle", "p_unit_holm")):
+        expected = holm([float(r[raw]) for r in family])
+        assert [float(r[adj]) for r in family] == pytest.approx(expected, abs=1e-4)
     meta = json.loads(out.with_suffix(".json").read_text(encoding="utf-8"))
-    assert "bias-corrected" in meta["ci"] and "Holm" in meta["p_value"]
+    assert "bias-corrected" in meta["ci"]
+    assert "Primary (reported): register-label shuffle" in meta["p_value"]
