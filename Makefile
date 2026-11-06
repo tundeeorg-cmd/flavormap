@@ -1,4 +1,4 @@
-.PHONY: parse-state load-state dedup-state acquisition-sheet acquisition paper-audit labels-body lexicon-groups lexicon-apply rq1 setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai load-mthai labels status status-snapshot clean analyze vision figures api web export test all verify
+.PHONY: freeze parse-state load-state dedup-state acquisition-sheet acquisition paper-audit labels-body lexicon-groups lexicon-apply rq1 setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai load-mthai labels status status-snapshot clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -145,6 +145,10 @@ load-state:
 
 dedup-state:
 	uv run python -m scripts.parse_state_promo --dedup
+
+# T2.10 data freeze (Sun 13 Dec): dry run by default; EXECUTE=1 refused before the date.
+freeze:
+	uv run python -m scripts.freeze $(if $(EXECUTE),--execute,)
 
 paper-audit:
 	uv run python -m scripts.paper_audit $(if $(DRAFT),--draft $(DRAFT),) $(if $(WRITE),--write,)

@@ -266,7 +266,7 @@ Parallel through Phase 1: Korat interviews from Sat 31 Oct (T2.1).
 | T2.7 | [BO+second reader] | Second annotator labels 100 recipes (stratified by register and region); Claude Code computes Cohen's κ | `scripts/kappa.py`, `docs/limitations.md` | κ reported per field |
 | T2.8 | [BO] | Hand-label checkbox ground truth on ~40 random DCP forms (endangerment + dish category) for JCSSE evaluation | `data/reference/checkbox_truth.csv` | 40 rows; extractor accuracy computable |
 | T2.9 | [BO] | Hand-label a ~50-document PDPA evaluation sample (which spans are personal data) | `data/raw/pdpa_eval/` (gitignored) | Precision/recall computable without exposing PII |
-| T2.10 | [CC] | **Data freeze Sun 13 Dec:** final ingest, dump, backup, `git tag data-freeze-v1`, coverage snapshot | `data/coverage/` | Tag pushed; dump in two places |
+| T2.10 | [CC] | **Data freeze Sun 13 Dec:** final ingest, dump, backup, `git tag data-freeze-v1`, coverage snapshot | `data/coverage/` | Tag pushed; dump in two places. *Tooling built 2026-11-06: `make freeze` (dry run: tree, migrations, PDPA scan, tag); `EXECUTE=1` from 13 Dec writes snapshots, dump, `freeze_YYYYMMDD.md` manifest, local tag. Push + backup are the researcher's* |
 
 Gate **G4** on Sun 6 Dec (≥10 interviews).
 

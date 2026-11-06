@@ -27,6 +27,8 @@ data/coverage/*
 # carry aggregate counts only, never the DCP-derived per-province lists this rule exists
 # to keep out, so progress is visible in git history rather than only in one database.
 !data/coverage/status_*.md
+# Same rule for the T2.10 freeze manifest (scripts/freeze.py): counts and checksums only.
+!data/coverage/freeze_*.md
 # Same rule for the lexicon mention-coverage snapshots (TIMELINE T1.17,
 # scripts/lexicon_coverage.py): counts per register and source only, no ingredient
 # string, nothing DCP-derived.

@@ -151,3 +151,41 @@ def test_a_missing_destination_is_an_error(dest: str, gpg_env: dict[str, str]) -
     result = _run(dest, gpg_env)
     assert result.returncode != 0
     assert "Usage" in result.stderr or "not a writable directory" in result.stderr
+
+
+# ── T2.10: scripts/freeze.py ──────────────────────────────────────────────────
+
+def test_freeze_execute_is_refused_before_the_freeze_date(monkeypatch, capsys) -> None:  # type: ignore[no-untyped-def]
+    import datetime as dt
+
+    from scripts import freeze
+    calls: list[str] = []
+    monkeypatch.setattr(freeze, "check", lambda: [("all", True, "ok")])
+    monkeypatch.setattr(freeze, "execute", lambda day: calls.append("execute") or 0)
+
+    class Before(dt.date):
+        @classmethod
+        def today(cls):  # type: ignore[no-untyped-def,override]
+            return dt.date(2026, 12, 12)
+    monkeypatch.setattr(freeze.datetime, "date", Before)
+    assert freeze.main(["--execute"]) == 1 and not calls
+    assert "refused" in capsys.readouterr().out
+    assert freeze.main([]) == 0 and not calls          # the dry run never executes
+
+
+def test_freeze_execute_is_refused_when_a_check_fails(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    from scripts import freeze
+    monkeypatch.setattr(freeze, "check", lambda: [("git tree clean", False, "1 path")])
+    monkeypatch.setattr(freeze, "execute", lambda day: (_ for _ in ()).throw(AssertionError))
+    assert freeze.main(["--execute", "--before-freeze-date"]) == 1
+
+
+def test_freeze_manifest_is_counts_only(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    import datetime as dt
+
+    from scripts.freeze import manifest, sha256
+    dump = tmp_path / "flavormap_test.sql.gz"
+    dump.write_bytes(b"not a real dump")
+    text = manifest(dt.date(2026, 12, 13), dump, "abc1234")
+    assert sha256(dump) in text and "abc1234" in text and "data-freeze-v1" in text
+    assert not any("฀" <= ch <= "๿" for ch in text), "Thai text in the manifest"
