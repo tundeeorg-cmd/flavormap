@@ -2198,9 +2198,16 @@ Rejected:
 
 **Reasoning:** [not stated in session; to be added by the researcher]
 **Date decided:** 2026-11-06, by the researcher in session
-**To build [CC]:** Holm adjustment and the bias-corrected interval in
-`src/analyze/rq1_inference.py` / `scripts/run_rq1.py`. Today the code reports raw p
-and a plain percentile interval.
+**Built 2026-11-06 [CC]:**
+- **Code:** `rq1_inference.holm` and `rq1_inference.bias_corrected_interval`; `run_rq1`
+  writes `p_unit_holm` (the reported p, one family per scope), the bias-corrected 95%
+  interval, and the settings in its `.json`.
+- **Trial on real data** (999 resamples, all entries; not a reportable run):
+  - The Holm-adjusted p is ≥ 0.37 in every region, so no region's gap stands out.
+  - The correction recentres each interval near 2·obs − mean(boot). Where the bias
+    exceeds about 1.96 SE, the observed value can fall just outside the corrected
+    interval too (South 0.535, interval [0.434, 0.532]). That is a stated limit of
+    bias correction, for the limitations section.
 
 ---
 

@@ -198,3 +198,51 @@ def test_figure6_reviewed_only(tmp_path: Path) -> None:
     assert make_figure6.main(["--processed", str(processed), "--out", str(out),
                               "--reviewed-only"]) == 0
     assert out.stat().st_size > 0
+
+
+
+# --- HD-44 (decided 2026-11-06): Holm and the bias-corrected interval ---------------
+
+def test_holm_matches_the_textbook_step_down() -> None:
+    from src.analyze.rq1_inference import holm
+    # m = 4: sorted 0.01, 0.02, 0.03, 0.04 -> 0.04, 0.06, 0.06, 0.06 (monotone).
+    assert holm([0.03, 0.01, 0.04, 0.02]) == pytest.approx([0.06, 0.04, 0.06, 0.06])
+    assert holm([0.5, 0.9]) == pytest.approx([1.0, 1.0])          # capped at 1
+    out = holm([0.01, float("nan"), 0.02])                        # NaN not in the family
+    assert out[0] == pytest.approx(0.02) and math.isnan(out[1]) and out[2] == pytest.approx(0.02)
+
+
+def test_bias_corrected_equals_percentile_when_unbiased() -> None:
+    from src.analyze.rq1_inference import bias_corrected_interval
+    boot = np.random.default_rng(1).normal(0.5, 0.05, 20_000)
+    lo, hi = bias_corrected_interval(boot, float(np.median(boot)), 0.05)
+    assert lo == pytest.approx(np.quantile(boot, 0.025), abs=2e-3)
+    assert hi == pytest.approx(np.quantile(boot, 0.975), abs=2e-3)
+
+
+def test_bias_corrected_interval_removes_an_upward_bootstrap_bias() -> None:
+    """The failure HD-44 named: bootstrap distances run above the observed one. The
+    correction recentres the interval near 2·obs − mean(boot), i.e. shifts it down by
+    twice the bias, so a moderately biased bootstrap no longer leaves the observed value
+    at its lower edge."""
+    from src.analyze.rq1_inference import bias_corrected_interval
+    boot = np.random.default_rng(2).normal(0.65, 0.05, 20_000)
+    obs = 0.60                                                    # bias = 0.05 = 1 SE
+    plain = (np.quantile(boot, 0.025), np.quantile(boot, 0.975))
+    lo, hi = bias_corrected_interval(boot, obs, 0.05)
+    assert (lo + hi) / 2 == pytest.approx(2 * obs - 0.65, abs=0.01)
+    assert lo < plain[0] and hi < plain[1]
+    assert lo < obs < hi
+
+
+def test_run_rq1_writes_the_holm_adjusted_p(tmp_path: Path) -> None:
+    processed = _processed(tmp_path)
+    assert run_rq1.main(["--processed", str(processed), "--out-dir", str(tmp_path),
+                         "--permutations", "49", "--bootstrap", "49"]) == 0
+    out = next(tmp_path.glob("rq1_registers_*.csv"))
+    rows = list(csv.DictReader(out.open(encoding="utf-8")))
+    family = [r for r in rows if r["role"] == "primary" and r["scope"] == "pooled"
+              and r["p_unit_shuffle"]]
+    assert family and all(float(r["p_unit_holm"]) >= float(r["p_unit_shuffle"]) for r in family)
+    meta = json.loads(out.with_suffix(".json").read_text(encoding="utf-8"))
+    assert "bias-corrected" in meta["ci"] and "Holm" in meta["p_value"]

@@ -11,11 +11,16 @@ so the interval includes the idf's own sampling noise.
 
 **Bootstrap** (outline: "resampling recipes within each province"; at HD-37's region unit,
 within each region). Every (register, unit) group is resampled with replacement to its own
-size, all groups at once, and the distance recomputed. The interval is the percentile
-interval at ``1 - alpha``. A side with one recipe has no sampling variation to show; its
-interval collapses to the point, and the recipe count beside it says why.
+size, all groups at once, and the distance recomputed. The interval is the
+**bias-corrected percentile** interval at ``1 - alpha`` (HD-44, 2026-11-06): resampling
+small groups inflates a cosine distance, so the plain percentile interval sat at or above
+the observed value; the correction shifts the percentiles by the bootstrap's own bias
+(`bias_corrected_interval`). ``interval="percentile"`` gives the plain one. A side with
+one recipe has no sampling variation to show; its interval collapses to the point, and the
+recipe count beside it says why.
 
-**Permutation: two nulls, both computed, neither chosen here** (HD-44, open):
+**Permutation: two nulls, both computed** (HD-44, decided 2026-11-06: **``unit``** is the
+one reported, Holm-adjusted across the regions of each scope by `holm`):
 
 ``unit``
     The outline's wording: "shuffle province labels" (here: region labels). Within each
@@ -29,8 +34,8 @@ interval collapses to the point, and the recipe count beside it says why.
     differ in this unit by more than chance allocation of its recipes would produce.
 
 p is one-sided (distance at least as large as observed), ``(1 + #{null ≥ obs}) /
-(1 + n)``, so it is never 0. No multiple-comparison adjustment is applied: which family to
-adjust over is part of HD-44.
+(1 + n)``, so it is never 0. `infer` returns raw p-values; the Holm adjustment is applied
+per family by the caller (`scripts/run_rq1.py`), since only it knows the family.
 
 Pure: takes the DataFrame `rq1_registers.assemble` returns, writes nothing.
 """
@@ -43,6 +48,7 @@ from typing import Literal
 
 import numpy as np
 import pandas as pd
+from scipy.stats import norm
 
 from src.analyze.rq1_registers import COLUMN, UNITS, WEIGHTINGS, InputError, Unit, Weighting
 
@@ -216,6 +222,39 @@ def permute_unit(
     return {u: np.asarray(v) for u, v in out.items()}
 
 
+Interval = Literal["bias_corrected", "percentile"]
+
+
+def bias_corrected_interval(boot: np.ndarray, obs: float, alpha: float) -> tuple[float, float]:
+    """Bias-corrected percentile interval (Efron 1981). z0 = Φ⁻¹(share of bootstrap
+    values below the observed one, ties counted half); the interval takes the
+    Φ(2·z0 ± z_{1-α/2}) quantiles. z0 = 0 gives the plain percentile interval. The share
+    is clamped to [1/(n+1), n/(n+1)] so z0 stays finite."""
+    boot = boot[np.isfinite(boot)]
+    n = boot.size
+    if n == 0 or not math.isfinite(obs):
+        return math.nan, math.nan
+    share = (np.sum(boot < obs) + 0.5 * np.sum(boot == obs)) / n
+    share = min(max(share, 1 / (n + 1)), n / (n + 1))
+    z0 = float(norm.ppf(share))
+    z = float(norm.ppf(1 - alpha / 2))
+    lo, hi = norm.cdf(2 * z0 - z), norm.cdf(2 * z0 + z)
+    return float(np.quantile(boot, lo)), float(np.quantile(boot, hi))
+
+
+def holm(pvalues: list[float]) -> list[float]:
+    """Holm–Bonferroni step-down adjustment over one family (HD-44: the regions of one
+    scope). NaN entries are left NaN and do not count toward the family size."""
+    idx = [i for i, p in enumerate(pvalues) if isinstance(p, float) and math.isfinite(p)]
+    m = len(idx)
+    out = [math.nan] * len(pvalues)
+    running = 0.0
+    for rank, i in enumerate(sorted(idx, key=lambda i: pvalues[i])):
+        running = max(running, min(1.0, (m - rank) * pvalues[i]))
+        out[i] = running
+    return out
+
+
 def p_value(null: np.ndarray, obs: float) -> float:
     null = null[np.isfinite(null)]
     if not math.isfinite(obs) or null.size == 0:
@@ -233,6 +272,7 @@ def infer(
     n_perm: int,
     seed: int,
     alpha: float = 0.05,
+    interval: Interval = "bias_corrected",
 ) -> list[UnitResult]:
     """One row per unit either side of `pair` covers: counts, distance, percentile CI,
     and both permutation p-values. Units one side lacks get NaN, as in
@@ -252,8 +292,12 @@ def infer(
             continue
         b = boot.get(u, np.array([]))
         b = b[np.isfinite(b)]
-        lo, hi = ((float(np.quantile(b, alpha / 2)), float(np.quantile(b, 1 - alpha / 2)))
-                  if b.size else (math.nan, math.nan))
+        if not b.size:
+            lo, hi = math.nan, math.nan
+        elif interval == "bias_corrected":
+            lo, hi = bias_corrected_interval(b, obs[u], alpha)
+        else:
+            lo, hi = float(np.quantile(b, alpha / 2)), float(np.quantile(b, 1 - alpha / 2))
         results.append(UnitResult(
             u, na, nb, obs[u], lo, hi,
             p_value(null_u.get(u, np.array([])), obs[u]),

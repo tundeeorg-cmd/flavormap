@@ -15,7 +15,7 @@ Fill a line as: `value` · output file · commit · date.
   `make rq1 REVIEWED=1`; `scripts.lexicon_coverage` prints both.
 - **HD-44 (decided 2026-11-06):** report `p_unit_shuffle` (region-label shuffle), Holm-adjusted
   across the 4 regions within each scope. Intervals: 9,999 resamples, bias-corrected
-  percentile, 95%. The adjustment and the interval type are not built yet.
+  percentile, 95%. Built: `p_unit_holm` and the bias-corrected CI in `run_rq1`'s output.
 
 ## Section 3: Data (Table 1)
 
