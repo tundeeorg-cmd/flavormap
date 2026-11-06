@@ -927,6 +927,8 @@ the rule's wording against `data/reference/lexicon/canonical_ingredients.csv` as
   - *Borderline:* `ING_0246 ตั้งฉ่าย` (a preserved vegetable used to salt soups).
   - *Record mismatch:* the batch decisions above say `ING_0002 น้ำปลา` "is still
     `protein_fish`", but the file has it as `seasoning`. One of the two is out of date.
+    *Resolved 2026-11-06: the file is correct; see the correction note in HD-6's batch
+    decisions.*
 - **Non-`seasoning` entries that may fit it:**
   - *`sweetener`, sugars added to adjust sweetness:* `ING_0003 น้ำตาลทราย`,
     `ING_0015 น้ำตาลปี๊บ`, `ING_0055 น้ำตาลทรายแดง`, `ING_0069 น้ำตาลมะพร้าว`,
@@ -2114,6 +2116,9 @@ presented, with the recommended option chosen each time):
   added as a new `coconut` entry, `ING_0206 น้ำมะพร้าว`, with 9 aliases.
 - **`น้ำปลาดี` is `seasoning`,** fermented. `น้ำปลา` (ING_0002) is still `protein_fish`,
   as in HD-27's original example. Whether the two should agree is open.
+  - **Correction, 2026-11-06 (researcher):** the line above is out of date. `น้ำปลา`
+    (ING_0002) is `seasoning` in `canonical_ingredients.csv`, and that is correct. The
+    two entries agree; the question is closed. The original text is left as written.
 - **Kimchi (กิมจิ) is `seasoning`,** fermented. (HD-27's original example put ผักดอง
   under `vegetable` + fermented.)
 - **The 81 skipped "or" rows were resolved by Q5 split-all:**
