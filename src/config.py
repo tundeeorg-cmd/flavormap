@@ -19,9 +19,9 @@ ANTHROPIC_MODEL = "claude-sonnet-5"
 # swept over 5–30 instead. 10 = the lowest headline threshold (HD-24, 2026-09-28).
 PROVINCE_MIN_N = 10
 
-# HD-6 question 6 (OPEN): strip quantities and units before an ingredient string is
-# keyed for the lexicon (src.clean.lexicon.strip_quantity). A prototype, built as
-# evidence for the decision. OFF until the researcher decides; never flip it otherwise.
+# HD-6 question 6, DECIDED (a) on 2026-11-06: the lexicon maps raw strings, so quantity
+# stripping (src.clean.lexicon.strip_quantity) stays OFF. The prototype is kept only to
+# reproduce the evidence in docs/decisions.md; do not turn it on without a new decision.
 STRIP_QUANTITIES = False
 
 DATA_DIR = REPO_ROOT / "data"

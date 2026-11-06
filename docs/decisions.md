@@ -1802,7 +1802,7 @@ in it (T1.12).
 ---
 
 ## HD-6 (rules) — Lexicon granularity rules
-**Date presented:** 2026-11-06 · **Status:** OPEN
+**Date presented:** 2026-11-06 · **Status:** question 6 DECIDED (2026-11-06); questions 1–5 OPEN
 **Arises from:** TIMELINE v4 T1.16 (rules due 20 Oct; Gate G3 on Sun 8 Nov asks for ≥150
 entries covering ≥80% of mentions). CLAUDE.md §9 calls HD-6 the most important gate in
 the project. This entry covers only the **rules**; the entries themselves stay the
@@ -1880,9 +1880,11 @@ slightly because two lines in one recipe that differ only in amount become one s
   names.
 
 **Recommendation:** none. These rules are the lexicon's methods section.
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** **Question 6: (a), map raw strings as they stand.** `STRIP_QUANTITIES` stays
+off; the stripping prototype is kept, unused, so the evidence above can be reproduced.
+Questions 1–5: open.
+**Reasoning:** [not stated in session; to be added by the researcher]
+**Date decided:** 2026-11-06 (question 6), by the researcher in session
 
 ---
 
