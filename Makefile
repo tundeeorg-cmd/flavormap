@@ -1,4 +1,4 @@
-.PHONY: paper-audit labels-body lexicon-groups lexicon-apply rq1 setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai load-mthai labels status status-snapshot clean analyze vision figures api web export test all verify
+.PHONY: acquisition-sheet acquisition paper-audit labels-body lexicon-groups lexicon-apply rq1 setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai load-mthai labels status status-snapshot clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -64,6 +64,7 @@ ingest: scrape
 lexicon:
 	uv run python -m scripts.load_lexicon
 	uv run python -m scripts.canonicalise
+	uv run python -m scripts.acquisition
 	uv run python -m scripts.lexicon_coverage
 
 # HD-6 authoring loop: (1) make lexicon-groups writes the grouped worksheet
@@ -128,6 +129,13 @@ analyze:
 # sensitivity, permutation p-values and bootstrap CIs, pooled and per commercial source;
 # then Figure 6. Needs the lexicon (make lexicon) and fresh Parquet.
 # REVIEWED=1: researcher-drafted or reviewed entries only (writes *_reviewed files).
+# HD-15 / T1.12: ranked ที่มา coding file (gitignored, merge-safe), then load + coverage.
+acquisition-sheet:
+	uv run python -m scripts.acquisition --generate
+
+acquisition:
+	uv run python -m scripts.acquisition
+
 paper-audit:
 	uv run python -m scripts.paper_audit $(if $(DRAFT),--draft $(DRAFT),) $(if $(WRITE),--write,)
 

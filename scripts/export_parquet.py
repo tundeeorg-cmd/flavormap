@@ -77,7 +77,7 @@ QUERIES: dict[str, str] = {
          ORDER BY 1, 6""",
     "recipe_ingredients": """
         SELECT recipe_id, canonical_id, raw_text, quantity_g, has_quantity,
-               acquisition_raw, acquisition_mode, extraction_method, human_validated
+               acquisition_raw, acquisition_modes, extraction_method, human_validated
           FROM recipe_ingredients ORDER BY recipe_id""",
     "canonical_ingredients": """
         SELECT canonical_id, name_th, name_en, category, is_fermented, approved_by_human,

@@ -18,6 +18,10 @@ Safe to run with an empty lexicon: it writes nothing and says so.
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
+from typing import Any
+
+import psycopg
 
 from scripts.lexicon_worklist import QUERY
 from src.clean.canonicalise import canonicalise
@@ -42,6 +46,26 @@ ON CONFLICT (recipe_id, canonical_id) DO NOTHING
 """
 
 
+def lookup(conn: psycopg.Connection[Any]) -> Callable[[str], tuple[str, ...]]:
+    """The entries a raw string maps to, from the lexicon as loaded (names, aliases,
+    splits); empty when unmapped. Shared with scripts/acquisition.py so both map a line
+    the same way."""
+    single: dict[str, str] = {}
+    for alias, cid in conn.execute(ENTRIES_QUERY).fetchall():
+        single.setdefault(key(alias), cid)
+    splits: dict[str, list[str]] = {}
+    for alias, cid in conn.execute(SPLITS_QUERY).fetchall():
+        splits.setdefault(key(alias), []).append(cid)
+
+    def entries_for(text: str) -> tuple[str, ...]:
+        k = key(text)
+        if k in single:
+            return (single[k],)
+        return tuple(splits.get(k, ()))
+
+    return entries_for
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--dry-run", action="store_true", help="count, write nothing")
@@ -50,19 +74,7 @@ def main() -> int:
     conn = get_connection()
     try:
         lines = conn.execute(QUERY).fetchall()
-        single: dict[str, str] = {}
-        for alias, cid in conn.execute(ENTRIES_QUERY).fetchall():
-            single.setdefault(key(alias), cid)
-        splits: dict[str, list[str]] = {}
-        for alias, cid in conn.execute(SPLITS_QUERY).fetchall():
-            splits.setdefault(key(alias), []).append(cid)
-
-        def entries_for(text: str) -> tuple[str, ...]:
-            k = key(text)
-            if k in single:
-                return (single[k],)
-            return tuple(splits.get(k, ()))
-
+        entries_for = lookup(conn)
         outcome = canonicalise(lines, entries_for)
         print(f"{outcome.mapped_mentions} of {outcome.mentions} ingredient lines mapped "
               f"({outcome.split_mentions} through a split) → {len(outcome.rows)} "

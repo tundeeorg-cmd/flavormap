@@ -40,7 +40,7 @@ class SheetIngredient:
     category: str
     quantity_g: float | None
     has_quantity: bool
-    acquisition_mode: str | None
+    acquisition_mode: str | None    # HD-15 modes joined with ' + '; None = uncoded
 
 
 RECIPE_QUERY = "SELECT name_th FROM recipes WHERE recipe_id = %s"
@@ -48,7 +48,8 @@ RECIPE_QUERY = "SELECT name_th FROM recipes WHERE recipe_id = %s"
 # raw_text and acquisition_raw are deliberately absent: both are source text (HD-26).
 INGREDIENTS_QUERY = """
 SELECT ci.name_th, ci.name_en, ci.category,
-       ri.quantity_g, ri.has_quantity, ri.acquisition_mode
+       ri.quantity_g, ri.has_quantity,
+       array_to_string(ri.acquisition_modes, ' + ')  -- HD-15: every mode, hand-coded
   FROM recipe_ingredients ri
   JOIN canonical_ingredients ci USING (canonical_id)
  WHERE ri.recipe_id = %s

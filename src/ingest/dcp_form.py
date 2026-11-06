@@ -125,23 +125,10 @@ _QUANTITY = re.compile(
     r"(กรัม|กก\.|กิโลกรัม|ขีด|ช้อนโต๊ะ|ช้อนชา|ถ้วย|ลูก|ใบ|หัว|แว่น|ต้น|ฟอง|ตัว|มล\.|ลิตร|ซีซี|กำ|ช่อ|ฝัก)"
 )
 
-# §4 column ที่มา -> acquisition mode. HD-15 owns the full mapping; this is the
-# unambiguous subset, and anything unmatched stays NULL rather than being forced.
-ACQUISITION_HINTS = [
-    ("ปลูกเอง", "grown"),
-    ("ปลุกเอง", "grown"),      # misspelling present in the corpus
-    ("ปลูกในสวน", "grown"),
-    ("สวนตัวเอง", "grown"),
-    ("เก็บ", "foraged"),
-    ("ป่า", "foraged"),
-    ("ธรรมชาติ", "foraged"),
-    ("ริมคลอง", "foraged"),
-    ("ตลาด", "market"),
-    ("ซื้อ", "market"),
-    ("ร้านค้า", "market"),
-    ("ห้าง", "packaged"),
-    ("สำเร็จรูป", "packaged"),
-]
+# §4 column ที่มา: kept verbatim in ``acquisition_raw``. The parser infers no mode: HD-15
+# (decided 2026-11-06) maps the text by the researcher's hand coding only, applied by
+# scripts/acquisition.py. The 13 keyword hints that stood here were never decided and
+# were removed under that decision.
 
 
 @dataclass
@@ -151,6 +138,7 @@ class Ingredient:
     quantity_value: str | None = None
     quantity_unit: str | None = None
     acquisition_raw: str | None = None
+    # Always None from the parser (HD-15); kept so parsed_json keeps its shape.
     acquisition_mode: str | None = None
 
 
@@ -191,15 +179,6 @@ def _endangerment(labels: list[str]) -> str | None:
         for needle, value in ENDANGERMENT:
             if needle in label:
                 return value
-    return None
-
-
-def _acquisition_mode(raw: str | None) -> str | None:
-    if not raw:
-        return None
-    for needle, mode in ACQUISITION_HINTS:
-        if needle in raw:
-            return mode
     return None
 
 
@@ -367,7 +346,6 @@ def _parse_ingredients(doc: Document) -> list[Ingredient]:
                 quantity_value=thai_digits_to_arabic(quantity.group(1)) if quantity else None,
                 quantity_unit=quantity.group(2) if quantity else None,
                 acquisition_raw=normalize_thai(acquisition)[0] if acquisition else None,
-                acquisition_mode=_acquisition_mode(acquisition),
             )
         )
     return out

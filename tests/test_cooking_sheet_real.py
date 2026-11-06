@@ -116,7 +116,8 @@ def test_every_real_sheet_obeys_hd26() -> None:
         explained = str(dish) + " " + " ".join(
             " ".join(str(v) for v in row if v)
             for row in _query(
-                """SELECT ci.name_th, ci.name_en, ci.category, ri.acquisition_mode
+                """SELECT ci.name_th, ci.name_en, ci.category,
+                          array_to_string(ri.acquisition_modes, ' + ')
                      FROM recipe_ingredients ri JOIN canonical_ingredients ci
                           USING (canonical_id)
                     WHERE ri.recipe_id = %s""",

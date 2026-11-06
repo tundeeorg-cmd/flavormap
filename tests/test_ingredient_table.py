@@ -79,14 +79,17 @@ def test_real_table_parses_with_quantities_and_acquisition() -> None:
     first = record.ingredients[0]
     assert first.name_th == "ใบขี้เหล็ก"
     assert (first.quantity_value, first.quantity_unit) == ("100", "กรัม")
-    assert first.acquisition_mode == "foraged"       # ข้างริมคลองในชุมชน
+    # HD-15 (2026-11-06): ที่มา is kept verbatim and no mode is inferred by the parser.
+    assert first.acquisition_raw is not None and "ริมคลอง" in first.acquisition_raw
+    assert first.acquisition_mode is None
 
     wrapped = record.ingredients[4]
     assert wrapped.position == 5
     assert wrapped.name_th.startswith("เครื่องแกง")
 
-    # ปลุกเองที่บ้าน — a misspelling of ปลูกเอง that appears in the corpus
-    assert record.ingredients[3].acquisition_mode == "grown"
+    # ปลุกเองที่บ้าน (a misspelling of ปลูกเอง in the corpus) is kept as written, unmapped
+    assert "ปลุกเอง" in (record.ingredients[3].acquisition_raw or "")
+    assert all(i.acquisition_mode is None for i in record.ingredients)
 
 
 @pytest.mark.skipif(not RAW.exists(), reason="raw corpus not present")

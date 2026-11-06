@@ -137,6 +137,10 @@ needs changing gets a new forward migration, never an edit to an applied one.
 | 025 | `recipes.extraction_method` | HD-35: `parsed \| manual`, NOT NULL, no default |
 | 026 | `dish_status_reports` | HD-43: Q10 answers about the state's dishes, verbatim, one row per (informant, official dish); never creates a recipe |
 | 027 | seed `sources.mthai_food` | HD-40: the FK row `scripts/parse_mthai.py --load` needs, from `ETHICS.md`'s dated go (2026-10-12) |
+| 028 | `ingredient_alias_splits` | HD-6 Q5: one row per entry a split string names (`ingredient_splits.csv`) |
+| 029 | `seasoning` category + `ingredient_exclusions` | HD-27 amendment: the sixteenth category; strings the researcher excludes as not ingredients |
+| 030 | lexicon provenance | `drafted_by` (`bo` \| `claude`) and `reviewed_by_bo` on `canonical_ingredients` |
+| 031 | `recipe_ingredients.acquisition_modes` + `acquisition_map` | HD-15: every mode the ที่มา text names (`grown \| foraged \| market \| packaged \| local`), hand-coded only; the single `acquisition_mode` column retired (CHECK NULL) |
 
 **Ordering correction (2026-08-16).** The v2 plan numbered `province_attribution` 006 and
 `provinces` 007, with a foreign key pointing from the earlier to the later. That cannot

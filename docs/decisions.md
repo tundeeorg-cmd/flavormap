@@ -2066,6 +2066,31 @@ multi-valued column allowing `grown | foraged | market | packaged | local` (migr
 a ranked coding file the researcher fills, kept gitignored because the strings are
 DCP-derived and some carry district or subdistrict detail (HD-3, HD-21); a loader that
 reads only that file; a coverage report.
+**Built [CC], 2026-11-06 (T1.12 machinery; no code filled):**
+- **Parser:** `ACQUISITION_HINTS` and `_acquisition_mode` are removed from
+  `src/ingest/dcp_form.py`; the parser keeps ที่มา verbatim. The DCP corpus was **not**
+  re-parsed: older `parsed_json` still holds the hint modes, which nothing reads (a test
+  checks the loader query).
+- **Migration 031:** `recipe_ingredients.acquisition_modes TEXT[]`, restricted to the
+  five values and non-empty, plus the `acquisition_map` table. The single
+  `acquisition_mode` column is retired by a CHECK that it stays NULL.
+- **`scripts/acquisition.py`:**
+  - `make acquisition-sheet` writes the ranked coding file
+    `data/reference/acquisition_map.csv` (gitignored, merge-safe: codes and notes kept on
+    regeneration). Columns: `rank, acquisition_raw, n_rows, n_recipes, modes, note`.
+    `modes` = `grown|foraged|market|packaged|local` separated by `|`, or `none`; empty =
+    uncoded.
+  - `make acquisition` (also run by `make lexicon`, after `canonicalise`) loads the file
+    and sets each row's modes to the union over the lines that map to it, using the
+    same lexicon lookup as `canonicalise`.
+- **Coverage now** (0 coded): 1,139 official ingredient lines; 805 carry ที่มา text, in
+  **460** distinct strings (461 before whitespace collapsing). 50% of those rows are
+  covered by the top 79 strings, 80% by the top 299, 90% by the top 380. 361 strings
+  occur once.
+- **PDPA:** 5 strings carry an address-shaped pattern. All are already redacted at parse
+  time (`ตำบล [REDACTED]`; district kept under HD-21 B); `find_leaks` finds nothing.
+- **Exports:** the Parquet export carries `acquisition_modes`; `cooking_sheet` shows
+  them joined with " + ".
 
 ---
 
