@@ -1352,7 +1352,7 @@ release.
 ---
 
 ## HD-register-MC — Are the provincial culture offices part of the official register?
-**Date presented:** 2026-10-07 · **Status:** OPEN
+**Date presented:** 2026-10-07 · **Status:** DECIDED via HD-39 (2026-11-06): option B
 **Arises from:** the retroactive stage-A audit of `m_culture` (commit `7eb9687`). Data
 from the 76 provincial culture-office sites (`<province>.m-culture.go.th`) was collected
 in a separate session outside `docs/scraping_rules.md` and now sits, unloaded, in
@@ -1542,7 +1542,7 @@ sensitivity check. Rejected: C (raw counts), and either weighting alone.
 ---
 
 ## HD-39 (HD-register) — What are the TAT and Ministry of Culture collections?
-**Date presented:** 2026-10-12 · **Status:** OPEN
+**Date presented:** 2026-10-12 · **Status:** DECIDED 2026-11-06
 **Arises from:** TIMELINE v3 T1.13c. Due 22 Oct. Neither source is loaded until this and
 its `ETHICS.md` row are decided. This entry adds TAT and the T1.13a evidence to
 **HD-register-MC**, which asked the same question for m-culture alone; deciding here
@@ -1575,9 +1575,18 @@ settles both.
   D. **Different answers per source** (e.g. TAT C, m-culture B).
 
 **Recommendation:** none.
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** **B, a separate state-promotional register** for both `tat_food` and
+`m_culture`, kept apart from the DCP official register. **Rows:** only rows with
+ingredient text load as recipes (about 471 TAT, 565 m-culture, before dedup). Name-only
+dishes go to a separate dish-name list (no `recipes` rows) for RQ3 and RQ5 matching.
+Rejected: A (merge into official), C (reference only), D (different per source); for
+rows, "ingredient rows only" and "all rows with empty lists".
+**Reasoning:** [not stated in session; to be added by the researcher]
+**Date decided:** 2026-11-06, by the researcher in session. This also settles
+**HD-register-MC**.
+**To build [CC]:** migration 026 widens the `register` CHECK (the HD-43 drafts then move to
+027); parsers for both sources with parse-time PDPA stripping and fixtures; the
+dish-name list; `sources` rows. m-culture's 240 collector-flagged duplicates follow HD-41.
 
 ---
 
