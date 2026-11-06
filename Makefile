@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai status status-snapshot clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai labels status status-snapshot clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -76,6 +76,11 @@ dcp-manual:
 # Kapook. Dry run only: writes nothing to the database until HD-40 is decided.
 parse-mthai:
 	uv run python -m scripts.parse_mthai
+
+# T1.15 / HD-37: write the title/category labels (rules 1-2, high) for the commercial
+# register into province_attribution. Body-text labels wait for the hand reading.
+labels:
+	uv run python -m scripts.apply_labels
 
 # HD-29/HD-30 — fieldwork interview files (data/interviews/*.toml, gitignored) into
 # informants, interview_dishes and the domestic register. All-or-nothing; refuses any
