@@ -4,8 +4,9 @@
 
 **HD-37, decided 2026-11-06: C + D.** Province and region labels, each at its own
 confidence, with body text admitted once each claim is read by hand. This script applies
-the two **title/category** rules, using exactly the rules ``scripts.measure_kapook_labels``
-measured (T1.13), so the counts match:
+the two **title/category** rules to Kapook and MThai (HD-40), using exactly the rules
+``scripts.measure_kapook_labels`` measured (T1.13), so the counts match. For MThai the
+post's tags stand in for the category:
 
 - **Rule 1**: one province named in the title or category (``a_strict``) → tier 1,
   ``high``. ``region`` is that province's ``region4``.
@@ -17,7 +18,7 @@ More than one province, or more than one region, is **no label**: rule 2 of CLAU
 the province and records the term in ``conflict_note``.
 
 **Not written here:** body-text claims (rule 3, ``medium``), which wait for the hand
-reading HD-37 requires; and MThai, which waits for HD-40.
+reading HD-37 requires.
 
 **Rows it owns.** Only rows whose ``method_note`` starts with ``HD-37 rule``. A recipe
 that already carries any other attribution is left alone and reported.
@@ -33,7 +34,9 @@ from scripts.measure_labelled_fraction import Province, load_provinces
 from src.db import get_connection
 
 OWNED = "HD-37 rule"
-SOURCE_ID = "kapook_cooking"
+# Commercial sources the HD-37 rules run on (HD-40: Kapook + MThai). MThai tags are
+# stored as `category_source` (src.ingest.mthai_food.payload), so the rules read them.
+SOURCES = ("kapook_cooking", "mthai_food")
 
 
 @dataclass(frozen=True)
@@ -85,7 +88,7 @@ def main() -> int:
         source_of: dict[int, str] = dict(conn.execute(
             "SELECT r.recipe_id, rr.source_id FROM recipes r JOIN raw_recipes rr "
             "USING (raw_id) WHERE r.register = 'commercial'").fetchall())
-        recipes = [r for r in recipes if source_of.get(r.recipe_id) == SOURCE_ID]
+        recipes = [r for r in recipes if source_of.get(r.recipe_id) in SOURCES]
         found = labels(recipes, provinces, official)
         foreign = {rid for (rid,) in conn.execute(
             "SELECT recipe_id FROM province_attribution "
@@ -96,7 +99,8 @@ def main() -> int:
         for lab in found.values():
             unit = lab.province_code or lab.region
             by_rule[f"tier {lab.tier} {unit}"] = by_rule.get(f"tier {lab.tier} {unit}", 0) + 1
-        print(f"{len(recipes)} {SOURCE_ID} recipes; {len(found)} labelled by HD-37 rules 1-2")
+        print(f"{len(recipes)} commercial recipes ({', '.join(SOURCES)}); "
+              f"{len(found)} labelled by HD-37 rules 1-2")
         for k in sorted(by_rule):
             print(f"  {k}: {by_rule[k]}")
         conflicts = sum(lab.conflict_note is not None for lab in found.values())
@@ -112,8 +116,8 @@ def main() -> int:
             conn.execute(
                 """DELETE FROM province_attribution pa USING recipes r, raw_recipes rr
                     WHERE pa.recipe_id = r.recipe_id AND rr.raw_id = r.raw_id
-                      AND rr.source_id = %s AND pa.method_note LIKE %s""",
-                (SOURCE_ID, f"{OWNED}%"))
+                      AND rr.source_id = ANY(%s) AND pa.method_note LIKE %s""",
+                (list(SOURCES), f"{OWNED}%"))
             for rid, lab in found.items():
                 if rid in foreign:
                     continue

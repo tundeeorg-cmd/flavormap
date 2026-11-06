@@ -1584,7 +1584,7 @@ rows, "ingredient rows only" and "all rows with empty lists".
 **Reasoning:** [not stated in session; to be added by the researcher]
 **Date decided:** 2026-11-06, by the researcher in session. This also settles
 **HD-register-MC**.
-**To build [CC]:** migration 027 widens the `register` CHECK (026 went to HD-43); parsers for both sources with parse-time PDPA stripping and fixtures; the
+**To build [CC]:** migration 028 widens the `register` CHECK (026 went to HD-43, 027 to the MThai source row); parsers for both sources with parse-time PDPA stripping and fixtures; the
 dish-name list; `sources` rows. m-culture's 240 collector-flagged duplicates follow HD-41.
 
 ---
@@ -1637,6 +1637,11 @@ Cookpad, not yet chosen) is added for the full paper. The shortfall against the 
 sources until then is a limitation. Rejected: A alone, B (Kapook only).
 **Reasoning:** [not stated in session; to be added by the researcher]
 **Date decided:** 2026-11-06, by the researcher in session
+**Unit of observation for MThai (researcher, in session, 2026-11-06):** HD-22's Kapook
+rule applies: the 193 single-section posts load as one recipe each, and the 7 posts with
+more than one ingredient section are held out of `recipes`, counted (their
+`raw_recipes` rows are kept). Rejected: load all 200 (sections concatenated); load 199
+(holding out only the post flagged as a possible multi-dish).
 
 ---
 

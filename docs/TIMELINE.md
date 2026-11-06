@@ -42,7 +42,7 @@ committed.
 5. **Green before commit:** `pytest -q`, `ruff check`, `mypy` all pass. New behaviour gets a test.
 6. **Small, honest commits.** One logical change per commit, conventional-commit prefixes
    (`feat:`, `fix:`, `docs:`, `data:`, `test:`). No work left on side branches — merge or delete within the week.
-7. **Migrations are append-only** (next is `027`; `026` is `dish_status_reports`, HD-43). Never edit an applied migration.
+7. **Migrations are append-only** (next is `028`; `027` seeds `sources.mthai_food`). Never edit an applied migration.
 8. **Raw data stays raw.** `data/raw/` is read-only to pipelines and never committed or published.
 9. **Back up after any data change:** `make db-dump`, then `make backup TO=<off-laptop path>`.
 10. **Repo-relative paths only.** No `~/Desktop/...` in code.

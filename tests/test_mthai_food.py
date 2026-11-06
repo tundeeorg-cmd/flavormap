@@ -12,7 +12,7 @@ from datetime import date
 from pathlib import Path
 
 from scripts.parse_mthai import histogram, ingredient_set, provinces_named
-from src.ingest.mthai_food import KEPT_FIELDS, parse_row, read_csv
+from src.ingest.mthai_food import KEPT_FIELDS, parse_row, payload, read_csv
 from src.ingest.pdpa import personal_data_classes
 
 FIXTURE = Path(__file__).parent / "fixtures" / "mthai_food" / "sample.csv"
@@ -76,10 +76,31 @@ def test_histogram_puts_one_in_the_last_bin() -> None:
     assert bins["[0.90, 1.00]"] == 2 and bins["[0.00, 0.10)"] == 1 and bins["[0.50, 0.70)"] == 1
 
 
-def test_the_dry_run_and_parser_never_write() -> None:
+def test_the_parser_never_writes() -> None:
     write = re.compile(r"\b(INSERT|UPDATE|DELETE|COPY)\b", re.IGNORECASE)
-    for path in ("scripts/parse_mthai.py", "src/ingest/mthai_food.py"):
-        assert not write.search((REPO / path).read_text(encoding="utf-8")), path
+    assert not write.search((REPO / "src/ingest/mthai_food.py").read_text(encoding="utf-8"))
+
+
+def test_the_report_path_writes_nothing() -> None:
+    """Writes live only in load(), reached only with --load."""
+    src = (REPO / "scripts/parse_mthai.py").read_text(encoding="utf-8")
+    report = src[src.index("def main()"):]
+    assert "INSERT" not in report and "if args.load:" in report
+
+
+def test_hd22_rule_single_section_posts_only() -> None:
+    first, _, third = read_csv(FIXTURE)
+    assert first.is_single_section
+    assert third.n_sections == 2 and not third.is_single_section
+
+
+def test_payload_has_the_kapook_shape_and_no_dropped_fields() -> None:
+    first = read_csv(FIXTURE)[0]
+    data = payload(first)
+    assert data["title_th"] == first.title
+    assert data["category_source"] == "ต้มยำ | อาหารไทย"
+    assert data["sections"] == [{"heading": None, "items": first.ingredient_lines}]
+    assert "AUTHOR-FIXTURE" not in repr(data) and "METHOD-FIXTURE" not in repr(data)
 
 
 def test_province_names_are_found_inside_compound_tags() -> None:

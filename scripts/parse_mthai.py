@@ -1,10 +1,16 @@
-"""Dry run of the MThai parser: counts, fill rates, and duplicates against Kapook.
+"""MThai: report (default) or load (``--load``).
 
-    uv run python -m scripts.parse_mthai          (make parse-mthai)
+    uv run python -m scripts.parse_mthai          (make parse-mthai)   report only
+    uv run python -m scripts.parse_mthai --load   (make load-mthai)    write
 
-Evidence for HD-40 (sources), HD-41 (dedup) and HD-42 (balance). **Nothing is written
-to the database**: MThai is not loaded until HD-40 is decided. The Kapook side is read
-on a read-only connection.
+The report (counts, fill rates, duplicates against Kapook) was the evidence for HD-40 to
+HD-42 and writes nothing; the Kapook side is read on a read-only connection.
+
+**Loading** (HD-40, decided 2026-11-06: Kapook + MThai). Per post: a ``raw_recipes`` row
+(``parsed_json`` in Kapook's shape, ``src.ingest.mthai_food.payload``) and its
+``redaction_log`` row; then, for single-section posts only (HD-22's rule, applied to
+MThai by the researcher), a ``commercial`` ``recipes`` row. Multi-section posts are held
+out, counted. ``content_hash`` is of the post's identity, so a re-run updates in place.
 
 **Duplicates.** For each MThai post, the Kapook recipe with the highest ingredient-set
 Jaccard (``src.clean.dedupe.jaccard_similarity``) and that pair's title ratio
@@ -16,6 +22,9 @@ so the gap is visible.
 
 from __future__ import annotations
 
+import argparse
+import hashlib
+import json
 from collections import Counter, defaultdict
 
 from scripts.lexicon_worklist import QUERY as INGREDIENT_QUERY
@@ -23,7 +32,7 @@ from scripts.measure_kapook_labels import BARE_REGION_TERMS, REGION_TERMS, regio
 from src.clean.dedupe import jaccard_similarity, title_similarity
 from src.clean.lexicon import key
 from src.db import get_connection
-from src.ingest.mthai_food import MThaiRecord, read_csv
+from src.ingest.mthai_food import CSV_PATH, SOURCE_ID, MThaiRecord, payload, read_csv
 
 BINS = (0.0, 0.1, 0.3, 0.5, 0.7, 0.85, 0.9, 1.0)
 
@@ -87,8 +96,73 @@ def fill_rates(records: list[MThaiRecord], province_names: set[str]) -> list[tup
     ]
 
 
+def load(records: list[MThaiRecord]) -> dict[str, int]:
+    """Write `records` in one transaction. Returns counts for the summary."""
+    stats = {"posts": 0, "loaded": 0, "held_out_multi_section": 0, "redactions": 0}
+    conn = get_connection()
+    try:
+        with conn.transaction():
+            for rec in records:
+                stats["posts"] += 1
+                identity = f"{SOURCE_ID}:{rec.post_id}"
+                raw_id = conn.execute(
+                    """INSERT INTO raw_recipes (source_id, source_url, raw_path,
+                           published_at, parsed_json, content_hash)
+                       VALUES (%s,%s,%s,%s,%s,%s)
+                       ON CONFLICT (source_id, content_hash) DO UPDATE
+                           SET parsed_json = EXCLUDED.parsed_json
+                       RETURNING raw_id""",
+                    (SOURCE_ID, rec.url, str(CSV_PATH), rec.published_at,
+                     json.dumps(payload(rec), ensure_ascii=False),
+                     hashlib.sha256(identity.encode()).hexdigest()),
+                ).fetchone()[0]  # type: ignore[index]
+                red = rec.redaction
+                stats["redactions"] += red.total
+                conn.execute(
+                    """INSERT INTO redaction_log (raw_id, source_id, document_ref, n_names,
+                           n_addresses, n_phone_numbers, n_emails, n_coordinates,
+                           n_media_links, suspected_parser_failure, note)
+                       VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,false,NULL)
+                       ON CONFLICT (raw_id) DO UPDATE SET parsed_at = now(),
+                           n_names = EXCLUDED.n_names, n_addresses = EXCLUDED.n_addresses,
+                           n_phone_numbers = EXCLUDED.n_phone_numbers,
+                           n_emails = EXCLUDED.n_emails,
+                           n_coordinates = EXCLUDED.n_coordinates,
+                           n_media_links = EXCLUDED.n_media_links""",
+                    (raw_id, SOURCE_ID, identity, red.n_names, red.n_addresses,
+                     red.n_phone_numbers, red.n_emails, red.n_coordinates,
+                     red.n_media_links),
+                )
+                if not rec.is_single_section:
+                    stats["held_out_multi_section"] += 1
+                    continue
+                conn.execute(
+                    """INSERT INTO recipes (raw_id, name_th, register, dish_category_source,
+                                            extraction_method)
+                       VALUES (%s,%s,'commercial',%s,'parsed')
+                       ON CONFLICT (raw_id) DO UPDATE SET name_th = EXCLUDED.name_th,
+                           dish_category_source = EXCLUDED.dish_category_source""",
+                    (raw_id, rec.title, " | ".join(rec.tags) or None),
+                )
+                stats["loaded"] += 1
+        (n,) = conn.execute(
+            "SELECT count(*) FROM recipes r JOIN raw_recipes rr USING (raw_id) "
+            "WHERE rr.source_id = %s", (SOURCE_ID,)).fetchone()  # type: ignore[misc]
+        stats["recipes_in_db"] = n
+    finally:
+        conn.close()
+    return stats
+
+
 def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--load", action="store_true", help="write to the database")
+    args = ap.parse_args()
     records = read_csv()
+    if args.load:
+        for k, v in load(records).items():
+            print(f"  {k}: {v}")
+        return 0
     conn = get_connection()
     conn.read_only = True
     try:

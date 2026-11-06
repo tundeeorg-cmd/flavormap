@@ -136,6 +136,7 @@ needs changing gets a new forward migration, never an edit to an applied one.
 | 024 | `interview_dishes` for v4 + `sources.fieldwork_interviews` | HD-30: `dish_key` (stable, UNIQUE), cook's dish name, researcher-entered `official_recipe_id`, cook's endangerment view verbatim + HD-11 level, stated substitutions |
 | 025 | `recipes.extraction_method` | HD-35: `parsed \| manual`, NOT NULL, no default |
 | 026 | `dish_status_reports` | HD-43: Q10 answers about the state's dishes, verbatim, one row per (informant, official dish); never creates a recipe |
+| 027 | seed `sources.mthai_food` | HD-40: the FK row `scripts/parse_mthai.py --load` needs, from `ETHICS.md`'s dated go (2026-10-12) |
 
 **Ordering correction (2026-08-16).** The v2 plan numbered `province_attribution` 006 and
 `provinces` 007, with a foreign key pointing from the earlier to the later. That cannot

@@ -1,4 +1,4 @@
-.PHONY: setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai labels status status-snapshot clean analyze vision figures api web export test all verify
+.PHONY: setup db-up db-down db-reset db-dump parquet scrape scrape-dcp scrape-kapook ingest cook-along lexicon lexicon-coverage interviews backup dcp-manual parse-mthai load-mthai labels status status-snapshot clean analyze vision figures api web export test all verify
 
 setup: db-up
 	uv sync
@@ -72,10 +72,13 @@ lexicon-coverage:
 dcp-manual:
 	uv run python -m scripts.load_dcp_manual
 
-# HD-40 evidence: parse mthai_food and report counts, fill rates and duplicates against
-# Kapook. Dry run only: writes nothing to the database until HD-40 is decided.
+# mthai_food: report only (counts, fill rates, duplicates against Kapook), or load
+# (HD-40 decided 2026-11-06: Kapook + MThai; single-section posts only, per HD-22).
 parse-mthai:
 	uv run python -m scripts.parse_mthai
+
+load-mthai:
+	uv run python -m scripts.parse_mthai --load
 
 # T1.15 / HD-37: write the title/category labels (rules 1-2, high) for the commercial
 # register into province_attribution. Body-text labels wait for the hand reading.

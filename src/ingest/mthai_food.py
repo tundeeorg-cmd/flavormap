@@ -9,14 +9,13 @@ Every kept text value goes through ``src.ingest.pdpa.redact`` before it reaches 
 record, and the per-class counts are kept on the record the way the DCP and Kapook
 parsers keep theirs.
 
-**Not loaded.** Whether MThai joins the commercial register is HD-40 (open). This module
-parses; ``scripts/parse_mthai.py`` reports on a dry run and writes nothing to the
-database.
+**Loading.** HD-40 (decided 2026-11-06) admits MThai to the commercial register. This
+module parses and writes nothing; ``scripts/parse_mthai.py --load`` writes.
 
-**Sections.** 13 posts carry more than one ingredient section (the collector's
-``multi_section`` flag). Lines are returned in page order with no attempt to tell a
-section heading from an ingredient, as the Kapook parser does; how a post maps to rows
-in ``recipes`` is HD-22's kind of question, not a parsing detail.
+**Sections.** 7 posts have more than one ingredient section (``n_ingredient_sections``;
+the collector's broader ``multi_section`` flag marks 13). Lines are returned in page
+order. The researcher applied HD-22's rule to MThai (2026-11-06): only single-section
+posts become recipes; the rest are held out, counted (``is_single_section``).
 """
 
 from __future__ import annotations
@@ -36,7 +35,7 @@ CSV_PATH = RAW_DIR / SOURCE_ID / "mthai_food_recipes.csv"
 # The only columns ever read. Not here, so never read: author, intro, method,
 # credited_source, and the collector's bookkeeping columns.
 KEPT_FIELDS = ("record_id", "post_id", "url", "title", "publish_date", "tags",
-               "ingredients")
+               "ingredients", "n_ingredient_sections")
 
 
 @dataclass
@@ -48,7 +47,14 @@ class MThaiRecord:
     published_at: date | None
     tags: list[str]
     ingredient_lines: list[str]
+    n_sections: int = 1
     redaction: RedactionReport = field(default_factory=RedactionReport)
+
+    @property
+    def is_single_section(self) -> bool:
+        """HD-22's rule, applied to MThai by the researcher (2026-11-06): only posts with
+        exactly one ingredient section become recipes."""
+        return self.n_sections == 1 and bool(self.ingredient_lines) and bool(self.title)
 
 
 def _clean(text: str, report: RedactionReport) -> str:
@@ -80,8 +86,24 @@ def parse_row(row: dict[str, str]) -> MThaiRecord:
         published_at=_published(kept["publish_date"]),
         tags=tags,
         ingredient_lines=lines,
+        n_sections=int(kept["n_ingredient_sections"] or 1),
         redaction=report,
     )
+
+
+def payload(record: MThaiRecord) -> dict[str, object]:
+    """``raw_recipes.parsed_json``, in the shape the Kapook loader writes (``title_th``,
+    ``category_source``, ``sections[].items[]``), so the lexicon worklist and the HD-37
+    label rules read both sources the same way. Tags stand in for the site category."""
+    return {
+        "post_id": record.post_id,
+        "title_th": record.title,
+        "category_source": " | ".join(record.tags),
+        "tags": record.tags,
+        "published_at": record.published_at.isoformat() if record.published_at else None,
+        "n_sections": record.n_sections,
+        "sections": [{"heading": None, "items": record.ingredient_lines}],
+    }
 
 
 def read_csv(path: Path = CSV_PATH) -> list[MThaiRecord]:

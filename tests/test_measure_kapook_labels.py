@@ -100,7 +100,7 @@ def test_the_database_holds_exactly_the_labels_the_rules_compute() -> None:
     """Read-only: the HD-37 rows in province_attribution equal what label_for() gives on
     the loaded kapook recipes (T1.15's done-when: counts match T1.13). Catches a write
     that silently did not commit."""
-    from scripts.apply_labels import SOURCE_ID, labels
+    from scripts.apply_labels import SOURCES, labels
     from scripts.measure_kapook_labels import load
     from scripts.measure_labelled_fraction import load_provinces
     from src.db import get_connection
@@ -116,7 +116,7 @@ def test_the_database_holds_exactly_the_labels_the_rules_compute() -> None:
             "WHERE method_note LIKE %s", (f"{OWNED}%",))}
     finally:
         conn.close()
-    expected = labels([r for r in recipes if source_of.get(r.recipe_id) == SOURCE_ID],
+    expected = labels([r for r in recipes if source_of.get(r.recipe_id) in SOURCES],
                       load_provinces(), official)
     assert stored == {rid: (lab.province_code, lab.region, lab.tier)
                       for rid, lab in expected.items()}
