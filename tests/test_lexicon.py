@@ -182,7 +182,7 @@ def test_the_committed_lexicon_keeps_other_under_the_ceiling_and_hd27_placements
         "ING_0125": ("acid", False), "ING_0135": ("seasoning", False),
         "ING_0002": ("seasoning", True),
         "ING_0041": ("protein_fish", True), "ING_0095": ("protein_fish", True),
-        "ING_0228": ("protein_fish", True), "ING_0413": ("protein_fish", True),
+        "ING_0228": ("protein_fish", True), "ING_0413": ("protein_fish", False),
         "ING_0406": ("protein_fish", True), "ING_0191": ("protein_other", True),
     }
     for cid, (category, fermented) in expected.items():

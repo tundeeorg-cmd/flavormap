@@ -395,7 +395,7 @@ ING_0409,น้ำสลัด,Salad dressing,seasoning,false,,,claude,2026-11-0
 ING_0410,น้ำส้มสายชูบัลซามิก,Balsamic vinegar,acid,true,,,claude,2026-11-06
 ING_0411,น้ำหวาน,Flavoured syrup,sweetener,false,,,claude,2026-11-06
 ING_0412,ปลาตะเพียน,Silver barb fish,protein_fish,false,,,claude,2026-11-06
-ING_0413,ปลาเค็ม,Salted fish,protein_fish,true,,,claude,2026-11-06
+ING_0413,ปลาเค็ม,Salted fish,protein_fish,false,,,claude,2026-11-06
 ING_0414,ปลาโอ,Bonito,protein_fish,false,,,claude,2026-11-06
 ING_0415,ปูเค็ม,Salted crab,protein_fish,true,,,claude,2026-11-06
 ING_0416,ผงดาชิ,Dashi powder,seasoning,false,,,claude,2026-11-06

@@ -966,6 +966,9 @@ presented.
    `protein_fish`.
    *Change applied:* ปลาเค็ม (ING_0413) was `is_fermented` = false and is now true, per
    the instruction. The other five were already true.
+   **Correction, 2026-11-06 (researcher):** the instruction was wrong for ปลาเค็ม. Salted
+   fish is salted and dried, not fermented, so ING_0413 is reverted to `is_fermented` =
+   false. It stays `protein_fish`. The other five keep `is_fermented` = true.
 3. **Section A:**
    - กิมจิ → `vegetable` (+fermented), like ผักดอง.
    - มิโสะ → `protein_other` (+fermented).
@@ -1591,7 +1594,7 @@ paper defends.
 level, with province rows shown where they exist. **Body text is admitted** (D), and every
 body-text claim is read by hand before it counts, as the August audit did. Rejected: A
 (province only), B (region only without province rows) and E (no labels).
-**Reasoning:** [not stated in session; to be added by the researcher]
+**Reasoning (researcher's, edited from a Claude draft):** Province labels give almost no units, so the analysis runs at region level, but province labels are kept for future sources. Body text adds Central; it is marked medium confidence so it can be dropped in a robustness check.
 **Date decided:** 2026-11-06, by the researcher in session
 
 **Confidence per rule (researcher, in session, 2026-11-06):** province named in a title,
@@ -1599,6 +1602,8 @@ category or tag (strict rule) → tier 1, **high**; compound region term in a ti
 category or tag → tier 2, **high**; province or region claim in body text confirmed by
 hand → **medium**. Unread body-text claims are never written. Rejected: all high; body
 text low; region terms medium.
+**Reasoning (researcher's, edited from a Claude draft):** Titles and categories are deliberate claims by the site; body
+mentions are often incidental, so they rank lower.
 
 **Before body-text labels can be written:** (1) [decided above]; (2) the 137 body-text region pages not yet read must be read by hand; (3) the
 August audit counted pages, so its confirmed claims must be mapped to loaded recipe units
@@ -1735,7 +1740,7 @@ note (running both) is cheap if wanted.
 **Decision:** **A and B both, B (TF-IDF) primary.** TF-IDF distances are the headline
 result (table and Figure 1); prevalence distances are reported beside them as the
 sensitivity check. Rejected: C (raw counts), and either weighting alone.
-**Reasoning:** [not stated in session; to be added by the researcher]
+**Reasoning (researcher's, edited from a Claude draft):** TF-IDF keeps RQ1 consistent with Figure 6 and stops staples like fish sauce from hiding differences; prevalence is reported as the sensitivity check.
 **Date decided:** 2026-11-06, by the researcher in session
 **Implemented:** `src/analyze/rq1_registers.py` `PRIMARY_WEIGHTING = "tfidf"`,
 `SENSITIVITY_WEIGHTING = "prevalence"` (and `ANALYSIS_UNIT = "region"` from HD-37 C);
@@ -1783,7 +1788,7 @@ ingredient text load as recipes (about 471 TAT, 565 m-culture, before dedup). Na
 dishes go to a separate dish-name list (no `recipes` rows) for RQ3 and RQ5 matching.
 Rejected: A (merge into official), C (reference only), D (different per source); for
 rows, "ingredient rows only" and "all rows with empty lists".
-**Reasoning:** [not stated in session; to be added by the researcher]
+**Reasoning (researcher's, edited from a Claude draft):** TAT and m-culture are a separate state-promotional register so the balanced 3 x 77 DCP design stays intact; only rows with ingredients become recipes, and name-only dishes are kept in a separate list for RQ3/RQ5 matching.
 **Date decided:** 2026-11-06, by the researcher in session. This also settles
 **HD-register-MC**.
 **To build [CC]:** migration 028 widens the `register` CHECK (026 went to HD-43, 027 to the MThai source row); parsers for both sources with parse-time PDPA stripping and fixtures; the
@@ -1837,7 +1842,7 @@ ICWSM and JCSSE); MThai loads with ingredient lists only. **Sanook:** the permis
 (`ETHICS.md` stays no-go until then). **After the 13 Dec freeze:** a new source (Wongnai or
 Cookpad, not yet chosen) is added for the full paper. The shortfall against the Bible's four
 sources until then is a limitation. Rejected: A alone, B (Kapook only).
-**Reasoning:** [not stated in session; to be added by the researcher]
+**Reasoning (researcher's, edited from a Claude draft):** Kapook + MThai now, Sanook only with written permission, one more source after the 13 Dec freeze for the full paper. MThai follows Kapook's HD-22 rule so sources are comparable.
 **Date decided:** 2026-11-06, by the researcher in session
 **Unit of observation for MThai (researcher, in session, 2026-11-06):** HD-22's Kapook
 rule applies: the 193 single-section posts load as one recipe each, and the 7 posts with
@@ -1888,7 +1893,7 @@ researcher's review, never dropped automatically**. Pre- and post-dedup counts a
 reported. This settles the CLAUDE.md §7.2 threshold note below (0.85 + title, not 0.9). It
 applies across all sources, including TAT vs m-culture and m-culture's 240
 collector-flagged rows. Rejected: A (Jaccard > 0.9 alone), C (wait for HD-6).
-**Reasoning:** [not stated in session; to be added by the researcher]
+**Reasoning (researcher's, edited from a Claude draft):** Jaccard + title with my review avoids silently dropping recipes on an untested threshold.
 **Date decided:** 2026-11-06, by the researcher in session
 
 ---
@@ -1920,7 +1925,7 @@ deduplication does not change these counts today.
 Per-source results are reported beside pooled ones (T1.19's robustness split, already
 built in `src/analyze/rq1_registers.py` `per_source_distances`). Rejected: B (cap or
 sample), C (weight by source).
-**Reasoning:** [not stated in session; to be added by the researcher]
+**Reasoning (researcher's, edited from a Claude draft):** Pooled figures reflect what the web actually publishes; per-source results show whether Kapook drives them.
 **Date decided:** 2026-11-06, by the researcher in session
 
 ---
@@ -1992,7 +1997,7 @@ patch, then `make migrate` and `make test`. Both patches currently apply cleanly
 state dish asked about, never creating a recipe. **Part 2: A**, verbatim only; any coding
 happens later under HD-11. Rejected: B (flag on `interview_dishes`), C (no change), and
 coded fields at write-up.
-**Reasoning:** [not stated in session; to be added by the researcher]
+**Reasoning (researcher's, edited from a Claude draft):** A separate table makes it impossible for a Q10 answer to become a fake recipe; verbatim now, coded later in one pass so all interviews are coded the same way.
 **Date decided:** 2026-11-06, by the researcher in session
 **Implemented:** migration `026_dish_status_reports.sql` (from draft A; the coded-column
 comment removed), draft `A_loader.patch` applied. Drafts B and C deleted; they remain in
@@ -2054,7 +2059,7 @@ NULL**. **Multi-mode strings: (iii), store every mode the text names.** **Place-
 strings: their own value, `local`.** Non-source text (units, citations, `[REDACTED]`) is
 NULL. Rejected: A (the 13 hints), B (edited keywords), D (drop acquisition mode); for
 multi-mode, NULL, `mixed` and first-named; for place-only, NULL.
-**Reasoning:** [not stated in session; to be added by the researcher]
+**Reasoning (researcher's, edited from a Claude draft):** Hand-coding is exact and auditable; every mode is stored so mixed sourcing stays visible; place-only text gets "local" so the information the form gives is not lost.
 **Date decided:** 2026-11-06, by the researcher in session
 **Build [CC] (T1.12):** remove `ACQUISITION_HINTS`, so the parser infers no mode; a
 multi-valued column allowing `grown | foraged | market | packaged | local` (migration);
