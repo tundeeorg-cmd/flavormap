@@ -243,6 +243,78 @@ def bias_corrected_interval(boot: np.ndarray, obs: float, alpha: float) -> tuple
     return float(np.quantile(boot, lo)), float(np.quantile(boot, hi))
 
 
+def jackknife(d: Design, weighting: Weighting, pair: tuple[str, str], unit: str) -> np.ndarray:
+    """Leave-one-recipe-out distances for `unit`, over the recipes of both sides of
+    `pair` (every other group fixed). Used only for the BCa acceleration."""
+    ia, ib = d.index(pair[0], unit), d.index(pair[1], unit)
+    if ia is None or ib is None:
+        return np.array([])
+    base = _prevalence(d)
+    out = []
+    for g in (ia, ib):
+        rows = d.group_rows[g]
+        if len(rows) < 2:
+            continue
+        total = d.x[rows].sum(axis=0)
+        for r in rows:
+            p = base.copy()
+            p[g] = (total - d.x[r]) / (len(rows) - 1)
+            w = _weight(p, weighting)
+            out.append(float(_cosine(w[ia], w[ib])))
+    return np.array(out)
+
+
+def bca_interval(boot: np.ndarray, obs: float, jack: np.ndarray,
+                 alpha: float) -> tuple[float, float]:
+    """BCa interval (Efron 1987): the bias correction z0 of `bias_corrected_interval`
+    plus an acceleration from the jackknife. Evidence for HD-44's open amendment only."""
+    boot = boot[np.isfinite(boot)]
+    n = boot.size
+    if n == 0 or not math.isfinite(obs) or jack.size < 2:
+        return math.nan, math.nan
+    share = (np.sum(boot < obs) + 0.5 * np.sum(boot == obs)) / n
+    share = min(max(share, 1 / (n + 1)), n / (n + 1))
+    z0 = float(norm.ppf(share))
+    dev = jack.mean() - jack
+    denom = 6 * float(np.sum(dev ** 2)) ** 1.5
+    a = float(np.sum(dev ** 3)) / denom if denom > 0 else 0.0
+    out = []
+    for q in (alpha / 2, 1 - alpha / 2):
+        zq = float(norm.ppf(q))
+        out.append(float(np.quantile(boot, norm.cdf(z0 + (z0 + zq) / (1 - a * (z0 + zq))))))
+    return out[0], out[1]
+
+
+def interval_evidence(
+    data: pd.DataFrame, unit: Unit, weighting: Weighting, pair: tuple[str, str], *,
+    n_boot: int, seed: int, alpha: float = 0.05,
+) -> list[dict[str, float | str]]:
+    """Per unit, the interval types HD-44's open amendment compares, from the **same**
+    bootstrap draws `infer` uses (same seed stream), so ``bc_*`` equals the reported
+    interval. ``bc_point`` = 2·obs − mean(boot), the bias-corrected point estimate.
+    ``basic`` = (2·obs − q_hi, 2·obs − q_lo)."""
+    d = design(data, unit)
+    obs = observed(d, weighting, pair)
+    boot = bootstrap(d, weighting, pair, n_boot, np.random.default_rng([seed, 0]))
+    rows: list[dict[str, float | str]] = []
+    for u, b in boot.items():
+        b = b[np.isfinite(b)]
+        o = obs[u]
+        q_lo, q_hi = (float(np.quantile(b, alpha / 2)), float(np.quantile(b, 1 - alpha / 2)))
+        bc = bias_corrected_interval(b, o, alpha)
+        bca = bca_interval(b, o, jackknife(d, weighting, pair, u), alpha)
+        share = float((np.sum(b < o) + 0.5 * np.sum(b == o)) / b.size)
+        rows.append({
+            "unit": u, "distance": o, "boot_mean": float(b.mean()),
+            "bias": float(b.mean()) - o, "boot_se": float(b.std(ddof=1)),
+            "share_below_obs": share, "bc_point": 2 * o - float(b.mean()),
+            "pct_low": q_lo, "pct_high": q_hi, "bc_low": bc[0], "bc_high": bc[1],
+            "bca_low": bca[0], "bca_high": bca[1],
+            "basic_low": 2 * o - q_hi, "basic_high": 2 * o - q_lo,
+        })
+    return rows
+
+
 def holm(pvalues: list[float]) -> list[float]:
     """Holm–Bonferroni step-down adjustment over one family (HD-44: the regions of one
     scope). NaN entries are left NaN and do not count toward the family size."""

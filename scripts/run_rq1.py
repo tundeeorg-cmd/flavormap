@@ -41,9 +41,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.analyze.rq1_inference import holm, infer
+from src.analyze.rq1_inference import holm, infer, interval_evidence
 from src.analyze.rq1_registers import (
     ANALYSIS_UNIT,
+    COMMERCIAL_MIN_N,
     PRIMARY_WEIGHTING,
     PROCESSED,
     SENSITIVITY_WEIGHTING,
@@ -57,7 +58,7 @@ from src.config import DATA_DIR, RANDOM_SEED
 OUT_DIR = DATA_DIR / "coverage"
 COLUMNS = ("weighting", "role", "scope", "unit_type", "unit", "n_official",
            "n_commercial_side", "distance", "ci_low", "ci_high", "p_register_shuffle",
-           "p_register_holm", "p_unit_shuffle", "p_unit_holm")
+           "p_register_holm", "p_unit_shuffle", "p_unit_holm", "below_min_n")
 
 
 def run(data: pd.DataFrame, unit: str, n_perm: int, n_boot: int, seed: int) -> list[dict]:
@@ -85,6 +86,8 @@ def run(data: pd.DataFrame, unit: str, n_perm: int, n_boot: int, seed: int) -> l
                     "ci_low": r.ci_low, "ci_high": r.ci_high,
                     "p_register_shuffle": r.p_register, "p_register_holm": p_reg_holm,
                     "p_unit_shuffle": r.p_unit, "p_unit_holm": p_holm,
+                    # HD-37 amendment (2026-11-06): flagged, never dropped.
+                    "below_min_n": r.n_b < COMMERCIAL_MIN_N,
                 })
     return rows
 
@@ -124,12 +127,55 @@ def print_table(rows: list[dict]) -> None:
             current = head
             print(f"\n{r['role']} ({r['weighting']}), commercial = {r['scope']}")
             print(f"  {'unit':<14}{'n_off':>6}{'n_com':>6}  {'distance':>8}  "
-                  f"{'95% CI (BC)':<17}{'p_reg':>8}{'p_reg_H':>8}{'p_unit_H':>9}")
+                  f"{'95% CI (BC)':<17}{'p_reg':>8}{'p_reg_H':>8}{'p_unit_H':>9}  note")
         ci = (f"[{r['ci_low']:.3f}, {r['ci_high']:.3f}]"
               if not math.isnan(r["ci_low"]) else "")
         print(f"  {r['unit']:<14}{r['n_official']:>6}{r['n_commercial_side']:>6}  "
               f"{_fmt(r['distance']):>8}  {ci:<17}{_fmt(r['p_register_shuffle']):>8}"
-              f"{_fmt(r['p_register_holm']):>8}{_fmt(r['p_unit_holm']):>9}")
+              f"{_fmt(r['p_register_holm']):>8}{_fmt(r['p_unit_holm']):>9}"
+              f"{'  below minimum n' if r['below_min_n'] else ''}")
+
+
+INTERVAL_COLUMNS = ("scope", "unit", "n_official", "n_commercial_side", "distance",
+                    "boot_mean", "bias", "boot_se", "share_below_obs", "bc_point",
+                    "pct_low", "pct_high", "bc_low", "bc_high", "bca_low", "bca_high",
+                    "basic_low", "basic_high", "obs_outside_bc")
+
+
+def _interval_evidence(data: pd.DataFrame, args: argparse.Namespace) -> int:
+    """`--interval-evidence`: one row per scope × unit, primary weighting only."""
+    sources = sorted(data.loc[data["register"] == "commercial", "source_id"].dropna()
+                     .astype(str).unique())
+    split = split_by_source(data)
+    scopes = [("pooled", data, ("official", "commercial"))]
+    scopes += [(s, split, ("official", f"commercial:{s}")) for s in sources]
+    rows = []
+    for scope, frame, pair in scopes:
+        counts = {r.unit: (r.n_a, r.n_b) for r in infer(
+            frame, args.unit, PRIMARY_WEIGHTING, pair, n_boot=0, n_perm=0, seed=RANDOM_SEED)}
+        for e in interval_evidence(frame, args.unit, PRIMARY_WEIGHTING, pair,
+                                   n_boot=args.bootstrap, seed=RANDOM_SEED):
+            n_a, n_b = counts[str(e["unit"])]
+            d, lo, hi = float(e["distance"]), float(e["bc_low"]), float(e["bc_high"])
+            rows.append({"scope": scope, "n_official": n_a, "n_commercial_side": n_b, **e,
+                         "obs_outside_bc": not lo <= d <= hi})
+    out = args.out_dir / f"rq1_intervals_{datetime.date.today():%Y%m%d}.csv"
+    args.out_dir.mkdir(parents=True, exist_ok=True)
+    with out.open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=INTERVAL_COLUMNS)
+        w.writeheader()
+        for r in rows:
+            w.writerow({k: (f"{v:.4f}" if isinstance(v, float) else v) for k, v in r.items()})
+    print(f"{'scope':<15}{'unit':<11}{'n_c':>4}{'obs':>8}{'bias':>8}{'BCpt':>8}  "
+          f"{'percentile':<16}{'BC':<16}{'BCa':<16}{'basic':<16}")
+    for r in rows:
+        iv = "  ".join(f"[{r[k + '_low']:.3f},{r[k + '_high']:.3f}]"
+                       for k in ("pct", "bc", "bca", "basic"))
+        print(f"{r['scope']:<15}{r['unit']:<11}{r['n_commercial_side']:>4}"
+              f"{r['distance']:>8.4f}{r['bias']:>8.4f}{r['bc_point']:>8.4f}  {iv}"
+              f"{'  obs outside BC' if r['obs_outside_bc'] else ''}")
+    print(f"wrote {out}")
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -141,12 +187,18 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out-dir", type=Path, default=OUT_DIR)
     ap.add_argument("--reviewed-only", action="store_true",
                     help="use only entries drafted or reviewed by the researcher")
+    ap.add_argument("--interval-evidence", action="store_true",
+                    help="HD-44 open amendment: compare interval types per cell (primary "
+                         "weighting) from the same bootstrap draws; writes "
+                         "rq1_intervals_YYYYMMDD.csv, no permutations")
     args = ap.parse_args(argv)
     try:
         data = load_inputs(args.processed, reviewed_only=args.reviewed_only)
         if data.empty:
             raise InputError("no recipe in v_recipes_clean has mapped ingredients yet: "
                              "author the lexicon, then `make lexicon` and `make parquet`")
+        if args.interval_evidence:
+            return _interval_evidence(data, args)
         rows = run(data, args.unit, args.permutations, args.bootstrap, RANDOM_SEED)
     except InputError as e:
         print(f"RQ1 cannot run: {e}")
@@ -164,6 +216,9 @@ def main(argv: list[str] | None = None) -> int:
                    "register-label shuffle, p_register_holm = Holm across units within "
                    "each scope. Secondary: region-label shuffle, p_unit_holm. "
                    "(HD-44, revised 2026-11-06)",
+        "min_n_commercial": COMMERCIAL_MIN_N,
+        "below_min_n": "n_commercial_side < min_n_commercial; flagged, not dropped, and "
+                       "still inside its Holm family (HD-37 amendment, 2026-11-06)",
         "lexicon": "reviewed-only" if args.reviewed_only else "all entries",
         "lexicon_entries": len(entries),
         "lexicon_entries_used": int(data["canonical_id"].nunique()),

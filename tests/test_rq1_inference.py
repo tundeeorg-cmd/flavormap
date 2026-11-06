@@ -256,3 +256,38 @@ def test_run_rq1_writes_the_holm_adjusted_p(tmp_path: Path) -> None:
     meta = json.loads(out.with_suffix(".json").read_text(encoding="utf-8"))
     assert "bias-corrected" in meta["ci"]
     assert "Primary (reported): register-label shuffle" in meta["p_value"]
+
+
+def test_run_rq1_flags_cells_below_minimum_n_without_dropping_them(tmp_path: Path) -> None:
+    """HD-37 amendment (2026-11-06): fewer than COMMERCIAL_MIN_N commercial recipes →
+    `below_min_n` is true; the row is still written."""
+    from src.analyze.rq1_registers import COMMERCIAL_MIN_N
+    processed = _processed(tmp_path)
+    assert run_rq1.main(["--processed", str(processed), "--out-dir", str(tmp_path),
+                         "--permutations", "9", "--bootstrap", "9"]) == 0
+    out = next(tmp_path.glob("rq1_registers_*.csv"))
+    rows = list(csv.DictReader(out.open(encoding="utf-8")))
+    assert list(rows[0])[-1] == "below_min_n"
+    for r in rows:
+        assert (r["below_min_n"] == "True") == (int(r["n_commercial_side"]) < COMMERCIAL_MIN_N)
+    meta = json.loads(out.with_suffix(".json").read_text(encoding="utf-8"))
+    assert meta["min_n_commercial"] == COMMERCIAL_MIN_N == 5
+
+
+def test_interval_evidence_matches_the_reported_bias_corrected_interval(tmp_path: Path) -> None:
+    """HD-44 open amendment: the evidence table draws the same bootstrap as `infer`, so its
+    BC interval is the reported one; BCa with zero acceleration equals BC."""
+    from src.analyze.rq1_inference import bca_interval, bias_corrected_interval, interval_evidence
+    from src.analyze.rq1_registers import load_inputs
+    data = load_inputs(_processed(tmp_path))
+    reported = {r.unit: r for r in infer(data, "region", "tfidf", n_boot=199, n_perm=0, seed=7)}
+    for e in interval_evidence(data, "region", "tfidf", ("official", "commercial"),
+                               n_boot=199, seed=7):
+        r = reported[str(e["unit"])]
+        assert (e["bc_low"], e["bc_high"]) == pytest.approx((r.ci_low, r.ci_high))
+        assert e["bc_point"] == pytest.approx(2 * r.distance - float(e["boot_mean"]))
+    rng = np.random.default_rng(0)
+    boot = rng.normal(0.5, 0.05, 999)
+    symmetric = np.array([0.4, 0.5, 0.6])  # acceleration 0
+    assert bca_interval(boot, 0.52, symmetric, 0.05) == pytest.approx(
+        bias_corrected_interval(boot, 0.52, 0.05))

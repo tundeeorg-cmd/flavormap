@@ -56,6 +56,9 @@ SENSITIVITY_WEIGHTING: Weighting = "prevalence"
 # HD-37, decided 2026-11-06 (option C): analysis at region level; province rows shown
 # where they exist.
 ANALYSIS_UNIT: Unit = "region"
+# Researcher, 2026-11-06 (HD-37 amendment): a unit with fewer than this many commercial
+# recipes is marked "below minimum n" in every RQ1 table. It is flagged, never dropped.
+COMMERCIAL_MIN_N = 5
 PROCESSED = DATA_DIR / "processed"
 # v_recipes_clean's bounds on mapped ingredients per recipe (migration 015). Re-applied in
 # Python when a run is restricted to reviewed entries (`restrict_to_trusted`).
