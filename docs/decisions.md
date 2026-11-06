@@ -2371,7 +2371,7 @@ and §14.1, CLAUDE.md §4 RQ1, TIMELINE T1.19, `paper/dh2027/numbers.md`.
 
 
 ### HD-44 amendment — the observed distance lies outside its interval in 3 cells
-**Date presented:** 2026-11-06 · **Status:** OPEN
+**Date presented:** 2026-11-06 · **Status:** DECIDED 2026-11-06
 **Arises from:** the 9,999/9,999 run at f00ae26 (T1.19). In 3 primary (TF-IDF) cells the
 observed distance lies above its bias-corrected 95% interval:
 - pooled North: 0.6494 vs [0.5406, 0.6490];
@@ -2431,9 +2431,20 @@ this). TF-IDF, all 12 cells:
   Another methods change after results were seen, which the paper would disclose.
 
 **Recommendation:** none.
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** **A. Keep, and explain.** Report the observed distance with the
+bias-corrected 95% interval, plus a footnote and a limitations line for the cells where
+the bootstrap bias exceeds about 1.96 SE (3 of 12 TF-IDF cells at f00ae26). Chosen by the
+researcher from the four options asked (A–D; E offered via "Other").
+Rejected: B (BC point estimate), C (switch interval type), D (normal interval around the
+BC point), E (bias-reduced estimator).
+**Reasoning:** [not stated in session; to be added by the researcher]
+**Date decided:** 2026-11-06, by the researcher in session
+**To build [CC]:**
+- a `docs/limitations.md` row;
+- an `obs_outside_ci` flag in `run_rq1`'s output, so the footnote's cells come from the
+  script, not by hand.
+
+Not built yet; the session stopped here at the researcher's instruction.
 ---
 
 ## Note — CLAUDE.md §7.2 states two different dedup Jaccard thresholds
