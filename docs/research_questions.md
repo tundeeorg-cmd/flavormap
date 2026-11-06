@@ -26,7 +26,7 @@
 
 ## Implementation note for RQ1 (timeline task T1.19)
 
-- **Permutation test:** shuffle province labels 9,999 times, recompute the official↔commercial distance each time, and report where the observed distance falls (empirical p-value).
-- **Bootstrap:** 95% confidence intervals from resampling recipes within each province.
+- **Permutation test (HD-44, revised 2026-11-06):** the unit is the region (HD-37). **Primary:** within each region, shuffle the official/commercial labels across its recipes 9,999 times (register-label shuffle), recompute the official↔commercial distance each time, and report where the observed distance falls (empirical p-value, Holm-adjusted across the four regions). **Secondary:** shuffle region labels within each register. The primary test was chosen after trial results were seen (recorded in HD-44).
+- **Bootstrap:** 95% bias-corrected percentile intervals from 9,999 resamples of recipes within each region.
 - Report n beside every distance.
 - Changing the RQ wording after pre-registration requires a dated amendment in `docs/hypotheses.md`, not a silent edit.

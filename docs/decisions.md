@@ -903,10 +903,50 @@ state variants into aliases, excluding non-ingredients, and a seasoning category
 **Decision:** **Add a sixteenth category, `seasoning`.** Instructed by the researcher in
 session, 2026-11-06 ("add … the new category seasoning to the loader"). This reverses
 rejected option C above; the original reasoning against a generic bin is kept on record.
-**Reasoning:** [not stated in session; to be added by the researcher]
-**Open:** what belongs in `seasoning` and what does not (e.g. fish sauce and shrimp paste
-are `protein_fish` under the original rule; soy sauce could be `protein_other`). An
-inclusion rule written here would stop the category absorbing "everything ambiguous".
+**Reasoning (researcher's, edited from a Claude draft):** About 17% of the first 200
+entries fell into `other`, over the 5% ceiling, mostly sauces, salt, MSG and powders whose
+culinary role is seasoning. A named category is more informative than an overflowing
+`other`.
+**Inclusion rule — DECIDED 2026-11-06** (the researcher adopted Claude's suggested
+wording): "`seasoning` = condiments and seasoning agents added mainly to adjust
+saltiness, umami, sweetness or sourness at the table or during cooking, not as a base or
+bulk ingredient of the dish."
+
+**Entries to review against the rule (listed 2026-11-06; nothing moved).** A reading of
+the rule's wording against `data/reference/lexicon/canonical_ingredients.csv` as it stands
+(38 `seasoning` entries). Which entries move, and where, is the researcher's call.
+- **`seasoning` entries that may break it:**
+  - *A base or bulk ingredient, not an adjuster:* `ING_0193 กิมจิ` (kimchi; HD-27's own
+    example put ผักดอง under `vegetable`), `ING_0431 มิโสะ` (the base of miso soup),
+    `ING_0416 ผงดาชิ` and `ING_0296 ซุปก้อน` (stock bases; `น้ำซุป` and `น้ำซุปไก่` are
+    `other`), `ING_0373 โคชูจัง` (a paste base), `ING_0295 ซอสเทอริยากิ` (a glaze base),
+    `ING_0409 น้ำสลัด` (a dressing that is the salad's sauce).
+  - *Adjusts something outside the four tastes:* `ING_0398 มัสตาร์ด` (pungency);
+    `ING_0155 เหล้าจีน`, `ING_0380 ไวน์ขาว`, `ING_0456 เหล้ารัม`, `ING_0457 สาเก`
+    (aroma; `ING_0317 มิริน` adds sweetness and fits).
+  - *Borderline:* `ING_0246 ตั้งฉ่าย` (a preserved vegetable used to salt soups).
+  - *Record mismatch:* the batch decisions above say `ING_0002 น้ำปลา` "is still
+    `protein_fish`", but the file has it as `seasoning`. One of the two is out of date.
+- **Non-`seasoning` entries that may fit it:**
+  - *`sweetener`, sugars added to adjust sweetness:* `ING_0003 น้ำตาลทราย`,
+    `ING_0015 น้ำตาลปี๊บ`, `ING_0055 น้ำตาลทรายแดง`, `ING_0069 น้ำตาลมะพร้าว`,
+    `ING_0094 น้ำตาล`, `ING_0098 น้ำเชื่อม`, `ING_0146 น้ำตาลทรายขาว`,
+    `ING_0225 น้ำตาลกรวด`, `ING_0226 น้ำตาลโตนด`, `ING_0346 น้ำตาลแว่น`,
+    `ING_0472 น้ำอ้อยก้อน`, `ING_0045 น้ำผึ้ง`. (In desserts sugar is bulk, so "mainly"
+    differs by dish.)
+  - *`acid`, added to adjust sourness:* `ING_0013 น้ำมะนาว`, `ING_0031 มะนาว`,
+    `ING_0070 น้ำมะขามเปียก`, `ING_0097 น้ำส้มสายชู`, `ING_0217 น้ำเลมอน`,
+    `ING_0256 ส้มแขก`, `ING_0341 ซอสเปรี้ยว`, `ING_0348 น้ำส้มพริกดอง` (a table
+    condiment), `ING_0407 น้ำมะกรูด`, `ING_0410 น้ำส้มสายชูบัลซามิก`, `ING_0426 มะปี๊ด`;
+    and `ING_0125 มะขามเปียก`, filed as `spice`.
+  - *Salty or umami agents filed elsewhere:* `ING_0041 กะปิ`, `ING_0095 น้ำปลาร้า`,
+    `ING_0406 น้ำปู` (`protein_fish`), `ING_0191 เต้าเจี้ยว` (`protein_other`).
+    `ING_0228 ปลาร้า` and `ING_0413 ปลาเค็ม` are adjusters in some dishes and bulk in
+    others.
+  - *Table condiments filed as `spice`:* `ING_0135 ซอสพริก`.
+- **The overlap this shows.** Read literally, the rule covers most of `sweetener` and
+  `acid`. HD-27 kept `acid` separate because sour separates regions (rejected option C).
+  Whether the rule yields to `acid` and `sweetener`, or absorbs them, is open.
 
 **How it is enforced.** Migration 029 replaces 023's CHECK with the same list plus
 `seasoning`; `src/clean/lexicon.py` `CATEGORIES` matches it (a test keeps them in step).
@@ -2018,12 +2058,20 @@ changes the item; Q3 map to source, own with trivial forms merged; Q4 one per pl
 separate if the role differs; Q5 split lists with first-named or NULL for หรือ, leave both
 unmapped; Q6 (b).
 **Reasoning:**
-- Q1: [not stated in session; to be added by the researcher]
-- Q2: [not stated in session; to be added by the researcher]
-- Q3: [not stated in session; to be added by the researcher]
-- Q4: [not stated in session; to be added by the researcher]
-- Q5: [not stated in session; to be added by the researcher]
-- Q6: [not stated in session; to be added by the researcher]
+- Q1 (researcher's, edited from a Claude draft): At ~3 official recipes per province, splitting cultivars would spread the same
+  ingredient across entries too thin to compare; recipe writers also name cultivars
+  inconsistently.
+- Q2 (researcher's, edited from a Claude draft): Fresh vs dried vs ground changes form, not identity. RQ1 compares which
+  ingredients a register uses; preparation detail is what RQ4 measures separately.
+- Q3 (researcher's, edited from a Claude draft): Coconut cream, tamarind water and palm sugars are bought and used as distinct
+  ingredients and carry regional signal that would vanish if merged into the source plant.
+- Q4 (researcher's, edited from a Claude draft): Leaf, zest and fruit of the same plant do different jobs in a dish; merging them
+  would make a lime-leaf curry look like a lime dressing.
+- Q5 (researcher's, edited from a Claude draft): Every named ingredient is evidence of what that register finds acceptable in the
+  dish; picking one of "A or B" would be an arbitrary choice.
+- Q6 (researcher's, edited from a Claude draft): Mapping strings as written keeps every mapping traceable to the exact source
+  text and avoids a stripping step whose own errors would sit silently under the lexicon.
+  I accept the larger workload (5,521 vs 2,675 strings for 80%).
 **Date decided:** 2026-11-06 (all six questions), by the researcher in session
 **Build [CC], 2026-11-06:** Q5 splits live in `data/reference/lexicon/ingredient_splits.csv`
 → table `ingredient_alias_splits` (migration 028), one row per entry a string names.
@@ -2170,7 +2218,7 @@ writing; `recipe_ingredients` holds 9,141 rows in 1,631 recipes.
 ---
 
 ## HD-44 — Which permutation null does RQ1 report?
-**Date presented:** 2026-11-06 · **Status:** DECIDED 2026-11-06
+**Date presented:** 2026-11-06 · **Status:** DECIDED 2026-11-06, **REVISED 2026-11-06** (the revision below supersedes the first decision)
 **Arises from:** DH2027 outline v0.2, Section 4 ("shuffle province labels 9,999 times and
 report where the real distance falls"), now that RQ1's unit is the region (HD-37 C).
 `src/analyze/rq1_inference.py` computes both nulls below for every distance and
@@ -2206,7 +2254,7 @@ HD-37's labelled count, so intervals will be wide; the counts are printed beside
 researcher corrected it in session and the question was asked again.
 
 **Recommendation:** none.
-**Decision:**
+**Decision (first, 2026-11-06) — SUPERSEDED by the revised decision below; kept on record:**
 - **Null: A, the region-label shuffle** (the outline's wording, at region level).
   `p_unit_shuffle` is the reported p-value; B (`p_register_shuffle`) is not reported.
 - **Adjustment: Holm–Bonferroni across the 4 regions, within each scope.** Pooled
@@ -2230,6 +2278,48 @@ Rejected:
     exceeds about 1.96 SE, the observed value can fall just outside the corrected
     interval too (South 0.535, interval [0.434, 0.532]). That is a stated limit of
     bias correction, for the limitations section.
+
+**Revised decision, 2026-11-06 (supersedes the first decision above).** Instructed by the
+researcher in session.
+- **Null: B, the register-label shuffle, primary.** `p_register_holm` is the reported
+  p-value.
+- **A, the region-label shuffle, is reported as secondary** (`p_unit_holm`). Reporting A
+  as secondary, rather than dropping it, was Claude's recommendation, which the
+  researcher adopted.
+- **Unchanged:**
+  - Holm–Bonferroni across the 4 regions within each scope, applied to B and to A, each
+    as its own family.
+  - 9,999 bootstrap resamples, bias-corrected percentile interval, 95%.
+
+**When the switch was made, and what had been seen (recorded as a deviation).** The change
+from A to B was made **after trial results had been seen**:
+- **The 99-resample trial,** shown when question 1 was first asked: A gave p = 0.19–0.97,
+  B gave p = 0.01–0.06.
+- **The 999-resample trial,** run after the first decision: A's Holm-adjusted p was ≥ 0.37
+  in every region.
+
+The reported test was therefore chosen knowing which null gives the smaller p-values. The
+paper must say so; it cannot present B as pre-specified. A is still reported, as
+secondary, so the reader sees both.
+
+**Reasoning (revised decision; researcher's, edited from a Claude draft):** "RQ1 asks
+whether the state and web records differ by more than chance. The register-label shuffle
+tests exactly that; the region-label shuffle in my outline tests a different question
+(whether one region's gap exceeds the usual gap). I switched on 6 Nov after 99-resample
+trial runs were already visible; the switch is for question fit, so the originally planned
+test is still reported as secondary and the switch is disclosed in Methods."
+**Date revised:** 2026-11-06, by the researcher in session
+
+**Not changed here:**
+- `docs/hypotheses.md`: Claude Code does not write in it (its rule 1). Any dated amendment
+  `docs/research_questions.md` asks for is the researcher's.
+- The RQ1 wording itself (research_questions.md RQ1 row, Bible §6 Full (EN) and the
+  outline's RQ table), which still says "randomly shuffling province labels". Changing it
+  needs the dated `hypotheses.md` amendment above, so it is the researcher's.
+**Updated to the revision, 2026-11-06:** `rq1_inference` / `run_rq1` (column order,
+printed table, `.json` `p_value`), `tests/test_rq1_inference.py`, OUTLINE §4 and §5,
+RQ_PLAYBOOK RQ1 step 4–5, research_questions.md implementation note, Bible §6 RQ1 Method
+and §14.1, CLAUDE.md §4 RQ1, TIMELINE T1.19, `paper/dh2027/numbers.md`.
 
 ---
 

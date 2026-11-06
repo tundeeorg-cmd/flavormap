@@ -193,8 +193,12 @@ studies takes away.
 - **Method** — ingredient-profile distance between the three registers for the same
   province. Cosine distance on normalised ingredient vectors, pairwise:
   official↔commercial, official↔domestic, commercial↔domestic. **Bible v5:** a
-  permutation baseline (9,999 province-label shuffles, empirical p), 95% bootstrap CIs
-  (recipes resampled within province), and the commercial side repeated per source.
+  permutation baseline and 95% bootstrap CIs, and the commercial side repeated per
+  source. **HD-44 (revised 2026-11-06):** unit = region (HD-37); primary null = the
+  register-label shuffle within each region (9,999, empirical p, Holm across the 4
+  regions); the region-label shuffle is secondary; 9,999 bias-corrected percentile
+  bootstrap resamples. The primary null was chosen after trial results were seen, and
+  the paper discloses it.
 - **Output** — triangle plot per province, one vertex per register, edge length =
   disagreement. **Figure 1**.
 - **Needs fieldwork** — yes. The domestic register *is* the interviews.

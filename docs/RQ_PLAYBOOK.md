@@ -81,8 +81,8 @@ cooking, writing) is behind. **DH2027 is due 20 Nov** and needs the lexicon + pr
 1. **[Bo] Decide the unit** (HD-labelling): province where labels allow, region otherwise. Write down the minimum n per unit (e.g. ≥5 commercial recipes) below which a unit is dropped.
 2. **[CC] Build vectors**: for each unit × register, a normalised ingredient vector (share of recipes containing each canonical ingredient). Keep n per cell.
 3. **[CC] Distance**: cosine distance official↔commercial per unit (and official↔domestic, commercial↔domestic for Korat and Buri Ram once interviews are in).
-4. **[CC] Permutation baseline**: shuffle unit labels within each register 9,999 times, recompute distances; empirical p = share of shuffled distances ≥ observed. Also report the pooled result ("X of N units differ more than chance").
-5. **[CC] Bootstrap CI**: resample recipes within each unit 2,000 times → 95% CI per distance.
+4. **[CC] Permutation baseline** (HD-44, revised 2026-11-06): **primary**, within each unit shuffle the official/commercial labels across the unit's recipes 9,999 times (register-label shuffle) and recompute the distance; empirical p = share of shuffled distances ≥ observed, Holm-adjusted across the units of each scope. **Secondary**: shuffle unit labels within each register (region-label shuffle), also Holm-adjusted. Also report the pooled result ("X of N units differ more than chance"). Note that the primary test was chosen after trial results were seen.
+5. **[CC] Bootstrap CI**: resample recipes within each unit 9,999 times → 95% bias-corrected percentile CI per distance (HD-44).
 6. **[CC] Robustness**: repeat with commercial = Kapook only / Sanook only / MThai only; and excluding manual Nakhon Nayok rows.
 7. **[CC] Optional second test**: classifier (e.g. logistic regression or random forest) predicting region from ingredients, cross-validated; compare accuracy on official vs. commercial recipes.
 8. **[CC] Figures**: Figure 6 heatmap (seriated, faceted by register); Figure 1 register triangles (Korat, Buri Ram) + two-register lines with CIs elsewhere.

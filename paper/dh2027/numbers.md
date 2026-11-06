@@ -13,9 +13,10 @@ Fill a line as: `value` · output file · commit · date.
   are not reviewed yet. Report every lexicon-dependent number **both ways**: all entries,
   and reviewed only (researcher-drafted or reviewed). Use `make rq1` and
   `make rq1 REVIEWED=1`; `scripts.lexicon_coverage` prints both.
-- **HD-44 (decided 2026-11-06):** report `p_unit_shuffle` (region-label shuffle), Holm-adjusted
-  across the 4 regions within each scope. Intervals: 9,999 resamples, bias-corrected
-  percentile, 95%. Built: `p_unit_holm` and the bias-corrected CI in `run_rq1`'s output.
+- **HD-44 (revised 2026-11-06):** report `p_register_holm` (register-label shuffle, primary),
+  Holm-adjusted across the 4 regions within each scope; `p_unit_holm` (region-label shuffle)
+  as secondary. Intervals: 9,999 resamples, bias-corrected percentile, 95%. The primary
+  test was chosen after trial results were seen; the paper must say so.
 
 ## Section 3: Data (Table 1)
 
@@ -75,8 +76,8 @@ Primary = TF-IDF, sensitivity = prevalence (HD-38). Source file: `data/coverage/
 | Official↔commercial distance per region, with 95% bootstrap CI (TF-IDF, pooled) | [TBD: scripts.run_rq1] |
 | Median distance across regions | [TBD: scripts.run_rq1] |
 | Range of distances across regions | [TBD: scripts.run_rq1] |
-| Regions differing more than chance, Holm-adjusted p < 0.05 ("n of N"), region-label shuffle (HD-44) | [TBD: scripts.run_rq1] |
-| p-value per region (HD-44's null) | [TBD: scripts.run_rq1] |
+| Regions differing more than chance, Holm-adjusted p < 0.05 ("n of N"), register-label shuffle (primary, HD-44); same under the region-label shuffle (secondary) | [TBD: scripts.run_rq1] |
+| p-value per region: `p_register_holm` (primary), `p_unit_holm` (secondary) | [TBD: scripts.run_rq1] |
 | Region where the registers agree most | [TBD: scripts.run_rq1] |
 | Region where the registers agree least | [TBD: scripts.run_rq1] |
 | Sensitivity: the same per-region distances under prevalence, and whether the order of regions changes | [TBD: scripts.run_rq1] |

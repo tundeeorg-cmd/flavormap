@@ -244,7 +244,7 @@ canonical table lives in `FlavorMap_Research_Questions.md`; this section adds me
 | **Short (TH)** | อาหารประจำจังหวัดที่รัฐเลือก สูตรบนเว็บ และอาหารที่คนในจังหวัดทำกินจริง ต่างกันจริง หรือแค่บังเอิญ? |
 | **Short (EN)** | How different are the dishes the state chose to represent each province, the recipes on the web, and what people in that province actually cook, and are the differences real or just chance? |
 | **Full (EN)** | How far apart are the ingredient profiles of the same province across three sources — the Department of Cultural Promotion's records, recipes on food websites, and the dishes home cooks in that province actually make? Distance is cosine distance between ingredient profiles within each province. Are these differences larger than expected by chance? We compare against a baseline built by randomly shuffling province labels (a permutation test) and report bootstrap confidence intervals. |
-| **Method** | Normalised ingredient vectors per province (or region, per HD-labelling) per register → pairwise cosine distance → permutation test (9,999 label shuffles, empirical p) → 95% bootstrap CI (resample recipes within province) → robustness: commercial side per source. Optional second test: a classifier predicting region from ingredients, compared across registers. |
+| **Method** | Normalised ingredient vectors per region (HD-37; province rows where they exist) per register → pairwise cosine distance → permutation test (HD-44, revised 2026-11-06): primary, register-label shuffle within each region, 9,999 shuffles, empirical p, Holm-adjusted across regions; secondary, region-label shuffle within each register → 95% bias-corrected bootstrap CI (9,999 resamples of recipes within region) → robustness: commercial side per source. The primary test was chosen after trial results were seen (HD-44). Optional second test: a classifier predicting region from ingredients, compared across registers. |
 | **Output** | Distance table with n, CI and p; Figure 1 (register triangles for Korat and Buri Ram; two-register lines elsewhere); Figure 6 heatmap. |
 | **Needs fieldwork** | Only for the three-way comparison in Korat and Buri Ram. Official↔commercial runs nationwide without it. |
 | **A NO looks like** | Registers differ no more than chance. A real result: it would mean state and web records are fair proxies for home cooking. |
@@ -503,10 +503,14 @@ commercial, ~6 domestic in two provinces only. Distance measures are sensitive t
 sample sizes alongside every distance, and do not compare a province's official↔domestic distance against
 another province's official↔commercial distance without noting the asymmetry.
 
-**Is the difference real? (v5).** For each province, shuffle province labels 9,999 times, recompute the
-distance, and report where the observed value falls (empirical p-value). Report 95% bootstrap confidence
-intervals by resampling recipes within each province. Repeat the commercial side per source (Kapook,
-Sanook, MThai) as a robustness check. Report a null result plainly.
+**Is the difference real? (v5; test revised 2026-11-06, HD-44).** The unit is the region (HD-37). For
+each region, shuffle the official/commercial labels across the region's recipes 9,999 times
+(register-label shuffle, the primary test), recompute the distance, and report where the observed value
+falls (empirical p-value), Holm-adjusted across the four regions. As a secondary test, shuffle region
+labels within each register. Report 95% bias-corrected bootstrap confidence intervals by resampling
+recipes within each region (9,999 resamples). The primary test was chosen after trial results were seen;
+the paper says so. Repeat the commercial side per source (Kapook, Sanook, MThai) as a robustness check.
+Report a null result plainly.
 
 ### 14.2 The distinctiveness decomposition (RQ2)
 
