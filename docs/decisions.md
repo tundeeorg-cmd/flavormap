@@ -1794,7 +1794,7 @@ git history at `587426d`.
 ---
 
 ## HD-15 — ที่มา → acquisition-mode mapping
-**Date presented:** 2026-11-06 · **Status:** OPEN
+**Date presented:** 2026-11-06 · **Status:** DECIDED 2026-11-06
 **Arises from:** TIMELINE v4 T1.12 (due 26 Oct; blocks Figure 7). CLAUDE.md §9 reserved
 this number for this gate; no entry existed before this one.
 
@@ -1841,9 +1841,19 @@ Whatever is decided, the code will read the decided table and write NULL for any
 in it (T1.12).
 
 **Recommendation:** none.
-**Decision:**
-**Reasoning:**
-**Date decided:**
+**Decision:** **C, hand-code the strings.** The researcher codes ที่มา strings in a mapping
+file, ranked by frequency; how many is the researcher's choice, and **uncoded strings stay
+NULL**. **Multi-mode strings: (iii), store every mode the text names.** **Place-only
+strings: their own value, `local`.** Non-source text (units, citations, `[REDACTED]`) is
+NULL. Rejected: A (the 13 hints), B (edited keywords), D (drop acquisition mode); for
+multi-mode, NULL, `mixed` and first-named; for place-only, NULL.
+**Reasoning:** [not stated in session; to be added by the researcher]
+**Date decided:** 2026-11-06, by the researcher in session
+**Build [CC] (T1.12):** remove `ACQUISITION_HINTS`, so the parser infers no mode; a
+multi-valued column allowing `grown | foraged | market | packaged | local` (migration);
+a ranked coding file the researcher fills, kept gitignored because the strings are
+DCP-derived and some carry district or subdistrict detail (HD-3, HD-21); a loader that
+reads only that file; a coverage report.
 
 ---
 
