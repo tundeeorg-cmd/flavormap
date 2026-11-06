@@ -1524,6 +1524,15 @@ August audit counted pages, so its confirmed claims must be mapped to loaded rec
 (HD-22) [CC]. `province_attribution` already holds `region` at tier 2; no migration is
 needed.
 
+**Reading sheet for (2), built 2026-11-06 [CC]:** `data/interim/hd37d_body_text_reading.csv`
+(gitignored: it quotes Kapook text).
+- **Contents:** the 137 Kapook pages whose article body carries exactly one region term
+  (Northeast 64, South 42, North 27, Central 4). Columns: page id, title, region, the term,
+  the line it appears in, other occurrences, the loaded recipe ids, and
+  `genuine_dish_claim` for the researcher.
+- **Pages without loaded recipes:** 88 of the 137 have none (only 1,360 of 2,521 pages are
+  loaded). A claim confirmed on such a page labels nothing until its recipes are loaded.
+
 ---
 
 ## HD-38 — How a register's recipes become one ingredient vector (RQ1)
@@ -2119,6 +2128,15 @@ presented, with the recommended option chosen each time):
 `drafted_by` (`bo` / `claude`) and `reviewed_by_bo` (date or empty), with migration 030.
 - The 302 entries in `data/interim/new_entries_drafted_by_claude.csv` are `claude`; the
   other 190 are `bo`. None is reviewed yet.
+
+**Batch 2 error-rate sample (2026-11-06).** For the methods section's error rate:
+- **Population:** the 652 string groups the agent decided in Batch 2 where the decision was
+  applied to at least one string. Listed in `data/interim/batch2_decided_groups.csv`.
+- **Sample:** 50 groups drawn with `random.Random(42)` (`src.config.RANDOM_SEED`), in
+  `data/interim/batch2_error_sample.csv`. 27 map to an existing entry, 17 create a new
+  entry and 6 are exclusions.
+- The researcher marks each group `correct` (yes/no), with `should_be` for any that are
+  wrong.
 - An entry is *trusted* if `bo` drafted it or it carries a review date.
 - Alias- and split-level provenance is not stored per row; the batch records in
   `data/interim/` keep it.
