@@ -1648,7 +1648,7 @@ transparency but not interpreted."
   `.json`.
 - Flagged cells stay inside their Holm family. Whether they should leave it was not
   asked.
-- Cells below the minimum at commit f00ae26: Kapook-only Central (4), MThai-only North
+- Cells below the minimum at commit 8e4d49e: Kapook-only Central (4), MThai-only North
   (4), MThai-only South (3), under both weightings. No pooled cell.
 
 **Where each region's commercial recipes come from** (the 83 in `v_recipes_clean`, from
@@ -1683,7 +1683,7 @@ excluded.**
   written at its head.
 - **The run:** `uv run python -m scripts.run_rq1 --exclude-recipes
   data/interim/chainat_tag.txt` → `rq1_registers_20261106_excl_chainat_tag.csv`, at
-  30fbd78, 9,999/9,999, seed 42, TF-IDF.
+  d768723, 9,999/9,999, seed 42, TF-IDF.
 - **Why other regions move too:** removing recipes changes the TF-IDF idf, the region
   shuffle and the random streams, so every row shifts slightly, not only Central's.
 
@@ -2066,7 +2066,7 @@ coded fields at write-up.
 **Date decided:** 2026-11-06, by the researcher in session
 **Implemented:** migration `026_dish_status_reports.sql` (from draft A; the coded-column
 comment removed), draft `A_loader.patch` applied. Drafts B and C deleted; they remain in
-git history at `587426d`.
+git history at `e4ce540`.
 
 ---
 
@@ -2553,7 +2553,7 @@ and §14.1, CLAUDE.md §4 RQ1, TIMELINE T1.19, `paper/dh2027/numbers.md`.
 
 ### HD-44 amendment — the observed distance lies outside its interval in 3 cells
 **Date presented:** 2026-11-06 · **Status:** DECIDED 2026-11-06
-**Arises from:** the 9,999/9,999 run at f00ae26 (T1.19). In 3 primary (TF-IDF) cells the
+**Arises from:** the 9,999/9,999 run at 8e4d49e (T1.19). In 3 primary (TF-IDF) cells the
 observed distance lies above its bias-corrected 95% interval:
 - pooled North: 0.6494 vs [0.5406, 0.6490];
 - pooled South: 0.4943 vs [0.3925, 0.4832];
@@ -2614,7 +2614,7 @@ this). TF-IDF, all 12 cells:
 **Recommendation:** none.
 **Decision:** **A. Keep, and explain.** Report the observed distance with the
 bias-corrected 95% interval, plus a footnote and a limitations line for the cells where
-the bootstrap bias exceeds about 1.96 SE (3 of 12 TF-IDF cells at f00ae26). Chosen by the
+the bootstrap bias exceeds about 1.96 SE (3 of 12 TF-IDF cells at 8e4d49e). Chosen by the
 researcher from the four options asked (A–D; E offered via "Other").
 Rejected: B (BC point estimate), C (switch interval type), D (normal interval around the
 BC point), E (bias-reduced estimator).
@@ -2632,7 +2632,7 @@ agent. The Claude Code agent gave no recommendation; the entry above says
 **Built [CC], 2026-11-06:** `docs/limitations.md` L20 (statement from the researcher's
 reasoning; severity left for the researcher).
 **Built [CC], 2026-11-06:** `run_rq1` writes `obs_outside_ci` and prints "observed
-outside CI", so the footnote's cells come from the script. At 30fbd78 it marks the same 3
+outside CI", so the footnote's cells come from the script. At d768723 it marks the same 3
 cells.
 
 ---
