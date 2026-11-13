@@ -32,7 +32,10 @@ and listed separately so a reader can see why:
 
 - labels: a number glued to letters or after Figure/Table/Section/RQ/Q/HD/T
   (``RQ1``, ``Figure 6``, ``HD-44``);
-- citation years: four digits 1900–2099 inside parentheses or after ``et al.``.
+- citation years: four digits 1900–2099 inside parentheses or after ``et al.``;
+- not data: tokens the researcher lists under numbers.md's ``## Not data`` heading, one
+  bullet each as ``- `2568` — why`` (a calendar year, a confidence level). Matched exactly,
+  as written in the draft, and listed so the allowlist stays visible.
 
 Everything else that does not match is **untraced**. T1.24's done-when is zero untraced.
 The audit only finds; whether a number is right is the researcher's.
@@ -166,6 +169,26 @@ class NumberAudit:
     untraced: list[tuple[int, str, str]] = field(default_factory=list)  # (line, number, context)
     labels: list[str] = field(default_factory=list)
     years: list[str] = field(default_factory=list)
+    non_data: list[str] = field(default_factory=list)
+
+
+_NOT_DATA_HEADING = re.compile(r"^##\s+not data\b", re.I)
+_NOT_DATA_ITEM = re.compile(r"^\s*[-*+]\s+`([^`]+)`")
+
+
+def non_data_values(numbers_md: str) -> set[str]:
+    """Tokens listed under numbers.md's ``## Not data`` heading: numbers in the draft
+    that are not measurements (a year, a confidence level). Exact tokens only."""
+    out: set[str] = set()
+    inside = False
+    for ln in numbers_md.splitlines():
+        if ln.startswith("#"):
+            inside = bool(_NOT_DATA_HEADING.match(ln))
+            continue
+        m = _NOT_DATA_ITEM.match(ln) if inside else None
+        if m:
+            out.add(m.group(1).strip())
+    return out
 
 
 def _decimal(token: str) -> Decimal | None:
@@ -212,8 +235,10 @@ def matches(token: str, known: set[Decimal]) -> bool:
 
 
 def audit_numbers(lines: list[str], known: set[Decimal],
-                  at: list[int] | None = None) -> NumberAudit:
-    """`at`: the file line of each entry of `lines`, for the report."""
+                  at: list[int] | None = None,
+                  non_data: set[str] | None = None) -> NumberAudit:
+    """`at`: the file line of each entry of `lines`, for the report. `non_data`: exact
+    tokens the researcher has declared not to be data (numbers.md ``## Not data``)."""
     out = NumberAudit()
     for idx, ln in enumerate(lines):
         i = at[idx] if at else idx + 1
@@ -230,6 +255,9 @@ def audit_numbers(lines: list[str], known: set[Decimal],
                     re.search(r"et al\.?,?\s*$", before)
                     or (before.rfind("(") > before.rfind(")"))):
                 out.years.append(token)
+                continue
+            if non_data and token in non_data:
+                out.non_data.append(token)
                 continue
             if matches(token, known):
                 out.traced.append(token)
@@ -277,8 +305,9 @@ def main(argv: list[str] | None = None) -> int:
     draft = split(args.draft.read_text(encoding="utf-8"))
     words, thai = count_words(draft.counted)
     refs = count_references(draft.references)
-    audit = audit_numbers(draft.counted, known_values(args.numbers.read_text(encoding="utf-8")),
-                          draft.counted_at)
+    numbers_md = args.numbers.read_text(encoding="utf-8")
+    audit = audit_numbers(draft.counted, known_values(numbers_md), draft.counted_at,
+                          non_data_values(numbers_md))
     lo, hi = WORD_RANGE
     status = "within" if lo <= words <= hi else "OUTSIDE"
     print(f"words: {words:,} ({thai} Thai, newmm) — {status} {lo:,}–{hi:,}; "
@@ -288,7 +317,8 @@ def main(argv: list[str] | None = None) -> int:
     for line, text in draft.placeholders:
         print(f"  line {line}: {text}")
     print(f"numbers: {len(audit.traced)} traced, {len(audit.untraced)} untraced; "
-          f"not checked: {len(audit.labels)} labels, {len(audit.years)} citation years")
+          f"not checked: {len(audit.labels)} labels, {len(audit.years)} citation years, "
+          f"{len(audit.non_data)} not data ({', '.join(sorted(set(audit.non_data))) or '-'})")
     for line, token, context in audit.untraced:
         print(f"  UNTRACED line {line}: {token}  — {context}")
     if args.write:

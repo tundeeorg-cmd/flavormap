@@ -97,6 +97,7 @@ Primary = TF-IDF, sensitivity = prevalence (HD-38). Source file: `data/coverage/
 | Sensitivity: the same per-region distances under prevalence, and whether the order of regions changes | Central `0.417`, North `0.484`, Northeast `0.329`, South `0.415`; ascending order Northeast < South < Central < North under both weightings (South and Central differ by 0.0015 under prevalence) · `rq1_registers_20261106.csv` (all entries) and `…_reviewed.csv` · commit 7cedfe2 · 2026-11-06 |
 | Robustness: Kapook-only distances per region, with n | Central `0.750` (49 / 4; **below minimum n**), North `0.683` (33 / 8), Northeast `0.439` (34 / 28), South `0.522` (28 / 15); Holm p (primary) 0.1454 / 0.1454 / 0.0004 / 0.0468 · `rq1_registers_20261106.csv` (all entries) and `…_reviewed.csv` · commit 7cedfe2 · 2026-11-06 |
 | Robustness: MThai-only distances per region, with n | Central `0.601` (49 / 14), North `0.813` (33 / 4; **below minimum n**), Northeast `0.526` (34 / 7), South `0.643` (28 / 3; **below minimum n**); Holm p (primary) 0.0068 / 0.3465 / 0.4650 / 0.5478 · `rq1_registers_20261106.csv` (all entries) and `…_reviewed.csv` · commit 7cedfe2 · 2026-11-06 |
+| Sensitivity: Central without the MThai Chai Nat tag (13 of its 18 web recipes) | `13` recipes excluded (MThai tag อาหารจังหวัดชัยนาท); Central commercial n then `5`; Holm p (primary) `0.193` (0.1930; was 0.0021) · `rq1_registers_20261106_excl_chainat_tag.csv` from `uv run python -m scripts.run_rq1 --exclude-recipes data/interim/chainat_tag.txt` (the list is built by the query at the head of that file; HD-37 amendment, docs/decisions.md) · commit 30fbd78 · 2026-11-06 |
 | Figure 1 / Figure 6 caption: recipes per region per register; ingredients shown (top 60 by variance) | Figure 6: 4 regions × `60` ingredients; recipes per region as in Section 3 (official 49/33/34/28, commercial 18/12/35/18) · `figures/fig6_heatmap.png`, `fig6_heatmap_reviewed.png`; counts in the caption block `figures/fig6_heatmap.json` · commit 7cedfe2 · 2026-11-06 |
 | Fieldwork: interviews completed; the one early observation, if any | `0` interviews as of 2026-11-06 · `make status` · commit 7cedfe2 · 2026-11-06 |
 
@@ -107,6 +108,15 @@ Primary = TF-IDF, sensitivity = prevalence (HD-38). Source file: `data/coverage/
 | Official dishes per province (3) | `3` by design; `203` loaded across `74` provinces · `make status` · commit 7cedfe2 · 2026-11-06 |
 | Commercial portals used | `2` (Kapook, MThai; Sanook pending permission) · `make status` · commit 7cedfe2 · 2026-11-06 |
 | Provinces in fieldwork (2) | `2` planned (HD-32), `0` visited as of 2026-11-06 · `make status` · commit 7cedfe2 · 2026-11-06 |
+
+## Not data
+
+Numbers in the draft that are not measurements. `make paper-audit` skips exactly these tokens and lists them, so this list stays short and visible.
+
+- `2568` — the DCP programme year (Thai Buddhist era), a name for the edition, not a count
+- `95%` — the confidence level of the bootstrap intervals (HD-44), a setting, not a result
+- `2026` — a calendar year in the schedule (fieldwork dates)
+- `2027` — a calendar year in the schedule (release, full paper)
 
 ## Submission checks
 

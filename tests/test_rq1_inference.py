@@ -422,3 +422,16 @@ def test_paper_audit_leaves_placeholders_out_and_reports_file_lines() -> None:
     audit = pa.audit_numbers(draft.counted, set(), draft.counted_at)
     assert [(line, tok) for line, tok, _ in audit.untraced] == [(7, "203")]
     assert "5" in audit.labels and "9" in audit.labels
+
+
+def test_paper_audit_not_data_list_is_exact_and_reported() -> None:
+    from scripts import paper_audit as pa
+    numbers_md = ("| Number | Value |\n|---|---|\n| n | `203` · x · c · d |\n\n"
+                  "## Not data\n\n- `2568` — programme year\n- `95%` — CI level\n\n"
+                  "## Later\n\n- `777` — outside the section, ignored\n")
+    assert pa.non_data_values(numbers_md) == {"2568", "95%"}
+    lines = ["Year 2568, 203 recipes, a 95% interval, 95 cells, 777 more."]
+    audit = pa.audit_numbers(lines, pa.known_values(numbers_md), None,
+                             pa.non_data_values(numbers_md))
+    assert sorted(audit.non_data) == ["2568", "95%"]
+    assert {t for _, t, _ in audit.untraced} == {"95", "777"}   # exact match only
