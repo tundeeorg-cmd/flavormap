@@ -86,3 +86,10 @@ data/reference/acquisition_map.csv
 
 # T3.6/T3.7 release dry runs (src/release.py): local only until HD-3 and HD-20.
 data/release/
+
+# Local-only documents (researcher, 2026-11-13): family summaries, the Thai draft, the
+# status-audit prompt, and rendered paper PDFs. paper/dh2027/draft.md is the source of truth.
+paper/FlavorMap_Family_Summary*.pdf
+paper/DH2027_draft_v1_TH.pdf
+paper/**/*.pdf
+flavormap_status_audit_prompt.md
