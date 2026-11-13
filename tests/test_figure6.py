@@ -10,7 +10,7 @@ import pandas as pd
 
 from scripts.make_figure6 import commercial_filter
 from src.analyze.rq1_registers import Profile
-from src.viz.figure6 import build, render, seriate
+from src.viz.figure6 import build, drawn_registers, render, seriate
 
 
 def _p(register: str, unit: str, vector: dict[str, float], n: int = 5) -> Profile:
@@ -60,6 +60,16 @@ def test_every_panel_shares_one_province_and_one_ingredient_order() -> None:
     assert {v.shape for v in heat.values.values()} == {(1, 2)}
 
 
+def test_a_register_with_no_recipes_gets_no_panel() -> None:
+    """Domestic has no interviews yet: official and commercial are drawn, stacked in
+    REGISTERS order, and no empty domestic panel."""
+    heat = build([
+        _p("commercial", "TH-30", {"ing_a": 0.7}),
+        _p("official", "TH-30", {"ing_a": 1.0, "ing_b": 0.3}),
+    ])
+    assert drawn_registers(heat) == ["official", "commercial"]
+
+
 def test_the_threshold_filters_the_commercial_register_only() -> None:
     data = pd.DataFrame({
         "recipe_id": [1, 2, 3, 4],
@@ -77,10 +87,8 @@ def test_render_writes_the_figure_and_an_honest_empty_state(tmp_path: Path) -> N
         _p("official", "TH-50", {"ing_a": 0.2, "ing_b": 1.0}),
         _p("commercial", "TH-30", {"ing_a": 0.7}),
     ])
-    full = render(heat, tmp_path / "f.png", province_label={}, ingredient_label={},
-                  caption="synthetic")
-    empty = render(build([]), tmp_path / "e.png", province_label={}, ingredient_label={},
-                   caption="synthetic")
+    full = render(heat, tmp_path / "f.png", province_label={}, ingredient_label={})
+    empty = render(build([]), tmp_path / "e.png", province_label={}, ingredient_label={})
     assert full.stat().st_size > 0 and empty.stat().st_size > 0
 
 

@@ -20,7 +20,9 @@ shape the weights of those that are.
 
 **Caption data block** (counts only, for the paper's caption and numbers.md): a
 ``.json`` beside the PNG with the unit, weighting, threshold, lexicon mode, ingredients
-shown, and recipes per unit per register. No ingredient names, no text.
+shown, recipes per unit per register, and ``caption_note`` (the same counts as one
+sentence for the paper's caption; the figure itself carries no footer). No ingredient
+names.
 
 Labels: provinces by English name; ingredients by the lexicon's English gloss where one
 exists, else the Thai name.
@@ -129,9 +131,10 @@ def main(argv: list[str] | None = None) -> int:
         text += " Reviewed lexicon entries only."
     province_label, ingredient_label = labels(args.processed)
     render(heatmap, args.out, province_label=province_label if unit == "province" else {},
-           ingredient_label=ingredient_label, caption=text, unit_name=unit)
+           ingredient_label=ingredient_label, unit_name=unit)
     block = caption_block(counts, unit, threshold, len(heatmap.ingredients), args.top_n,
                           args.reviewed_only)
+    block["caption_note"] = text  # counts for the paper's caption; not drawn on the figure
     args.out.with_suffix(".json").write_text(json.dumps(block, indent=1, ensure_ascii=False),
                                              encoding="utf-8")
     print(f"wrote {args.out} ({len(heatmap.provinces)} {unit}s × "

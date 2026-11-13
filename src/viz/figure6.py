@@ -8,6 +8,11 @@ Specified in Bible v4 §12 and CLAUDE.md §6: fill = TF-IDF, the top ~60 ingredi
 variance, **both axes seriated by clustering, never alphabetical**, one panel per
 register. 2D (rule 10), 300 dpi, one sequential hue.
 
+**Layout (2026-11-13, researcher).** Panels stacked vertically, official on top; a
+register with no recipes gets no panel (domestic, until interviews exist); ingredient
+labels on the bottom panel only; portrait at A4 text width; recipe counts per unit in the
+caption, not drawn on the figure.
+
 How the specification is met, so each step can be checked or changed:
 
 - **TF-IDF** is `src.analyze.rq1_registers`'s ``tfidf`` weighting: the share of a
@@ -18,7 +23,7 @@ How the specification is met, so each step can be checked or changed:
 - **Seriation** is average-linkage hierarchical clustering on cosine distance, with
   optimal leaf ordering (`scipy.cluster.hierarchy`), so neighbouring rows and columns are
   the most similar ones. Provinces are clustered on their three register blocks side by
-  side, so **one province order serves all three panels**, and ingredients on every row
+  side, so **one province order serves every panel**, and ingredients on every row
   pooled, so **one ingredient order serves all three**. All-zero rows go last.
 - **No data is not zero.** A province with no recipes from a register is a hatched grey
   row in that register's panel. A pale cell means the province has recipes but the
@@ -129,21 +134,32 @@ def _panel_extent(fig: plt.Figure, axes: Sequence[plt.Axes]) -> tuple[float, flo
     return float(top), float(bottom)
 
 
+def drawn_registers(heatmap: Heatmap) -> list[str]:
+    """Registers with recipes in at least one unit, in `REGISTERS` order. A register with
+    none (domestic, until interviews are loaded) gets no panel rather than an empty one."""
+    return [r for r in REGISTERS if heatmap.n_recipes.get(r)]
+
+
 def render(
     heatmap: Heatmap,
     out: Path,
     *,
     province_label: dict[str, str],
     ingredient_label: dict[str, str],
-    caption: str,
     unit_name: str = "province",
+    width_in: float = 6.9,
 ) -> Path:
-    """Draw the three panels to `out`. With nothing to draw, write a figure that says
-    so, so `make figures` always produces the file and never a misleading empty grid."""
+    """Draw one panel per register with data, stacked vertically (official on top), to
+    `out`. Portrait, `width_in` wide (A4 text width by default). Ingredient labels on the
+    bottom panel only; recipe counts per unit go in the paper's caption, not on the figure
+    (``make_figure6`` writes them to the caption JSON). With nothing to draw, write a
+    figure that says so, so `make figures` always produces the file and never a misleading
+    empty grid."""
     out.parent.mkdir(parents=True, exist_ok=True)
+    registers = drawn_registers(heatmap)
     with plt.rc_context({"font.family": font_family()}):
-        if not heatmap.provinces:
-            fig, ax = plt.subplots(figsize=(7.5, 2.2))
+        if not heatmap.provinces or not registers:
+            fig, ax = plt.subplots(figsize=(width_in, 2.2))
             ax.axis("off")
             ax.text(0.0, 0.75, f"Figure 6 — {unit_name} × ingredient (TF-IDF), by register",
                     fontsize=12, fontweight="bold", color=TITLE_INK, transform=ax.transAxes)
@@ -155,52 +171,55 @@ def render(
             return out
 
         n_p, n_i = len(heatmap.provinces), len(heatmap.ingredients)
-        finite = [v[np.isfinite(v)] for v in heatmap.values.values()]
+        finite = [heatmap.values[r][np.isfinite(heatmap.values[r])] for r in registers]
         vmax = max((float(f.max()) for f in finite if f.size), default=1.0) or 1.0
-        width = 3.2 + 3 * (0.16 * n_i + 0.6)
-        height = 1.8 + 0.16 * n_p
-        fig, axes = plt.subplots(1, 3, figsize=(width, height), sharey=True)
+        # Rows tall enough to read at region level (4 rows), compact at province level.
+        row_in = 0.55 if n_p <= 8 else 0.14
+        panel_in = max(row_in * n_p, 1.2)
+        label_in = 1.3  # rotated ingredient labels under the bottom panel
+        height = 0.7 + len(registers) * (panel_in + 0.35) + label_in
+        fig, grid_axes = plt.subplots(len(registers), 1, figsize=(width_in, height),
+                                      sharex=True, squeeze=False)
+        axes: list[plt.Axes] = list(grid_axes[:, 0])
         fig.patch.set_facecolor(SURFACE)
-        fig.subplots_adjust(wspace=0.06)
-        image = None
-        for ax, register in zip(axes, REGISTERS, strict=True):
+        fig.subplots_adjust(hspace=0.35 / panel_in)
+        image, hatched = None, False
+        for ax, register in zip(axes, registers, strict=True):
             grid = heatmap.values[register]
             image = ax.imshow(np.ma.masked_invalid(grid), cmap=CMAP, vmin=0, vmax=vmax,
                               aspect="auto", interpolation="nearest")
             for i in range(n_p):
                 if np.isnan(grid[i]).all():
+                    hatched = True
                     ax.add_patch(Rectangle((-0.5, i - 0.5), n_i, 1, facecolor=NO_DATA_FILL,
                                            edgecolor=NO_DATA_INK, hatch="////",
                                            linewidth=0))
-            covered = sum(1 for p in heatmap.provinces if p in heatmap.n_recipes[register])
-            recipes = sum(heatmap.n_recipes[register].values())
-            ax.set_title(f"{register}\n{covered} {unit_name}s · {recipes} recipes",
-                         fontsize=9.5, color=TITLE_INK, loc="left")
-            ax.set_xticks(range(n_i))
-            ax.set_xticklabels([ingredient_label.get(k, k) for k in heatmap.ingredients],
-                               rotation=90, fontsize=6.5, color=RULE)
+            ax.set_title(register, fontsize=9.5, color=TITLE_INK, loc="left")
+            ax.set_yticks(range(n_p))
+            ax.set_yticklabels([province_label.get(p, p) for p in heatmap.provinces],
+                               fontsize=7.5 if n_p <= 8 else 6, color=RULE)
             ax.tick_params(length=0)
             for spine in ax.spines.values():
                 spine.set_visible(False)
-        axes[0].set_yticks(range(n_p))
-        axes[0].set_yticklabels([province_label.get(p, p) for p in heatmap.provinces],
-                                fontsize=6.5, color=RULE)
-        assert image is not None  # three panels were drawn
-        fig.colorbar(image, ax=axes, fraction=0.015, pad=0.01, label="TF-IDF")
-        # Place the title above the panel titles and the caption below the rotated
-        # ingredient labels, measured from what was actually drawn. Fixed figure
-        # fractions collide on a short figure (4 regions): the title sat on the panel
-        # subtitles and the caption ran through the x labels.
-        top, bottom = _panel_extent(fig, axes)
+        for ax in axes[:-1]:
+            ax.tick_params(labelbottom=False)
+        axes[-1].set_xticks(range(n_i))
+        axes[-1].set_xticklabels([ingredient_label.get(k, k) for k in heatmap.ingredients],
+                                 rotation=90, fontsize=6, color=RULE)
+        assert image is not None  # at least one panel was drawn
+        fig.colorbar(image, ax=axes, fraction=0.025, pad=0.015, label="TF-IDF")
+        # Title above the top panel's title, measured from what was drawn: fixed figure
+        # fractions collide on a short figure (4 regions).
+        top, _ = _panel_extent(fig, axes)
         gap = 0.08 / fig.get_figheight()  # 0.08 inch, in figure fraction
-        fig.legend(handles=[Patch(facecolor=NO_DATA_FILL, edgecolor=NO_DATA_INK,
-                                  hatch="////", label="no recipes from this register")],
-                   loc="lower right", bbox_to_anchor=(0.99, top + gap), frameon=False,
-                   fontsize=8)
-        fig.suptitle(f"Figure 6 — {unit_name} × ingredient (TF-IDF), by register. "
+        if hatched:
+            fig.legend(handles=[Patch(facecolor=NO_DATA_FILL, edgecolor=NO_DATA_INK,
+                                      hatch="////", label="no recipes from this register")],
+                       loc="lower right", bbox_to_anchor=(0.99, top + gap), frameon=False,
+                       fontsize=8)
+        fig.suptitle(f"{unit_name.capitalize()} × ingredient (TF-IDF), by register. "
                      "Both axes ordered by clustering.", x=0.01, y=top + gap, ha="left",
-                     va="bottom", fontsize=11, fontweight="bold", color=TITLE_INK)
-        fig.text(0.01, bottom - gap, caption, fontsize=8, color=RULE, va="top")
+                     va="bottom", fontsize=10, fontweight="bold", color=TITLE_INK)
         fig.savefig(out, dpi=300, bbox_inches="tight", facecolor=SURFACE)
         plt.close(fig)
     return out
