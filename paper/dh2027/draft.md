@@ -15,7 +15,7 @@ Jenissa Vichiansin — International School Bangkok · github.com/tundeeorg-cmd/
 
 [ORIGIN STORY — to be written by the author after cooking the dish with the family member (TIMELINE T1.9). First sentence starts with cooking; method enters no earlier than sentence three. Include what contradicted the remembered version. Do not draft this from memory. ~80 words.]
 
-The version cooked at home is not the version the government lists, nor the one a recipe site publishes. Thailand's Department of Cultural Promotion names three dishes for each of the country's 77 provinces; recipe portals publish thousands more; home cooks make what season, cost and habit allow. Which of these is "Thai regional food"? This paper treats the question as empirical: when the same cuisine is recorded by three actors with three different motives, how far apart are the records, and is the difference larger than chance? This short paper reports the first side of that triangle, the state and the web; interviews with home cooks in Nakhon Ratchasima and Buri Ram, scheduled for November–December 2026, will complete it.
+The version cooked at home is not the version the government lists, nor the one a recipe site publishes. Thailand's Department of Cultural Promotion [TBD: Department of Cultural Promotion source citation] names three dishes for each of the country's 77 provinces; recipe portals publish thousands more; home cooks make what season, cost and habit allow. Which of these is "Thai regional food"? This paper treats the question as empirical: when the same cuisine is recorded by three actors with three different motives, how far apart are the records, and is the difference larger than chance? This short paper reports the first side of that triangle, the state and the web; interviews with home cooks in Nakhon Ratchasima and Buri Ram, scheduled for November–December 2026, will complete it.
 
 ## 2. Background and gap
 
@@ -27,7 +27,7 @@ Three gaps follow. First, no study compares state-curated, commercial and domest
 
 I treat each source as a *register*: a record of the same cuisine produced under a particular selection pressure (Table 1). None is ground truth; the comparison between them is the instrument.
 
-The **official** register is the Department of Cultural Promotion's local-food programme (`food.culture.go.th`, programme year 2568): 231 submission forms, three dishes per province. I loaded 203 recipes from 74 provinces; 144 have between 3 and 25 mapped ingredients and enter the analysis. The **commercial** register is two Thai recipe portals, Kapook (1,360 recipes) and MThai (193); a third portal is excluded pending the publisher's permission. Web recipes rarely say where a dish comes from: only 86 carry a region claim in their title, category, tags or hand-confirmed body text, and 83 of these enter the analysis. The **domestic** register is a planned set of twelve interviews with home cooks in Nakhon Ratchasima and Buri Ram; none had been completed at submission.
+The **official** register is the Department of Cultural Promotion's local-food programme (`food.culture.go.th`, programme year 2568; [TBD: Department of Cultural Promotion source citation]): 231 submission forms, three dishes per province. I loaded 203 recipes from 74 provinces; 144 have between 3 and 25 mapped ingredients and enter the analysis. The **commercial** register is two Thai recipe portals, Kapook (1,360 recipes) and MThai (193); a third portal is excluded pending the publisher's permission. Web recipes rarely say where a dish comes from: only 86 carry a region claim in their title, category, tags or hand-confirmed body text, and 83 of these enter the analysis. The **domestic** register is a planned set of twelve interviews with home cooks in Nakhon Ratchasima and Buri Ram; none had been completed at submission. Code is available at github.com/tundeeorg-cmd/flavormap (Vichiansin 2026); the dataset will be released as OpenFlavorTH.
 
 Informants' names, addresses and telephone numbers in the official forms are stripped at parse time, before any database write, and a database-wide test enforces this. Only ingredient lists are stored, never recipe prose; every site's terms are audited and dated; interviews use a Thai consent form with a parent present. Two Thai PDF extraction traps, a vowel that silently drops out and checkboxes drawn in a symbol font, are handled with dedicated tests.
 
@@ -43,7 +43,7 @@ Informants' names, addresses and telephone numbers in the official forms are str
 
 Ingredients are normalised to a controlled Thai vocabulary of 492 entries, built from 5,864 logged mapping decisions and covering 81.4% of ingredient mentions in the two registers analysed. Every granularity rule is documented with its reasoning.
 
-Because web recipes so rarely name a province, the unit is the region: Central, North, Northeast and South. For each region and register I build a TF-IDF-weighted ingredient vector and measure the cosine distance between the official and commercial vectors. To ask whether a distance is larger than chance, I pool each region's recipes and reassign the official and commercial labels 9,999 times, report the share of shuffles at least as distant, and adjust across the four regions with Holm's method. My outline had planned a different null, shuffling region labels; I switched after trial runs because the register shuffle tests RQ1 directly, and I report the planned test as secondary. Each distance carries a 95% bias-corrected bootstrap interval (9,999 resamples). Robustness checks repeat the analysis with prevalence weighting and for each site separately; cells with fewer than five web recipes are flagged. These preliminary RQ1 analyses were run before my predictions were pre-registered, so they are exploratory; the confirmatory analyses will be run only after pre-registration.
+Because web recipes so rarely name a province, the unit is the region: Central, North, Northeast and South. For each region and register I build a TF-IDF-weighted ingredient vector and measure the cosine distance between the official and commercial vectors. To ask whether a distance is larger than chance, I pool each region's recipes and reassign the official and commercial labels 9,999 times, report the share of shuffles at least as distant, and adjust across the four regions with Holm's method (Holm 1979). My outline had planned a different null, shuffling region labels; I switched after trial runs because the register shuffle tests RQ1 directly, and I report the planned test as secondary. Each distance carries a 95% bias-corrected bootstrap interval (Efron and Tibshirani 1993; 9,999 resamples). Robustness checks repeat the analysis with prevalence weighting and for each site separately; cells with fewer than five web recipes are flagged. These preliminary RQ1 analyses were run before my predictions were pre-registered, so they are exploratory; the confirmatory analyses will be run only after pre-registration.
 
 Later stages test whether regional identity lies in what cooks refuse as much as what they use (interview question 9: "อะไรที่คนจังหวัดอื่นใส่ในจานนี้ แต่บ้านเราไม่มีวันใส่?"), which dishes no record lists, whether dishes can be cooked from ingredient lists alone, and whether state-endangered dishes survive online.
 
@@ -84,9 +84,17 @@ Ahn, Y.-Y., Ahnert, S. E., Bagrow, J. P., and Barabási, A.-L. (2011). Flavor ne
 
 Burrows, J. (2007). All the way through: testing for authorship in different frequency strata. *Literary and Linguistic Computing* 22(1), 27–47.
 
+Efron, B., and Tibshirani, R. J. (1993). *An Introduction to the Bootstrap*. New York: Chapman & Hall.
+
 Gebru, T., Morgenstern, J., Vecchione, B., Vaughan, J. W., Wallach, H., Daumé III, H., and Crawford, K. (2021). Datasheets for datasets. *Communications of the ACM* 64(12), 86–92.
 
+Holm, S. (1979). A simple sequentially rejective multiple test procedure. *Scandinavian Journal of Statistics* 6(2), 65–70.
+
+Kapook. *Kapook Cooking* (recipe portal). https://cooking.kapook.com, accessed 23 August 2026.
+
 Monroe, B. L., Colaresi, M. P., and Quinn, K. M. (2008). Fightin' words: lexical feature selection and evaluation for identifying the content of political conflict. *Political Analysis* 16(4), 372–403.
+
+MThai. *MThai Food* (recipe portal). https://mthai.com, accessed 6 October 2026.
 
 Smith, L. (2006). *Uses of Heritage*. London: Routledge.
 
@@ -94,4 +102,4 @@ Smith, L. (2006). *Uses of Heritage*. London: Routledge.
 
 [TBD: Department of Cultural Promotion source citation.]
 
-[TBD: OpenFlavorTH repository citation.]
+Vichiansin, J. (2026). *FlavorMap* [source code]. GitHub. https://github.com/tundeeorg-cmd/flavormap, accessed 13 November 2026.
