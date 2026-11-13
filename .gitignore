@@ -93,3 +93,11 @@ paper/FlavorMap_Family_Summary*.pdf
 paper/DH2027_draft_v1_TH.pdf
 paper/**/*.pdf
 flavormap_status_audit_prompt.md
+
+# Lexicon string files (researcher, 2026-11-13, option 1): raw ingredient strings copied
+# from the sources, DCP-derived ones among them (HD-3), and a few site members' names.
+# Local only; the database dump and the off-laptop backup carry them.
+# canonical_ingredients.csv and ingredient_conflations.csv stay tracked.
+data/reference/lexicon/ingredient_aliases.csv
+data/reference/lexicon/ingredient_splits.csv
+data/reference/lexicon/ingredient_exclusions.csv

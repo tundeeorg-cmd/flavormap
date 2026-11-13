@@ -5,7 +5,7 @@ Three CSV files in ``data/reference/lexicon/``, one per table in migration 004:
 ``canonical_ingredients.csv``
     ``canonical_id, name_th, name_en, category, is_fermented, regional_note,
     decision_note, drafted_by, reviewed_by_bo``
-``ingredient_aliases.csv``
+``ingredient_aliases.csv`` (local only; absent on a fresh clone)
     ``alias, canonical_id``
 ``ingredient_conflations.csv``
     ``canonical_id_a, canonical_id_b, reason``
@@ -19,6 +19,12 @@ Three CSV files in ``data/reference/lexicon/``, one per table in migration 004:
     (equipment, water, ice, food colouring …). It maps to no entry and is counted apart
     from "unmapped" in the coverage report, so a deliberate exclusion is not shown as a
     gap. A string is an alias, a split or an exclusion, never two of these.
+
+**Local only (researcher, 2026-11-13).** The alias, split and exclusion files hold raw
+ingredient strings copied from the sources, DCP-derived ones among them (reference-only,
+HD-3), and a few lines carry site members' names. They are gitignored and never pushed;
+the database dump and the off-laptop backup carry them. On a fresh clone they are absent
+and the lexicon reads as entries plus conflations only: entry names still map.
 
 Every row is written by the researcher, so every row loads as ``approved_by_human =
 true`` and every alias as ``match_method = 'manual'``. The file is the approval, which is
@@ -318,7 +324,9 @@ def read_lexicon(directory: Path) -> Lexicon:
         )
 
     aliases: dict[str, str] = dict(by_name)
-    for line, row in enumerate(_read(directory / ALIASES_FILE, ALIAS_COLUMNS), 2):
+    alias_path = directory / ALIASES_FILE
+    alias_rows = _read(alias_path, ALIAS_COLUMNS) if alias_path.exists() else []
+    for line, row in enumerate(alias_rows, 2):
         where = f"{ALIASES_FILE}:{line}"
         alias, cid = row["alias"], row["canonical_id"]
         if not alias:

@@ -163,6 +163,14 @@ def test_a_wrong_header_is_refused(tmp_path: Path) -> None:
         read_lexicon(tmp_path)
 
 
+def test_missing_alias_file_reads_as_entry_names_only(tmp_path: Path) -> None:
+    """The alias file is local only (2026-11-13): a fresh clone has none, and the
+    lexicon still loads, with each entry's own name as its only alias."""
+    (_write(tmp_path, GOOD) / ALIASES_FILE).unlink()
+    lex = read_lexicon(tmp_path)
+    assert lex.aliases == {"พริกขี้หนู": "ING_0001", "พริกชี้ฟ้า": "ING_0002"}
+
+
 def test_the_committed_lexicon_files_are_valid() -> None:
     read_lexicon(LEXICON_DIR)
 
