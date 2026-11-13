@@ -2444,6 +2444,22 @@ state-promotional sources are reported separately, in their own row.
   entries and reviewed only). `register:state_promotional` is 619 of 1,054 = 58.7%.
 **Reasoning:** as stated: coverage describes the lexicon behind RQ1's numbers, so it is
 measured on RQ1's registers; other registers are reported beside it, not pooled in.
+
+**Lexicon frozen for DH2027 — DECIDED 2026-11-13** (researcher). No merges, gloss or
+category changes before 20 Nov 2026. The merge of ING_0022 into ING_0012 is on hold, and
+the retire feature is not built.
+- **Evidence:** read-only checks on 13 Nov. Simulated merges on scratch copies of the
+  data: ING_0022 → ING_0012 changes every RQ1 row and Kapook-only South loses
+  significance (Holm p 0.0468 → 0.0618); ING_0085 → ING_0067 changes no conclusion and
+  leaves Figure 6 byte-identical. Neither merge was applied.
+- **Reasoning** (researcher's, chosen from options worded by Claude Code): too close to
+  the 20 Nov deadline to change a result, and I want interview data before setting a
+  chilli rule.
+
+**Status: OPEN (chilli entries).** Chilli entries reviewed 13 Nov: HD-6 cultivar rule
+applied inconsistently (ING_0091 vs ING_0022; ING_0312, ING_0313 kept separate), chilli
+entries in 6 categories, duplicate red curry paste (ING_0111/ING_0151), พริกกะเหรี่ยง
+absent and พริกเหลือง in 1 line. Revisit after DH using interview data.
 ---
 
 ## HD-44 — Which permutation null does RQ1 report?
