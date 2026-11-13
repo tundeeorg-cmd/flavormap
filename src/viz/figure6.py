@@ -118,6 +118,17 @@ def build(profiles: Sequence[Profile], top_n: int = TOP_N) -> Heatmap:
     )
 
 
+def _panel_extent(fig: plt.Figure, axes: Sequence[plt.Axes]) -> tuple[float, float]:
+    """Top and bottom of the panels as drawn, panel titles and rotated tick labels
+    included, in figure fraction."""
+    renderer = fig.canvas.get_renderer()  # type: ignore[attr-defined]
+    boxes = [ax.get_tightbbox(renderer) for ax in axes]
+    to_fig = fig.transFigure.inverted()
+    top = max(to_fig.transform((0, b.y1))[1] for b in boxes if b is not None)
+    bottom = min(to_fig.transform((0, b.y0))[1] for b in boxes if b is not None)
+    return float(top), float(bottom)
+
+
 def render(
     heatmap: Heatmap,
     out: Path,
@@ -176,13 +187,20 @@ def render(
                                 fontsize=6.5, color=RULE)
         assert image is not None  # three panels were drawn
         fig.colorbar(image, ax=axes, fraction=0.015, pad=0.01, label="TF-IDF")
+        # Place the title above the panel titles and the caption below the rotated
+        # ingredient labels, measured from what was actually drawn. Fixed figure
+        # fractions collide on a short figure (4 regions): the title sat on the panel
+        # subtitles and the caption ran through the x labels.
+        top, bottom = _panel_extent(fig, axes)
+        gap = 0.08 / fig.get_figheight()  # 0.08 inch, in figure fraction
         fig.legend(handles=[Patch(facecolor=NO_DATA_FILL, edgecolor=NO_DATA_INK,
                                   hatch="////", label="no recipes from this register")],
-                   loc="upper right", bbox_to_anchor=(0.99, 1.0), frameon=False, fontsize=8)
+                   loc="lower right", bbox_to_anchor=(0.99, top + gap), frameon=False,
+                   fontsize=8)
         fig.suptitle(f"Figure 6 — {unit_name} × ingredient (TF-IDF), by register. "
-                     "Both axes ordered by clustering.", x=0.01, ha="left",
-                     fontsize=11, fontweight="bold", color=TITLE_INK)
-        fig.text(0.01, -0.02, caption, fontsize=8, color=RULE, va="top")
+                     "Both axes ordered by clustering.", x=0.01, y=top + gap, ha="left",
+                     va="bottom", fontsize=11, fontweight="bold", color=TITLE_INK)
+        fig.text(0.01, bottom - gap, caption, fontsize=8, color=RULE, va="top")
         fig.savefig(out, dpi=300, bbox_inches="tight", facecolor=SURFACE)
         plt.close(fig)
     return out
